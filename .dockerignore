@@ -1,0 +1,11 @@
+.git
+.github
+.agents
+.vscode
+.idea
+.env
+.env.*
+storage/data/*.db
+storage/data/*.sqlite*
+docs/
+*.md

@@ -1,0 +1,20 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: pecuaria-gest:latest
+    container_name: pecuaria-gest-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:80"
+    environment:
+      - APP_NAME=${APP_NAME:-PecuáriaGest}
+      - APP_ENV=${APP_ENV:-production}
+      - API_KEY=${API_KEY:-pecuaria-mobile-key}
+      - SESSION_SECRET=${SESSION_SECRET:-pecuaria_secret_2026}
+      - DEFAULT_ADMIN_EMAIL=${DEFAULT_ADMIN_EMAIL:-admin@fazenda.com}
+      - DEFAULT_ADMIN_PASS=${DEFAULT_ADMIN_PASS:-admin123}
+    volumes:
+      # Persistência de dados SQLite e uploads
+      - ./storage:/var/www/html/storage
