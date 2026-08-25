@@ -71,16 +71,30 @@ $tipos     = $db->query("SELECT DISTINCT tipo FROM saude ORDER BY tipo")->fetchA
           <td class="small"><?= e($s['medicamento'] ?? '—') ?><?php if($s['dose']): ?> <span class="text-muted">(<?= e($s['dose']) ?>)</span><?php endif; ?></td>
           <td class="small text-muted"><?= formatDate($s['data']) ?></td>
           <td class="small <?= ($s['proxima_data'] && $s['proxima_data'] < date('Y-m-d')) ? 'text-danger fw-600' : 'text-muted' ?>"><?= formatDate($s['proxima_data']) ?></td>
-          <td class="small"><?= $s['custo'] ? 'R$ '.number_format($s['custo'],2,',','.') : '—' ?></td>
-          <td>
-            <form method="POST" action="/saude/<?= $s['id'] ?>/excluir" onsubmit="return confirm('Excluir registro?')">
-              <?= csrf_field() ?>
-              <button class="btn btn-sm btn-outline-danger py-0 px-2"><i class="bi bi-trash"></i></button>
-            </form>
+          <td class="text-end">
+            <div class="d-flex justify-content-end gap-1">
+              <a href="/saude/<?= $s['id'] ?>/editar" class="btn btn-sm btn-outline-primary py-0 px-2" title="Editar"><i class="bi bi-pencil"></i></a>
+              <form method="POST" action="/saude/<?= $s['id'] ?>/excluir" onsubmit="return confirm('Excluir registro?')">
+                <?= csrf_field() ?>
+                <button class="btn btn-sm btn-outline-danger py-0 px-2" title="Excluir"><i class="bi bi-trash"></i></button>
+              </form>
+            </div>
           </td>
         </tr>
         <?php endforeach; ?>
       </tbody>
     </table>
   </div>
+  <?php if ($totalPages > 1): ?>
+  <div class="card-footer bg-white d-flex justify-content-between align-items-center py-2">
+    <small class="text-muted">Página <?= $page ?> de <?= $totalPages ?></small>
+    <nav><ul class="pagination pagination-sm mb-0">
+      <?php for ($i=1; $i<=$totalPages; $i++): ?>
+        <li class="page-item <?= $i===$page?'active':'' ?>">
+          <a class="page-link" href="?<?= http_build_query(array_merge($_GET,['page'=>$i])) ?>"><?= $i ?></a>
+        </li>
+      <?php endfor; ?>
+    </ul></nav>
+  </div>
+  <?php endif; ?>
 </div>

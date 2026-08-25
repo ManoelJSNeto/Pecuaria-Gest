@@ -48,12 +48,14 @@ $pesagens = $stmt->fetchAll();
           <td class="small"><?= formatDate($p['data']) ?></td>
           <td class="fw-700"><?= number_format($p['peso'],1) ?></td>
           <td class="small text-muted"><?= e($p['origem'] ?? 'web') ?></td>
-          <td class="small text-muted"><?= e($p['observacao'] ?? '—') ?></td>
-          <td>
-            <form method="POST" action="/pesagens/<?= $p['id'] ?>/excluir" onsubmit="return confirm('Excluir pesagem?')">
-              <?= csrf_field() ?>
-              <button class="btn btn-sm btn-outline-danger py-0 px-2"><i class="bi bi-trash"></i></button>
-            </form>
+          <td class="text-end">
+            <div class="d-flex justify-content-end gap-1">
+              <a href="/pesagens/<?= $p['id'] ?>/editar" class="btn btn-sm btn-outline-primary py-0 px-2" title="Editar"><i class="bi bi-pencil"></i></a>
+              <form method="POST" action="/pesagens/<?= $p['id'] ?>/excluir" onsubmit="return confirm('Excluir pesagem?')">
+                <?= csrf_field() ?>
+                <button class="btn btn-sm btn-outline-danger py-0 px-2" title="Excluir"><i class="bi bi-trash"></i></button>
+              </form>
+            </div>
           </td>
         </tr>
         <?php endforeach; ?>

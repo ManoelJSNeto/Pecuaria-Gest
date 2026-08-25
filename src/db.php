@@ -2,40 +2,49 @@
 function getDb(): PDO {
     static $db = null;
     if ($db === null) {
-        $db = new PDO('sqlite:' . DB_PATH);
+        if (DB_DRIVER === 'pgsql') {
+            $dsn = "pgsql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_DATABASE;
+            $db = new PDO($dsn, DB_USERNAME, DB_PASSWORD);
+        } else {
+            $db = new PDO('sqlite:' . DB_PATH);
+            $db->exec('PRAGMA foreign_keys = ON;');
+        }
         $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-        $db->exec('PRAGMA foreign_keys = ON;');
         initDb($db);
     }
     return $db;
 }
 
 function initDb(PDO $db): void {
+    $isPg = (DB_DRIVER === 'pgsql');
+    $pk   = $isPg ? 'SERIAL PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
+    $now  = 'CURRENT_TIMESTAMP';
+
     $db->exec("
         CREATE TABLE IF NOT EXISTS usuarios (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id $pk,
             nome TEXT NOT NULL,
             email TEXT UNIQUE NOT NULL,
             senha TEXT NOT NULL,
             tipo TEXT DEFAULT 'admin',
             ativo INTEGER DEFAULT 1,
             ultimo_acesso TEXT,
-            created_at TEXT DEFAULT (datetime('now'))
+            created_at TIMESTAMP DEFAULT $now
         );
 
         CREATE TABLE IF NOT EXISTS pastagens (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id $pk,
             nome TEXT NOT NULL,
             area_ha REAL,
             capacidade INTEGER,
             status TEXT DEFAULT 'ativa',
             observacao TEXT,
-            created_at TEXT DEFAULT (datetime('now'))
+            created_at TIMESTAMP DEFAULT $now
         );
 
         CREATE TABLE IF NOT EXISTS animais (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id $pk,
             brinco TEXT UNIQUE NOT NULL,
             nome TEXT,
             sexo TEXT NOT NULL DEFAULT 'M',
@@ -49,22 +58,22 @@ function initDb(PDO $db): void {
             pai_brinco TEXT,
             observacao TEXT,
             foto_url TEXT,
-            created_at TEXT DEFAULT (datetime('now')),
-            updated_at TEXT DEFAULT (datetime('now'))
+            created_at TIMESTAMP DEFAULT $now,
+            updated_at TIMESTAMP DEFAULT $now
         );
 
         CREATE TABLE IF NOT EXISTS pesagens (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id $pk,
             animal_id INTEGER NOT NULL REFERENCES animais(id) ON DELETE CASCADE,
             peso REAL NOT NULL,
             data TEXT NOT NULL,
             observacao TEXT,
             origem TEXT DEFAULT 'web',
-            created_at TEXT DEFAULT (datetime('now'))
+            created_at TIMESTAMP DEFAULT $now
         );
 
         CREATE TABLE IF NOT EXISTS saude (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id $pk,
             animal_id INTEGER NOT NULL REFERENCES animais(id) ON DELETE CASCADE,
             tipo TEXT NOT NULL,
             descricao TEXT NOT NULL,
@@ -76,37 +85,49 @@ function initDb(PDO $db): void {
             custo REAL,
             observacao TEXT,
             origem TEXT DEFAULT 'web',
-            created_at TEXT DEFAULT (datetime('now'))
+            created_at TIMESTAMP DEFAULT $now
         );
 
         CREATE TABLE IF NOT EXISTS reproducao (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id $pk,
             animal_id INTEGER NOT NULL REFERENCES animais(id) ON DELETE CASCADE,
             tipo TEXT NOT NULL,
             data TEXT NOT NULL,
             resultado TEXT,
             touro_brinco TEXT,
             observacao TEXT,
-            created_at TEXT DEFAULT (datetime('now'))
+            created_at TIMESTAMP DEFAULT $now
         );
 
         CREATE TABLE IF NOT EXISTS alertas (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id $pk,
             animal_id INTEGER REFERENCES animais(id) ON DELETE CASCADE,
             tipo TEXT NOT NULL,
             mensagem TEXT NOT NULL,
             lido INTEGER DEFAULT 0,
-            created_at TEXT DEFAULT (datetime('now'))
+            created_at TIMESTAMP DEFAULT $now
         );
 
         CREATE TABLE IF NOT EXISTS sincronizacoes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id $pk,
             dispositivo TEXT,
             ip TEXT,
             dados_recebidos INTEGER DEFAULT 0,
             status TEXT DEFAULT 'ok',
             detalhes TEXT,
-            created_at TEXT DEFAULT (datetime('now'))
+            created_at TIMESTAMP DEFAULT $now
+        );
+
+        CREATE TABLE IF NOT EXISTS fotos_animais (
+            id $pk,
+            animal_id INTEGER NOT NULL REFERENCES animais(id) ON DELETE CASCADE,
+            foto_url TEXT NOT NULL,
+            tipo_evento TEXT DEFAULT 'perfil',
+            fase TEXT DEFAULT 'geral',
+            is_sensivel INTEGER DEFAULT 0,
+            data TEXT NOT NULL,
+            observacao TEXT,
+            created_at TIMESTAMP DEFAULT $now
         );
     ");
 
@@ -171,6 +192,24 @@ function initDb(PDO $db): void {
                 $m = $meds[rand(0, count($meds)-1)];
                 $d = date('Y-m-d', mktime(0,0,0, rand(1,12), rand(1,28), 2025));
                 $hstmt->execute([$an['id'], $t, $t . ' - ' . $m, $d, $m]);
+            }
+        }
+
+        // Add reproduction records for females
+        $females = $db->query("SELECT id FROM animais WHERE sexo='F'")->fetchAll();
+        if (!empty($females)) {
+            $rstmt = $db->prepare("INSERT INTO reproducao (animal_id, tipo, data, resultado, touro_brinco, observacao) VALUES (?,?,?,?,?,?)");
+            $reproTipos = [
+                ['Inseminação Artificial', 'Positivo - Prenha', 'TO0099', 'Sêmen convencional Nelore'],
+                ['Diagnóstico de Gestação', 'Confirmada prenhez 60 dias', 'TO0088', 'Ultrassom realizado'],
+                ['Cobertura Natural', 'Aguardando diagnóstico', 'BR0003', 'Manejo a campo'],
+                ['Parto', 'Nascimento normal - bezerra saudável', 'TO0042', 'Fêmea 34kg'],
+            ];
+            foreach ($females as $idx => $f) {
+                if ($idx % 2 === 0) {
+                    $ev = $reproTipos[$idx % count($reproTipos)];
+                    $rstmt->execute([$f['id'], $ev[0], date('Y-m-d', strtotime('-' . rand(10, 180) . ' days')), $ev[1], $ev[2], $ev[3]]);
+                }
             }
         }
 

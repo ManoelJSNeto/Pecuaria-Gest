@@ -18,3 +18,6 @@ services:
     volumes:
       # Persistência de dados SQLite e uploads
       - ./storage:/var/www/html/storage
+      # Espelhamento para desenvolvimento (alterações em tempo real sem rebuild)
+      - ./public:/var/www/html/public
+      - ./src:/var/www/html/src

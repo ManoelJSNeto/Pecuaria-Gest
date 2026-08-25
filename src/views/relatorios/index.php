@@ -15,7 +15,7 @@ $mensal        = $db->query("SELECT strftime('%Y-%m', data) as mes, COUNT(*) as 
     <div class="stat-card"><div class="stat-icon" style="background:#e8f5ee">🐄</div><div><div class="stat-value"><?= $totalAnimais ?></div><div class="stat-label">Animais Cadastrados</div></div></div>
   </div>
   <div class="col-sm-6 col-xl-3">
-    <div class="stat-card"><div class="stat-icon" style="background:#e3f2fd">⚖️</div><div><div class="stat-value"><?= $totalPesagens ?></div><div class="stat-label">Total de Pesagens</div><div class="stat-sub">Peso médio: <?= $pesoMedio ?> kg</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#e3f2fd">⚖️</div><div><div class="stat-value"><?= $totalPesagens ?></div><div class="stat-label">Total de Pesagens</div><div class="stat-sub">Peso médio: <?= $pesoMedio ? $pesoMedio . ' kg' : '—' ?></div></div></div>
   </div>
   <div class="col-sm-6 col-xl-3">
     <div class="stat-card"><div class="stat-icon" style="background:#fce4ec">⚕️</div><div><div class="stat-value"><?= $totalSaude ?></div><div class="stat-label">Eventos de Saúde</div></div></div>
@@ -86,22 +86,34 @@ $mensal        = $db->query("SELECT strftime('%Y-%m', data) as mes, COUNT(*) as 
   <div class="card-header"><i class="bi bi-download text-secondary"></i><h6>Exportar Dados (CSV)</h6></div>
   <div class="card-body">
     <div class="row g-3">
-      <div class="col-md-4">
+      <div class="col-md-4 col-lg-2-4" style="flex: 0 0 auto; width: 20%; min-width: 180px;">
         <div class="border rounded p-3 text-center h-100 d-flex flex-column align-items-center justify-content-between gap-2">
-          <div><div class="fs-2">🐄</div><h6 class="fw-700">Animais</h6><p class="text-muted small mb-0">Todos os animais cadastrados com dados principais</p></div>
+          <div><div class="fs-2">🐄</div><h6 class="fw-700">Animais</h6><p class="text-muted small mb-0">Rebanho completo com dados cadastrais</p></div>
           <a href="/relatorios?export=animais" class="btn btn-primary btn-sm w-100"><i class="bi bi-download me-1"></i> Baixar CSV</a>
         </div>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-4 col-lg-2-4" style="flex: 0 0 auto; width: 20%; min-width: 180px;">
         <div class="border rounded p-3 text-center h-100 d-flex flex-column align-items-center justify-content-between gap-2">
-          <div><div class="fs-2">⚖️</div><h6 class="fw-700">Pesagens</h6><p class="text-muted small mb-0">Histórico completo de pesagens por animal</p></div>
+          <div><div class="fs-2">⚖️</div><h6 class="fw-700">Pesagens</h6><p class="text-muted small mb-0">Histórico de pesagens e ganho de peso</p></div>
           <a href="/relatorios?export=pesagens" class="btn btn-primary btn-sm w-100"><i class="bi bi-download me-1"></i> Baixar CSV</a>
         </div>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-4 col-lg-2-4" style="flex: 0 0 auto; width: 20%; min-width: 180px;">
         <div class="border rounded p-3 text-center h-100 d-flex flex-column align-items-center justify-content-between gap-2">
-          <div><div class="fs-2">⚕️</div><h6 class="fw-700">Saúde</h6><p class="text-muted small mb-0">Registro de tratamentos, vacinas e exames</p></div>
+          <div><div class="fs-2">⚕️</div><h6 class="fw-700">Saúde</h6><p class="text-muted small mb-0">Tratamentos, vacinas e medicamentos</p></div>
           <a href="/relatorios?export=saude" class="btn btn-primary btn-sm w-100"><i class="bi bi-download me-1"></i> Baixar CSV</a>
+        </div>
+      </div>
+      <div class="col-md-4 col-lg-2-4" style="flex: 0 0 auto; width: 20%; min-width: 180px;">
+        <div class="border rounded p-3 text-center h-100 d-flex flex-column align-items-center justify-content-between gap-2">
+          <div><div class="fs-2">🧬</div><h6 class="fw-700">Reprodução</h6><p class="text-muted small mb-0">Inseminações, partos e gestações</p></div>
+          <a href="/relatorios?export=reproducao" class="btn btn-primary btn-sm w-100"><i class="bi bi-download me-1"></i> Baixar CSV</a>
+        </div>
+      </div>
+      <div class="col-md-4 col-lg-2-4" style="flex: 0 0 auto; width: 20%; min-width: 180px;">
+        <div class="border rounded p-3 text-center h-100 d-flex flex-column align-items-center justify-content-between gap-2">
+          <div><div class="fs-2">🌿</div><h6 class="fw-700">Pastagens</h6><p class="text-muted small mb-0">Capacidades, ocupação e áreas</p></div>
+          <a href="/relatorios?export=pastagens" class="btn btn-primary btn-sm w-100"><i class="bi bi-download me-1"></i> Baixar CSV</a>
         </div>
       </div>
     </div>

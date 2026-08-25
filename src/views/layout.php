@@ -5,6 +5,7 @@ $userInitial = strtoupper(substr($user['nome'] ?? 'A', 0, 1));
 
 $navItems = [
     ['href' => '/dashboard',      'icon' => 'bi-speedometer2',   'label' => 'Dashboard'],
+    ['href' => '/campo',          'icon' => 'bi-phone',          'label' => 'Modo Campo (PWA)'],
     ['href' => '/animais',        'icon' => 'bi-heart-fill',     'label' => 'Animais'],
     ['href' => '/pesagens',       'icon' => 'bi-rulers',         'label' => 'Pesagens'],
     ['href' => '/saude',          'icon' => 'bi-heart-pulse',    'label' => 'Saúde'],
@@ -12,7 +13,7 @@ $navItems = [
     ['href' => '/reproducao',     'icon' => 'bi-diagram-3',      'label' => 'Reprodução'],
     ['href' => '/relatorios',     'icon' => 'bi-bar-chart-line', 'label' => 'Relatórios'],
     ['href' => '/alertas',        'icon' => 'bi-bell',           'label' => 'Alertas'],
-    ['href' => '/sincronizacoes', 'icon' => 'bi-phone',          'label' => 'Sinc. Mobile'],
+    ['href' => '/sincronizacoes', 'icon' => 'bi-arrow-repeat',    'label' => 'Sinc. Mobile'],
 ];
 
 $db = getDb();
@@ -23,6 +24,8 @@ $alertasNaoLidos = $db->query("SELECT COUNT(*) FROM alertas WHERE lido=0")->fetc
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1a4d2e">
+<link rel="manifest" href="/manifest.json">
 <title><?= e($pageTitle ?? 'PecuáriaGest') ?> — PecuáriaGest</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">

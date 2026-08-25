@@ -28,5 +28,8 @@ function attemptLogin(string $email, string $senha): bool {
 }
 
 function logout(): void {
-    session_destroy();
+    $_SESSION = [];
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_destroy();
+    }
 }

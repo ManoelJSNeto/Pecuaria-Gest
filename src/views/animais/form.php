@@ -1,8 +1,9 @@
 <?php
-$pastagens = $db->query("SELECT id, nome FROM pastagens WHERE status='ativa' ORDER BY nome")->fetchAll();
-$animaisF  = $db->query("SELECT id, brinco, nome FROM animais ORDER BY brinco")->fetchAll();
 $isEdit    = isset($animal);
 $a         = $animal ?? [];
+$currPasto = (int)($a['pasto_id'] ?? 0);
+$pastagens = $db->query("SELECT id, nome, status FROM pastagens WHERE status='ativa' OR id = $currPasto ORDER BY nome")->fetchAll();
+$animaisF  = $db->query("SELECT id, brinco, nome FROM animais ORDER BY brinco")->fetchAll();
 ?>
 <div class="mb-3">
   <a href="<?= $isEdit ? '/animais/'.$a['id'] : '/animais' ?>" class="btn btn-sm btn-outline-secondary">
@@ -10,7 +11,7 @@ $a         = $animal ?? [];
   </a>
 </div>
 
-<form method="POST" action="<?= $isEdit ? '/animais/'.$a['id'].'/atualizar' : '/animais/salvar' ?>">
+<form method="POST" action="<?= $isEdit ? '/animais/'.$a['id'].'/atualizar' : '/animais/salvar' ?>" enctype="multipart/form-data">
   <?= csrf_field() ?>
   <div class="row g-3">
     <div class="col-lg-8">
@@ -60,7 +61,9 @@ $a         = $animal ?? [];
             <select name="pasto_id" class="form-select">
               <option value="">— Sem pastagem —</option>
               <?php foreach ($pastagens as $p): ?>
-                <option value="<?= $p['id'] ?>" <?= ($a['pasto_id']??'')==$p['id']?'selected':'' ?>><?= e($p['nome']) ?></option>
+                <option value="<?= $p['id'] ?>" <?= ($a['pasto_id']??'')==$p['id']?'selected':'' ?>>
+                  <?= e($p['nome']) ?><?= $p['status'] !== 'ativa' ? ' (' . ucfirst($p['status']) . ')' : '' ?>
+                </option>
               <?php endforeach; ?>
             </select>
           </div>
@@ -112,8 +115,24 @@ $a         = $animal ?? [];
     </div>
 
     <div class="col-lg-4">
+      <div class="card mb-3">
+        <div class="card-header"><i class="bi bi-camera-fill text-primary"></i><h6>Foto do Animal</h6></div>
+        <div class="card-body">
+          <?php if (!empty($a['foto_url'])): ?>
+            <div class="text-center mb-3">
+              <img src="<?= e($a['foto_url']) ?>" alt="Foto do animal" class="img-fluid rounded border shadow-sm" style="max-height: 180px; object-fit: cover;">
+            </div>
+          <?php endif; ?>
+          <label class="form-label small fw-bold">Enviar <?= !empty($a['foto_url']) ? 'Nova ' : '' ?>Foto</label>
+          <input type="file" name="foto" class="form-control form-control-sm" accept="image/*">
+          <small class="text-muted d-block mt-2">
+            💡 Se for bezerro/filhote, a foto é gravada com destaque permanente como <strong>Memória de Nascimento</strong>.
+          </small>
+        </div>
+      </div>
+
       <div class="card">
-        <div class="card-header"><h6>Resumo</h6></div>
+        <div class="card-header"><h6>Ações</h6></div>
         <div class="card-body">
           <?php if ($isEdit): ?>
             <div class="mb-3">
@@ -134,14 +153,6 @@ $a         = $animal ?? [];
           </div>
         </div>
       </div>
-      <?php if (!$isEdit): ?>
-      <div class="card mt-3">
-        <div class="card-body p-3">
-          <div class="info-label mb-2">Dica</div>
-          <p class="text-muted small mb-0">Após cadastrar, você poderá registrar pesagens, saúde e reprodução no perfil do animal.</p>
-        </div>
-      </div>
-      <?php endif; ?>
     </div>
   </div>
 </form>

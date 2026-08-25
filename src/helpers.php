@@ -79,10 +79,89 @@ function calcIdade(?string $dataNasc): string {
         $nasc = new DateTime($dataNasc);
         $hoje = new DateTime();
         $diff = $hoje->diff($nasc);
-        if ($diff->y >= 1) return $diff->y . ' ano' . ($diff->y > 1 ? 's' : '');
+        if ($diff->y >= 1) return $diff->y . ' ano' . ($diff->y > 1 ? 's' : '') . ($diff->m > 0 ? ' e ' . $diff->m . ' m' : '');
         if ($diff->m >= 1) return $diff->m . ' mês' . ($diff->m > 1 ? 'es' : '');
         return $diff->d . ' dia' . ($diff->d > 1 ? 's' : '');
     } catch (Exception $e) {
         return '-';
     }
+}
+
+function calcIdadeMeses(?string $dataNasc): int {
+    if (!$dataNasc) return 999;
+    try {
+        $nasc = new DateTime($dataNasc);
+        $hoje = new DateTime();
+        $diff = $hoje->diff($nasc);
+        return ($diff->y * 12) + $diff->m;
+    } catch (Exception $e) {
+        return 999;
+    }
+}
+
+function isFilhote(?string $dataNasc): bool {
+    return calcIdadeMeses($dataNasc) <= 12;
+}
+
+function uploadFoto(array $file, string $subfolder = 'fotos'): ?string {
+    if (empty($file['tmp_name']) || $file['error'] !== UPLOAD_ERR_OK) {
+        return null;
+    }
+    
+    $allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime = finfo_file($finfo, $file['tmp_name']);
+    finfo_close($finfo);
+    
+    if (!in_array($mime, $allowed, true)) {
+        return null;
+    }
+    
+    $extMap = [
+        'image/jpeg' => 'jpg',
+        'image/png'  => 'png',
+        'image/webp' => 'webp',
+        'image/gif'  => 'gif'
+    ];
+    $ext = $extMap[$mime] ?? 'jpg';
+    $filename = uniqid('foto_', true) . '.' . $ext;
+    
+    $targetDir = UPLOADS_PATH . '/' . trim($subfolder, '/');
+    if (!is_dir($targetDir)) {
+        @mkdir($targetDir, 0775, true);
+    }
+    
+    $targetFile = $targetDir . '/' . $filename;
+    if (move_uploaded_file($file['tmp_name'], $targetFile)) {
+        return '/uploads/' . trim($subfolder, '/') . '/' . $filename;
+    }
+    
+    return null;
+}
+
+function salvarBase64Foto(string $base64Data, string $subfolder = 'fotos'): ?string {
+    if (empty($base64Data)) return null;
+    
+    // Support data:image/jpeg;base64,....
+    $ext = 'jpg';
+    if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $m)) {
+        $ext = strtolower($m[1]) === 'jpeg' ? 'jpg' : strtolower($m[1]);
+        $base64Data = substr($base64Data, strpos($base64Data, ',') + 1);
+    }
+    
+    $decoded = base64_decode($base64Data);
+    if ($decoded === false) return null;
+    
+    $filename = uniqid('pwa_', true) . '.' . $ext;
+    $targetDir = UPLOADS_PATH . '/' . trim($subfolder, '/');
+    if (!is_dir($targetDir)) {
+        @mkdir($targetDir, 0775, true);
+    }
+    
+    $targetFile = $targetDir . '/' . $filename;
+    if (file_put_contents($targetFile, $decoded) !== false) {
+        return '/uploads/' . trim($subfolder, '/') . '/' . $filename;
+    }
+    
+    return null;
 }

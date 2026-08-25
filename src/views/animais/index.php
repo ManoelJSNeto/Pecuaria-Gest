@@ -24,8 +24,11 @@ $totalPages = max(1, ceil($total / $perPage));
 
 $stmt = $db->prepare("
   SELECT a.*, p.nome as pasto_nome,
-    (SELECT peso FROM pesagens WHERE animal_id=a.id ORDER BY data DESC LIMIT 1) as peso_atual,
-    (SELECT data  FROM pesagens WHERE animal_id=a.id ORDER BY data DESC LIMIT 1) as data_pesagem
+    COALESCE(
+      (SELECT peso FROM pesagens WHERE animal_id=a.id ORDER BY data DESC, id DESC LIMIT 1),
+      a.peso_inicial
+    ) as peso_atual,
+    (SELECT data  FROM pesagens WHERE animal_id=a.id ORDER BY data DESC, id DESC LIMIT 1) as data_pesagem
   FROM animais a
   LEFT JOIN pastagens p ON a.pasto_id=p.id
   WHERE $whereStr
@@ -135,7 +138,7 @@ if ($pastoF) {
               <td>
                 <?php if ($a['peso_atual']): ?>
                   <span class="fw-700"><?= number_format($a['peso_atual'],1) ?></span> <small class="text-muted">kg</small>
-                  <br><small class="text-muted"><?= formatDate($a['data_pesagem']) ?></small>
+                  <br><small class="text-muted"><?= $a['data_pesagem'] ? formatDate($a['data_pesagem']) : 'Inicial' ?></small>
                 <?php else: ?>
                   <span class="text-muted small">Sem registro</span>
                 <?php endif; ?>

@@ -11,11 +11,12 @@ LABEL description="Sistema Web de Gestão Pecuária"
 # Evita prompts interativos durante a instalação
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Instala Nginx, PHP-FPM e extensões necessárias (SQLite, cURL, mbstring, etc.)
+# Instala Nginx, PHP-FPM e extensões necessárias (SQLite, PostgreSQL, cURL, mbstring, etc.)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     nginx \
     php-fpm \
     php-sqlite3 \
+    php-pgsql \
     php-curl \
     php-mbstring \
     php-xml \
