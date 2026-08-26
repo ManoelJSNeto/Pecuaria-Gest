@@ -1,8 +1,13 @@
-const CACHE_NAME = 'pecuaria-campo-v1';
+const CACHE_NAME = 'pecuaria-campo-v2';
 const ASSETS_TO_CACHE = [
   '/campo',
+  '/manifest.json',
   '/assets/css/style.css',
   '/assets/js/pwa-campo.js',
+  '/assets/icons/icon-192.png',
+  '/assets/icons/icon-512.png',
+  '/assets/icons/apple-touch-icon.png',
+  '/favicon.svg',
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
   'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css',
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js'

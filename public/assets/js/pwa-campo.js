@@ -294,8 +294,60 @@ function showToast(message, type = 'info') {
   }, 5000);
 }
 
+// 8. Controle de Instalação do PWA
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  console.log('Evento beforeinstallprompt capturado com sucesso!');
+  const installCard = document.getElementById('pwaInstallCard');
+  if (installCard && !isAppInstalled()) {
+    installCard.style.display = 'block';
+  }
+});
+
+function isAppInstalled() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+async function triggerPwaInstall() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log('Resultado do prompt de instalação:', outcome);
+    if (outcome === 'accepted') {
+      showToast('🎉 Aplicativo adicionado à sua tela inicial!', 'success');
+      const installCard = document.getElementById('pwaInstallCard');
+      if (installCard) installCard.style.display = 'none';
+    }
+    deferredPrompt = null;
+  } else {
+    const modalEl = document.getElementById('modalComoInstalar');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+      const modal = new bootstrap.Modal(modalEl);
+      modal.show();
+    } else {
+      alert("Para instalar no celular:\n\n• No Android/Chrome: Toque nos 3 pontinhos (⋮) e selecione 'Instalar aplicativo'.\n• No iPhone/Safari: Toque no botão de Compartilhar e selecione 'Adicionar à Tela de Início'.");
+    }
+  }
+}
+
+window.addEventListener('appinstalled', () => {
+  console.log('PecuáriaGest PWA instalado com sucesso!');
+  deferredPrompt = null;
+  const installCard = document.getElementById('pwaInstallCard');
+  if (installCard) installCard.style.display = 'none';
+  showToast('✅ Aplicativo instalado com sucesso!', 'success');
+});
+
 // Inicialização ao carregar a página
 document.addEventListener('DOMContentLoaded', () => {
   updateOnlineStatus();
   updatePendingBadge();
+  if (isAppInstalled()) {
+    const installCard = document.getElementById('pwaInstallCard');
+    if (installCard) installCard.style.display = 'none';
+  }
 });
+

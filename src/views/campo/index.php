@@ -25,6 +25,29 @@ $pastagens = $db->query("SELECT id, nome FROM pastagens WHERE status='ativa' ORD
   </div>
 </div>
 
+<!-- Card de Instalação do Aplicativo (PWA) -->
+<div id="pwaInstallCard" class="card mb-3 border-success border-2 shadow-sm" style="background: #e8f5ee;">
+  <div class="card-body p-3 d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-3">
+      <div class="rounded-circle bg-success text-white p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width:48px;height:48px;">
+        <i class="bi bi-download fs-4"></i>
+      </div>
+      <div>
+        <h6 class="mb-0 fw-bold text-success">Instalar Aplicativo no Celular</h6>
+        <small class="text-muted">Acesse em tela cheia direto da tela inicial e use sem internet no pasto</small>
+      </div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <button type="button" class="btn btn-success fw-bold px-3 shadow-sm" id="btnInstallPwa" onclick="triggerPwaInstall()">
+        <i class="bi bi-phone-fill me-1"></i> Instalar Aplicativo
+      </button>
+      <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalComoInstalar">
+        <i class="bi bi-question-circle me-1"></i> Como Instalar?
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Ações Rápidas de Campo (Grandes Botões Touch) -->
 <div class="row g-3 mb-4">
   <div class="col-md-4">
@@ -235,6 +258,52 @@ $pastagens = $db->query("SELECT id, nome FROM pastagens WHERE status='ativa' ORD
           <button type="submit" class="btn btn-danger fw-bold px-4">Salvar Registro</button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: COMO INSTALAR O APLICATIVO -->
+<!-- ============================================================ -->
+<div class="modal fade" id="modalComoInstalar" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title fw-bold"><i class="bi bi-phone-fill me-2"></i>Como Instalar o Aplicativo</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="mb-4">
+          <h6 class="fw-bold text-success d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-android2 fs-5"></i> No Android (Google Chrome / Edge / Samsung)
+          </h6>
+          <ol class="small text-secondary ps-3 mb-0">
+            <li class="mb-1">Toque no botão verde <strong>"Instalar Aplicativo"</strong> acima.</li>
+            <li class="mb-1">Se não abrir automaticamente, toque nos <strong>3 pontinhos (⋮)</strong> no canto superior direito do navegador.</li>
+            <li>Selecione a opção <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela inicial"</strong>.</li>
+          </ol>
+        </div>
+        
+        <hr>
+
+        <div class="mb-3">
+          <h6 class="fw-bold text-dark d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-apple fs-5"></i> No iPhone / iPad (Safari)
+          </h6>
+          <ol class="small text-secondary ps-3 mb-0">
+            <li class="mb-1">Abra este link no navegador <strong>Safari</strong> da Apple.</li>
+            <li class="mb-1">Toque no botão <strong>Compartilhar</strong> (<i class="bi bi-box-arrow-up text-primary"></i> ícone quadrado com seta no rodapé do Safari).</li>
+            <li>Role para baixo e toque em <strong>"Adicionar à Tela de Início"</strong> (<i class="bi bi-plus-square text-primary"></i>).</li>
+          </ol>
+        </div>
+
+        <div class="alert alert-info py-2 px-3 small mb-0">
+          <i class="bi bi-info-circle-fill me-1"></i> O aplicativo funcionará em tela cheia direto do seu celular, mesmo 100% offline no pasto!
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success fw-bold w-100" data-bs-dismiss="modal">Entendi, vamos lá!</button>
+      </div>
     </div>
   </div>
 </div>
