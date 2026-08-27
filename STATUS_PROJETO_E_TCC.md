@@ -1,24 +1,20 @@
 # 📊 PecuáriaGest — Status do Projeto & Roteiro do TCC
 
 > **Data da Última Atualização:** 27/08/2026  
-> **Status Geral do Sistema:** Painel Web 100% Funcional e estável; Módulo Mobile PWA em fase ativa de depuração de ciclo de vida offline e estabilização de interface.
+> **Status Geral do Sistema:** Painel Web 100% Funcional; App Nativo Android (Capacitor) criado e integrado com workflow CI/CD no GitHub Actions para geração automática do APK.
 
 ---
 
-> [!WARNING]
-> ### ⚠️ PENDÊNCIA CRÍTICA: Depuração de Inicialização Offline do PWA (Modo Campo)
-> **Sintoma Observado em Testes Práticos no Smartphone Real:**
-> - Ao abrir o aplicativo a partir de um *cold start* (fechando todos os aplicativos em segundo plano, ativando o Modo Avião e abrindo o atalho do Chrome na tela inicial), a interface fica **completamente congelada/bloqueada**:
->   - Os botões das abas e de salvar não respondem ao clique/toque.
->   - Os campos de entrada de dados (`inputs`) ficam inoperantes (não recebem foco nem permitem digitação).
->   - O indicador de conexão no topo retorna falsamente que o dispositivo está *conectado / online*, mesmo com o aparelho sem nenhuma rede.
->   - A única exceção que responde é o link HTML puro *"Entrar no Painel"* (`/login`).
-> - **Cenário em que funciona:** Se o aplicativo for aberto previamente com rede ligada e a conexão for desligada posteriormente com a tela já ativa, os formulários operam.
-> 
-> **Hipóteses & Próximos Passos de Investigação:**
-> 1. Investigar erro de lógica no ciclo de vida de inicialização (`DOMContentLoaded`, listeners bloqueantes, falhas no carregamento de scripts locais em standalone ou promessas não resolvidas no IndexedDB em cold start).
-> 2. Decisão do desenvolvedor: **Manter a teimosia técnica e aprofundar o estudo da tecnologia PWA** para tentar sanar essa deficiência de lógica.
-> 3. Ponderar e registrar no TCC se o PWA se sustenta como solução definitiva para o campo ou se será necessária uma alternativa nativa/híbrida (como empacotamento em APK via Capacitor) para eliminar a dependência do comportamento do navegador móvel.
+> [!NOTE]
+> ### 📱 DECISÃO ARQUITETURAL DO TCC: Transição de PWA para App Híbrido Nativo (Capacitor)
+> **Estudo de Caso & Fundamentação Teórica para a Apresentação do TCC:**
+> 1. **Limitações Práticas do PWA em Campo Descobertas nos Testes:**
+>    - *Mecanismo WebAPK do Android:* Ao instalar o PWA via Chrome, o Android gera um WebAPK isolado cujo ciclo de atualização ocorre em background a cada 24h, gerando inconsistência de cache em desenvolvimento e travamento de foco/touch em cold start offline.
+>    - *Conflito SSR (PHP) vs App Shell:* Ambientes que misturam páginas renderizadas no servidor com Service Workers geram dependência de contexto de rede na inicialização.
+> 2. **Solução Adotada — App Nativo com Capacitor:**
+>    - Criada a pasta [`mobile-app/`](file:///c:/xampp/htdocs/ondeSalvaWeb_XAMPP/Pecuaria-Gest/Pecuaria-Gest/mobile-app) empacotando os assets web diretamente dentro do APK (`android_asset/public/`).
+>    - **Zero Service Worker & Zero WebAPK:** Abertura instantânea (0ms), toque 100% livre e persistência local garantida.
+>    - **Esteira de Build Nuvem:** Workflow [`.github/workflows/build-apk.yml`](file:///c:/xampp/htdocs/ondeSalvaWeb_XAMPP/Pecuaria-Gest/Pecuaria-Gest/.github/workflows/build-apk.yml) que compila automaticamente o APK Android a cada `git push`.
 
 ---
 
