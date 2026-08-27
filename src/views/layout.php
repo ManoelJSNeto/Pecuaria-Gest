@@ -5,7 +5,6 @@ $userInitial = strtoupper(substr($user['nome'] ?? 'A', 0, 1));
 
 $navItems = [
     ['href' => '/dashboard',      'icon' => 'bi-speedometer2',   'label' => 'Dashboard'],
-    ['href' => '/campo',          'icon' => 'bi-phone',          'label' => 'Modo Campo (PWA)'],
     ['href' => '/animais',        'icon' => 'bi-heart-fill',     'label' => 'Animais'],
     ['href' => '/pesagens',       'icon' => 'bi-rulers',         'label' => 'Pesagens'],
     ['href' => '/saude',          'icon' => 'bi-heart-pulse',    'label' => 'Saúde'],
