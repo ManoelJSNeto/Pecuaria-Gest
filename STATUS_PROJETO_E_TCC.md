@@ -1,30 +1,36 @@
 # 📊 PecuáriaGest — Status do Projeto & Roteiro do TCC
 
 > **Data da Última Atualização:** 27/08/2026  
-> **Status Geral do Sistema:** Painel Web 100% Funcional; App Nativo Android (Capacitor) criado e integrado com workflow CI/CD no GitHub Actions para geração automática do APK.
+> **Status Geral do Sistema:** Painel Web 100% Funcional; App Mobile Nativo Android (APK via Capacitor) totalmente implementado, testado e validado em campo com funcionamento offline fluido e sincronização via API REST.
 
 ---
 
-> [!NOTE]
-> ### 📱 DECISÃO ARQUITETURAL DO TCC: Transição de PWA para App Híbrido Nativo (Capacitor)
-> **Estudo de Caso & Fundamentação Teórica para a Apresentação do TCC:**
-> 1. **Limitações Práticas do PWA em Campo Descobertas nos Testes:**
->    - *Mecanismo WebAPK do Android:* Ao instalar o PWA via Chrome, o Android gera um WebAPK isolado cujo ciclo de atualização ocorre em background a cada 24h, gerando inconsistência de cache em desenvolvimento e travamento de foco/touch em cold start offline.
->    - *Conflito SSR (PHP) vs App Shell:* Ambientes que misturam páginas renderizadas no servidor com Service Workers geram dependência de contexto de rede na inicialização.
-> 2. **Solução Adotada — App Nativo com Capacitor:**
->    - Criada a pasta [`mobile-app/`](file:///c:/xampp/htdocs/ondeSalvaWeb_XAMPP/Pecuaria-Gest/Pecuaria-Gest/mobile-app) empacotando os assets web diretamente dentro do APK (`android_asset/public/`).
->    - **Zero Service Worker & Zero WebAPK:** Abertura instantânea (0ms), toque 100% livre e persistência local garantida.
->    - **Esteira de Build Nuvem:** Workflow [`.github/workflows/build-apk.yml`](file:///c:/xampp/htdocs/ondeSalvaWeb_XAMPP/Pecuaria-Gest/Pecuaria-Gest/.github/workflows/build-apk.yml) que compila automaticamente o APK Android a cada `git push`.
+> [!IMPORTANT]
+> ### 📱 DECISÃO ARQUITETURAL & ACADÊMICA: Descontinuação do PWA e Adoção do App Nativo Android (Capacitor)
+> **Estudo de Caso & Fundamentação Teórica para o Artigo / Apresentação do TCC:**
+>
+> 1. **Motivos Técnicos da Descontinuação do PWA (Progressive Web App):**
+>    * **Ciclo de Atualização Oculto do WebAPK (Android/Chrome):** Ao instalar um PWA no Android, o sistema compila um WebAPK que só busca atualizações a cada 24 horas em background. Isso causava retenção de código antigo em desenvolvimento e inconsistência de versão.
+>    * **Travamento de Foco e Touch no Cold Start Offline:** Ao abrir o atalho PWA sem rede (Modo Avião), a thread principal do navegador bloqueava o foco em campos de entrada (`inputs`) e disparos de toque, gerando sensação de interface congelada.
+>    * **Conflito de Escopo e Sequestro de Rotas:** O Service Worker interceptava rotas de navegação desktop e gerava redundâncias no servidor.
+>
+> 2. **Adoção da Tecnologia Híbrida Nativa — Apache/Ionic Capacitor 8:**
+>    * **Assets 100% Embutidos no Binário (`.apk`):** Os arquivos HTML5, CSS3, Bootstrap, fontes e scripts JavaScript residem diretamente no armazenamento local do aplicativo (`android_asset/public/`), iniciando em 0 milissegundos sem depender de cache de navegador ou Service Worker.
+>    * **Toque Fluido & Acesso a Recursos Nativos:** Foco imediato nos inputs, digitação livre, vibração tátil (`navigator.vibrate`), suporte nativo à câmera e persistência local confiável.
+>    * **Suporte Completo a HTTP e HTTPS:** Configurado com `network_security_config.xml` e `allowMixedContent: true`, permitindo conexão com IPs locais Wi-Fi (`http://192.168.x.x:8080`) e domínios seguros na nuvem (`https://`).
+>    * **Esteira CI/CD Automatizada no GitHub Actions:** O workflow [`.github/workflows/build-apk.yml`](.github/workflows/build-apk.yml) compila o arquivo `app-debug.apk` na nuvem a cada `git push` com Java 21 e Android SDK.
 
 ---
 
 ## 📌 1. Visão Geral do Projeto
 
-O **PecuáriaGest** é um sistema completo de gestão agropecuária e manejo de rebanho com suporte a funcionamento híbrido (online/offline) para trabalhadores em campo e painel consolidado para gerentes/proprietários.
+O **PecuáriaGest** é um sistema completo de gestão agropecuária e manejo de rebanho com arquitetura distribuída:
+* **Módulo de Campo:** Aplicativo Android nativo (`.apk`) para operadores e vaqueiros coletarem dados no pasto 100% offline.
+* **Painel Central de Gestão:** Aplicação Web modular em PHP 8.2 para proprietários, gerentes e veterinários monitorarem métricas consolidadas, genealogia, reprodução e relatórios.
 
-O sistema foi preparado para ser o objeto de estudo de caso comparativo do TCC:
-- **Ambiente On-Premise:** Docker container local conectado a PostgreSQL/SQLite.
-- **Ambiente Nuvem (AWS):** Docker container rodando em **Amazon EC2** conectado ao banco gerenciado **Amazon RDS (PostgreSQL)**.
+O sistema é o objeto de estudo de caso comparativo do TCC entre dois ambientes:
+- **Ambiente On-Premise:** Servidor local Dockerizado com banco de dados SQLite / PostgreSQL.
+- **Ambiente Nuvem (AWS):** Servidor rodando em **Amazon EC2** conectado ao banco gerenciado **Amazon RDS (PostgreSQL)**.
 
 ---
 
@@ -46,13 +52,14 @@ O sistema foi preparado para ser o objeto de estudo de caso comparativo do TCC:
 - [x] **Memória de Bezerro / Filhote:** Detecção automática de animais com idade $\le 12$ meses com selo *"🌱 Bezerro / Filhote"*. A primeira foto de filhote é preservada no cartão *"Memória de Filhote"* mesmo após o animal se tornar adulto.
 - [x] **Censura Automática (Óbito / Conteúdo Sensível):** Fotos de animais mortos ou marcadas como sensíveis recebem desfoque visual forte por padrão (`filter: blur(18px)`) com aviso *"⚠️ Conteúdo Sensível — Clique para ver"* e revelação interativa com um clique.
 
-### C. Módulo Mobile PWA Offline (`/campo`)
-- [x] **Eliminação Total de CDNs Externas:** Download local de todos os assets (`public/assets/vendor/bootstrap/`, `public/assets/vendor/bootstrap-icons/` com fontes WOFF2 e `chartjs/`).
-- [x] **Web App Manifest Atualizado (`public/manifest.json`):** Configurado com `id: "/campo"`, `scope: "/"`, `display: "standalone"` e propósitos `any` e `maskable`.
-- [x] **Interface em Abas Táteis Diretas:** Redesenho de `/campo` com abas para Pesagem, Bezerro, Saúde e Fila de Sincronização, removendo dependência de modais suspensos.
-- [x] **Engine Offline em IndexedDB (`public/assets/js/pwa-campo.js`):** Gravação local de registros com suporte a fotos comprimidas via Canvas.
-- [x] **Sincronização com Nuvem (`/api/sync`):** Suporte a envio autenticado de dados e fotos para o servidor central com validação de credenciais de usuário.
-- [ ] **Estabilização do Cold Start Offline:** Resolver o congelamento da interface quando aberto sem internet diretamente pelo atalho do celular.
+### C. Módulo Mobile Nativo Offline (APK Android / Capacitor)
+- [x] **App Nativo Android Estruturado (`mobile-app/`):** Projeto Capacitor 8 configurado com Gradle e Android SDK.
+- [x] **Interface em Abas Táteis Diretas:** Telas dedicadas para Pesagem, Bezerro, Saúde e Fila de Sincronização, com navegação fluida em JavaScript puro.
+- [x] **Motor Offline & Memória Local (`mobile-app/www/js/app.js`):** Armazenamento local de registros pendentes e cache de brincos de animais para autocompletar sem internet.
+- [x] **Compressão Inteligente de Fotos no Cliente:** Redução automática de imagens de alta resolução para Base64 leve (~200KB) via Canvas API antes de enfileirar.
+- [x] **Conectividade & Configuração Flexível de Servidor:** Modal de ajuste de IP (ex: `http://192.168.x.x:8080` ou URL da AWS) com detecção ativa de status **🟢 Online / 🔴 Offline**.
+- [x] **Sincronização Autenticada com Transação Atômica (`/api/sync`):** Envio em lote com validação de credenciais de usuário cadastrado e liberação de CORS.
+- [x] **Compilação Automática CI/CD (`.github/workflows/build-apk.yml`):** Geração do arquivo `app-debug.apk` no GitHub Actions a cada push.
 
 ### D. Infraestrutura & Banco de Dados
 - [x] **Suporte a Banco Dual (SQLite + PostgreSQL):** Configuração em `src/config.php` e `src/db.php` que alterna automaticamente entre SQLite (local) e PostgreSQL (AWS RDS).
@@ -67,13 +74,8 @@ Para atender aos requisitos de segurança e governança de dados da fazenda e en
 | Perfil | Destinatário Principal | Telas e Recursos Permitidos | Restrições de Acesso |
 |---|---|---|---|
 | **`admin` / `gerente`** | Proprietário, Administrador, Gerente Geral | Acesso irrestrito a todo o sistema: Dashboard consolidado, Relatórios analíticos com CSV, Custos de medicamentos, Gestão de Pastos, Central de Alertas, Histórico completo e Gerenciamento de Usuários. | Nenhuma restrição. |
-| **`campo` / `trabalhador`** | Peão, Campeiro, Operador de Manejo | Acesso direto e exclusivo ao **Modo Campo PWA (`/campo`)**. Registro de pesagens, nascimentos de bezerros, manejos sanitários e sincronização offline. | Sem acesso ao Dashboard, faturamento, custos de medicamentos, relatórios gerenciais ou exclusão definitiva de animais. |
+| **`campo` / `trabalhador`** | Peão, Campeiro, Operador de Manejo | Acesso exclusivo ao **App Nativo de Coleta de Campo** e autorização para sincronizar registros na API. | Sem acesso ao Dashboard, faturamento, custos de medicamentos, relatórios gerenciais ou exclusão definitiva de animais. |
 | **`veterinario`** | Médico Veterinário, Zootecnista | Acesso a Fichas de Animais, Histórico de Pesagens, Módulo de Saúde & Vacinas, Módulo Reprodutivo e Alertas Clínicos. | Sem acesso a dados de faturamento/custos administrativos e sem permissão de alteração de usuários. |
-
-### Fluxo de Login por Perfil:
-1. Usuário com perfil `campo` autentica-se e é **redirecionado automaticamente** para `/campo`.
-2. A barra lateral administrativa e os links para dashboards/relatórios são suprimidos para perfis de campo.
-3. Se um trabalhador tentar digitar URLs administrativas na barra de endereços (ex: `/dashboard` ou `/relatorios`), o sistema redireciona com mensagem informativa.
 
 ---
 
@@ -88,7 +90,7 @@ Para elevar o padrão visual para a apresentação acadêmica formal do TCC, foi
 | ⚕️ | Saúde, manejo, vacinas | `<i class="bi bi-heart-pulse-fill"></i>` | Símbolo universal de saúde animal |
 | 🐣 / 🌱 | Nascimento, bezerro, memória de filhote | `<i class="bi bi-stars"></i>` ou `<i class="bi bi-flower1"></i>` | Representação elegante de início de ciclo |
 | ⚠️ | Óbito, censura de foto, alertas | `<i class="bi bi-exclamation-triangle-fill"></i>` | Padrão visual de atenção/conteúdo sensível |
-| 📱 | Modo Campo, header PWA | `<i class="bi bi-phone-fill"></i>` | Ícone vetorial limpo |
+| 📱 | Modo Campo, header Mobile | `<i class="bi bi-phone-fill"></i>` | Ícone vetorial limpo |
 | 📦 / 🕐 | Sincronizações, pacotes recebidos | `<i class="bi bi-box-seam-fill"></i>`, `<i class="bi bi-clock-history"></i>` | Identificação de logs de dados |
 | 💰 / 🧬 / 🌿 | Custos, reprodução, pastagens | `<i class="bi bi-cash-stack"></i>`, `<i class="bi bi-diagram-3-fill"></i>`, `<i class="bi bi-tree-fill"></i>` | Coerência visual no módulo de relatórios |
 | ♂ / ♀ | Macho e Fêmea | `<i class="bi bi-gender-male"></i>`, `<i class="bi bi-gender-female"></i>` | Símbolos taxonômicos formais |
@@ -98,23 +100,20 @@ Para elevar o padrão visual para a apresentação acadêmica formal do TCC, foi
 
 ## 🎯 5. Roteiro dos Próximos Passos para o TCC
 
-### Passo 1: Depuração & Estabilização do Modo Campo (PWA)
-- [ ] Analisar o ciclo de vida de cold start no smartphone para destravar inputs e botões quando aberto offline.
-- [ ] Testar persistência do Service Worker em modo standalone.
-- [ ] Estudo e ponderação comparativa entre PWA vs. Solução Nativa/Capacitor para fundamentação no TCC.
-
-### Passo 2: Hierarquia de Acesso (RBAC)
+### Passo 1: Hierarquia de Acesso (RBAC)
 - [ ] Criar middleware/função de checagem de perfil no `src/auth.php`.
-- [ ] Redirecionamento automático de usuários `campo` para `/campo`.
-- [ ] Ocultação contextual do menu lateral conforme o tipo de usuário.
-- [ ] Tela de cadastro e listagem de usuários para o Administrador.
+- [ ] Ocultação contextual do menu lateral conforme o perfil do usuário logado.
+- [ ] Tela de cadastro e listagem de usuários para o Administrador gerenciar senhas e permissões.
+
+### Passo 2: Substituição dos Emojis por Ícones Vetoriais
+- [ ] Aplicar a tabela de substituição com Bootstrap Icons em todas as views do painel e no app mobile.
 
 ### Passo 3: Deploy na Nuvem (AWS)
 - [ ] Criar instância **Amazon EC2** (Ubuntu / Free Tier).
 - [ ] Criar instância de banco gerenciado **Amazon RDS (PostgreSQL)**.
 - [ ] Configurar Security Groups (Portas 80, 443 e porta 5432 restrita à EC2).
 - [ ] Subir o Docker na EC2 configurando as variáveis de ambiente do RDS.
-- [ ] Configurar domínio/IP público e certificado SSL (HTTPS Let's Encrypt para habilitar instalação PWA sem avisos).
+- [ ] Testar sincronização do APK diretamente com o IP/domínio da AWS.
 
 ### Passo 4: Testes de Benchmark (JMeter)
 - [ ] Criar script no **Apache JMeter** simulando cenários de carga concorrente (20, 50 e 100 trabalhadores sincronizando pesagens simultaneamente).
