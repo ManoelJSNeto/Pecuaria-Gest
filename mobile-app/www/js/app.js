@@ -159,7 +159,7 @@ async function checkServerConnectivity() {
   const serverUrl = getServerUrl();
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 2000);
+    const timer = setTimeout(() => controller.abort(), 4000);
 
     const res = await fetch(`${serverUrl}/api/animais`, {
       method: 'GET',

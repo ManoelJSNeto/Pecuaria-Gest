@@ -129,6 +129,18 @@ $alertasNaoLidos = $db->query("SELECT COUNT(*) FROM alertas WHERE lido=0")->fetc
 document.getElementById('sidebarToggle')?.addEventListener('click', () => {
   document.querySelector('.sidebar').classList.toggle('open');
 });
+
+// Limpa qualquer Service Worker ou Cache antigo no navegador
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(registrations => {
+    for (let reg of registrations) reg.unregister();
+  });
+}
+if ('caches' in window) {
+  caches.keys().then(keys => {
+    for (let k of keys) caches.delete(k);
+  });
+}
 </script>
 <?= $scripts ?? '' ?>
 </body>

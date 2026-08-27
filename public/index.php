@@ -59,32 +59,38 @@ if ($uri === '/logout') {
 
 // ── API Endpoint (for mobile app) ──────────────
 if (str_starts_with($uri, '/api/')) {
-    header('Content-Type: application/json');
-    $apiKey = $_SERVER['HTTP_X_API_KEY'] ?? '';
-    $body   = json_decode(file_get_contents('php://input'), true) ?? [];
-    $db     = getDb();
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-API-KEY');
+    header('Content-Type: application/json; charset=utf-8');
 
-    // Validação de segurança para sincronização:
-    // Exige sessão ativa de usuário logado OU credenciais válidas de usuário (email/senha) cadastradas no sistema
-    $authOk = isLoggedIn();
-    if (!$authOk && !empty($body['auth_email']) && !empty($body['auth_senha'])) {
-        $uStmt = $db->prepare("SELECT id, senha FROM usuarios WHERE email=? AND ativo=1 LIMIT 1");
-        $uStmt->execute([trim($body['auth_email'])]);
-        $userObj = $uStmt->fetch();
-        if ($userObj && password_verify($body['auth_senha'], $userObj['senha'])) {
-            $authOk = true;
-        }
-    }
-
-    if (!$authOk) {
-        http_response_code(401);
-        echo json_encode(['error' => 'Não autorizado. Informe o e-mail e senha de um usuário cadastrado para autorizar a sincronização.']);
+    if ($method === 'OPTIONS') {
+        http_response_code(200);
         exit;
     }
 
+    $db = getDb();
+
+    // Sincronização de dados de campo (Exige autenticação)
     if ($uri === '/api/sync' && $method === 'POST') {
         $body = json_decode(file_get_contents('php://input'), true) ?? [];
-        $db = getDb();
+        
+        // Validação de segurança: Exige sessão ativa OU credenciais válidas no payload
+        $authOk = isLoggedIn();
+        if (!$authOk && !empty($body['auth_email']) && !empty($body['auth_senha'])) {
+            $uStmt = $db->prepare("SELECT id, senha FROM usuarios WHERE email=? AND ativo=1 LIMIT 1");
+            $uStmt->execute([trim($body['auth_email'])]);
+            $userObj = $uStmt->fetch();
+            if ($userObj && password_verify($body['auth_senha'], $userObj['senha'])) {
+                $authOk = true;
+            }
+        }
+
+        if (!$authOk) {
+            http_response_code(401);
+            echo json_encode(['error' => 'Não autorizado. Informe o e-mail e senha de um usuário cadastrado para autorizar a sincronização.']);
+            exit;
+        }
         $processados = ['pesagens' => 0, 'saude' => 0, 'animais_novos' => 0, 'fotos' => 0];
         $erros = [];
 
