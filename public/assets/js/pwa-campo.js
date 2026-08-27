@@ -2,12 +2,25 @@
 // PecuáriaGest — PWA & Offline Engine para Modo Campo
 // ============================================================
 
-// 1. Registro do Service Worker
+// 1. Registro do Service Worker & Auto-Atualização
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
-      .then((reg) => console.log('PWA ServiceWorker registrado com sucesso:', reg.scope))
+      .then((reg) => {
+        console.log('PWA ServiceWorker registrado:', reg.scope);
+        if (navigator.onLine) {
+          reg.update().catch(() => {});
+        }
+      })
       .catch((err) => console.warn('Falha ao registrar ServiceWorker:', err));
+  });
+
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) {
+      refreshing = true;
+      window.location.reload();
+    }
   });
 }
 
@@ -75,9 +88,9 @@ async function clearQueueItems(ids) {
   });
 }
 
-// 3. Compressor de Foto com Canvas
+// 3. Compressor de Foto com Canvas Resiliente
 function compressImage(file, maxDimension = 1200, quality = 0.75) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     if (!file) {
       resolve(null);
       return;
@@ -85,45 +98,63 @@ function compressImage(file, maxDimension = 1200, quality = 0.75) {
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = (event) => {
-      const img = new Image();
-      img.src = event.target.result;
-      img.onload = () => {
-        let width = img.width;
-        let height = img.height;
+      try {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          try {
+            let width = img.width;
+            let height = img.height;
 
-        if (width > height) {
-          if (width > maxDimension) {
-            height = Math.round((height * maxDimension) / width);
-            width = maxDimension;
+            if (width > height) {
+              if (width > maxDimension) {
+                height = Math.round((height * maxDimension) / width);
+                width = maxDimension;
+              }
+            } else {
+              if (height > maxDimension) {
+                width = Math.round((width * maxDimension) / height);
+                height = maxDimension;
+              }
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const dataUrl = canvas.toDataURL('image/jpeg', quality);
+            resolve(dataUrl);
+          } catch (canvasErr) {
+            console.warn('Canvas falhou no redimensionamento, usando foto original:', canvasErr);
+            resolve(event.target.result);
           }
-        } else {
-          if (height > maxDimension) {
-            width = Math.round((width * maxDimension) / height);
-            height = maxDimension;
-          }
-        }
-
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-
-        const dataUrl = canvas.toDataURL('image/jpeg', quality);
-        resolve(dataUrl);
-      };
-      img.onerror = (e) => reject(e);
+        };
+        img.onerror = () => {
+          console.warn('Falha ao decodificar imagem para o Canvas, usando original.');
+          resolve(event.target.result);
+        };
+      } catch (err) {
+        console.warn('Erro geral ao processar imagem:', err);
+        resolve(event.target.result || null);
+      }
     };
-    reader.onerror = (e) => reject(e);
+    reader.onerror = (err) => {
+      console.warn('Erro ao ler arquivo com FileReader:', err);
+      resolve(null);
+    };
   });
 }
 
-// 4. Indicador de Conexão Online/Offline
-function updateOnlineStatus() {
+// 4. Indicador de Conexão Ativo & Visão Pessimista
+let isServerOnline = false;
+
+function renderStatusBadge(online) {
   const badge = document.getElementById('connectionStatusBadge');
   if (!badge) return;
 
-  if (navigator.onLine) {
+  if (online) {
     badge.className = 'badge bg-success d-inline-flex align-items-center gap-1 shadow-sm';
     badge.innerHTML = '<span class="status-dot online"></span> Online (Conectado)';
   } else {
@@ -132,13 +163,52 @@ function updateOnlineStatus() {
   }
 }
 
+async function checkRealConnectivity() {
+  // Se o próprio navegador indicar offline, já assume offline de imediato
+  if (!navigator.onLine) {
+    isServerOnline = false;
+    renderStatusBadge(false);
+    return false;
+  }
+
+  // Se navigator.onLine for true, confirma com ping ativo e timeout de 2.5s no servidor
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 2500);
+
+    const res = await fetch('/favicon.svg?ping=' + Date.now(), {
+      method: 'HEAD',
+      cache: 'no-store',
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+
+    if (res.ok || res.status === 304) {
+      if (!isServerOnline) {
+        showToast('🟢 Conexão com o servidor confirmada! Você pode sincronizar.', 'success');
+      }
+      isServerOnline = true;
+      renderStatusBadge(true);
+      return true;
+    } else {
+      isServerOnline = false;
+      renderStatusBadge(false);
+      return false;
+    }
+  } catch (err) {
+    isServerOnline = false;
+    renderStatusBadge(false);
+    return false;
+  }
+}
+
 window.addEventListener('online', () => {
-  updateOnlineStatus();
-  showToast('🟢 Conexão restabelecida! Você pode sincronizar os dados.', 'success');
+  checkRealConnectivity();
 });
 
 window.addEventListener('offline', () => {
-  updateOnlineStatus();
+  isServerOnline = false;
+  renderStatusBadge(false);
   showToast('🔴 Sem internet no momento. Seus lançamentos serão salvos com segurança no celular.', 'warning');
 });
 
@@ -153,6 +223,9 @@ async function updatePendingBadge() {
     const count = items.length;
 
     if (countEl) countEl.textContent = count;
+    const tabBadgeEl = document.getElementById('tabPendingBadge');
+    if (tabBadgeEl) tabBadgeEl.textContent = count;
+
     if (btnSync) {
       btnSync.disabled = (count === 0);
       btnSync.innerHTML = count > 0 
@@ -193,19 +266,89 @@ async function updatePendingBadge() {
   }
 }
 
-// 6. Sincronização com o Backend
-async function syncOfflineData() {
-  const btnSync = document.getElementById('btnSyncNow');
-  if (!navigator.onLine) {
-    showToast('⚠️ Você está offline. Conecte-se à internet para sincronizar.', 'warning');
-    return;
-  }
+// 6. Sincronização com o Backend & Autenticação
+function openAuthSyncModal() {
+  const modalEl = document.getElementById('modalAuthSync');
+  if (!modalEl) return;
 
+  if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.show();
+  } else {
+    modalEl.classList.add('show');
+    modalEl.style.display = 'block';
+    modalEl.removeAttribute('aria-hidden');
+    let backdrop = document.getElementById('modalBackdropFallback');
+    if (!backdrop) {
+      backdrop = document.createElement('div');
+      backdrop.id = 'modalBackdropFallback';
+      backdrop.className = 'modal-backdrop fade show';
+      document.body.appendChild(backdrop);
+    }
+  }
+}
+
+function closeAuthSyncModal() {
+  const modalEl = document.getElementById('modalAuthSync');
+  if (!modalEl) return;
+
+  if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) modal.hide();
+  }
+  modalEl.classList.remove('show');
+  modalEl.style.display = 'none';
+  modalEl.setAttribute('aria-hidden', 'true');
+  const backdrop = document.getElementById('modalBackdropFallback');
+  if (backdrop) backdrop.remove();
+}
+
+async function syncOfflineData() {
   const items = await getAllQueueItems();
   if (items.length === 0) {
     showToast('Nenhum dado pendente para enviar.', 'info');
     return;
   }
+
+  // Verifica conectividade real primeiro
+  const online = await checkRealConnectivity();
+  if (!online) {
+    showToast('⚠️ O servidor está inacessível no momento. Seus registros continuam salvos com segurança no celular.', 'warning');
+    return;
+  }
+
+  // Verifica se há credenciais salvas no dispositivo
+  const savedAuthStr = localStorage.getItem('pwa_sync_auth');
+  if (savedAuthStr) {
+    try {
+      const authObj = JSON.parse(savedAuthStr);
+      if (authObj.email && authObj.senha) {
+        await executeSync({ auth_email: authObj.email, auth_senha: authObj.senha }, true);
+        return;
+      }
+    } catch (e) {
+      localStorage.removeItem('pwa_sync_auth');
+    }
+  }
+
+  // Se não há credenciais salvas, abre o modal de autenticação imediatamente
+  openAuthSyncModal();
+}
+
+async function handleAuthSync(e) {
+  e.preventDefault();
+  const email = document.getElementById('sync_email').value.trim();
+  const senha = document.getElementById('sync_senha').value;
+  const salvar = document.getElementById('sync_salvar').checked;
+
+  closeAuthSyncModal();
+  await executeSync({ auth_email: email, auth_senha: senha }, salvar);
+}
+
+async function executeSync(authData = {}, shouldSave = false) {
+  const btnSync = document.getElementById('btnSyncNow');
+  const items = await getAllQueueItems();
+  if (items.length === 0) return;
 
   if (btnSync) {
     btnSync.disabled = true;
@@ -214,6 +357,8 @@ async function syncOfflineData() {
 
   const payload = {
     dispositivo: 'PWA Mobile (' + (navigator.userAgent.includes('Mobile') ? 'Smartphone' : 'Desktop') + ')',
+    auth_email: authData.auth_email || '',
+    auth_senha: authData.auth_senha || '',
     animais_novos: [],
     pesagens: [],
     saude: []
@@ -251,12 +396,25 @@ async function syncOfflineData() {
       body: JSON.stringify(payload)
     });
 
+    if (response.status === 401) {
+      localStorage.removeItem('pwa_sync_auth');
+      showToast('❌ E-mail ou senha incorretos para autorizar a sincronização.', 'danger');
+      openAuthSyncModal();
+      return;
+    }
+
     if (!response.ok) {
-      throw new Error('Falha na resposta do servidor: ' + response.status);
+      throw new Error('Falha na resposta do servidor (' + response.status + ')');
     }
 
     const res = await response.json();
     await clearQueueItems(itemIds);
+
+    // Salva credenciais se o usuário marcou para lembrar
+    if (shouldSave && authData.auth_email && authData.auth_senha) {
+      localStorage.setItem('pwa_sync_auth', JSON.stringify({ email: authData.auth_email, senha: authData.auth_senha }));
+    }
+
     showToast(`✅ Sincronizado com sucesso! ${res.processados.pesagens || 0} pesagens, ${res.processados.saude || 0} eventos de saúde e ${res.processados.animais_novos || 0} novos animais gravados na nuvem.`, 'success');
   } catch (err) {
     console.error('Erro na sincronização:', err);
@@ -341,9 +499,12 @@ window.addEventListener('appinstalled', () => {
   showToast('✅ Aplicativo instalado com sucesso!', 'success');
 });
 
-// Inicialização ao carregar a página
+// Inicialização ao carregar a página: visão pessimista por padrão
 document.addEventListener('DOMContentLoaded', () => {
-  updateOnlineStatus();
+  renderStatusBadge(false); // Sempre começa como Offline por padrão
+  checkRealConnectivity();  // Confirma via ping ativo com o servidor
+  setInterval(checkRealConnectivity, 10000); // Reavalia a cada 10s
+
   updatePendingBadge();
   if (isAppInstalled()) {
     const installCard = document.getElementById('pwaInstallCard');

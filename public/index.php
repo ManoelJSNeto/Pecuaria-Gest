@@ -61,9 +61,24 @@ if ($uri === '/logout') {
 if (str_starts_with($uri, '/api/')) {
     header('Content-Type: application/json');
     $apiKey = $_SERVER['HTTP_X_API_KEY'] ?? '';
-    if ($apiKey !== API_KEY) {
+    $body   = json_decode(file_get_contents('php://input'), true) ?? [];
+    $db     = getDb();
+
+    // Validação de segurança para sincronização:
+    // Exige sessão ativa de usuário logado OU credenciais válidas de usuário (email/senha) cadastradas no sistema
+    $authOk = isLoggedIn();
+    if (!$authOk && !empty($body['auth_email']) && !empty($body['auth_senha'])) {
+        $uStmt = $db->prepare("SELECT id, senha FROM usuarios WHERE email=? AND ativo=1 LIMIT 1");
+        $uStmt->execute([trim($body['auth_email'])]);
+        $userObj = $uStmt->fetch();
+        if ($userObj && password_verify($body['auth_senha'], $userObj['senha'])) {
+            $authOk = true;
+        }
+    }
+
+    if (!$authOk) {
         http_response_code(401);
-        echo json_encode(['error' => 'Unauthorized']);
+        echo json_encode(['error' => 'Não autorizado. Informe o e-mail e senha de um usuário cadastrado para autorizar a sincronização.']);
         exit;
     }
 
@@ -179,11 +194,7 @@ if (str_starts_with($uri, '/api/')) {
     exit;
 }
 
-// ── Protected routes ───────────────────────────
-requireLogin();
-$db = getDb();
-
-// Helper to render a view with layout
+// ── Helper de Renderização com Layout ──────────
 function renderView(string $view, string $title, string $page, array $data = [], ?string $scripts = null): void {
     global $db;
     $pageTitle   = $title;
@@ -195,16 +206,21 @@ function renderView(string $view, string $title, string $page, array $data = [],
     require __DIR__ . '/../src/views/layout.php';
 }
 
+// ── PWA / MODO CAMPO (Acesso Livre Offline / Standalone sem Login Prévio) ──
+if ($uri === '/campo' || $uri === '/mobile') {
+    $db = getDb();
+    renderView('campo/index', 'Modo Campo (PWA)', 'campo');
+    exit;
+}
+
+// ── Protected routes (Painel Administrativo & Gestão) ──
+requireLogin();
+$db = getDb();
+
 // ── Routing ────────────────────────────────────
 // Dashboard
 if ($uri === '/dashboard') {
     renderView('dashboard', 'Dashboard', 'dashboard');
-    exit;
-}
-
-// ── PWA / MODO CAMPO ──
-if ($uri === '/campo' || $uri === '/mobile') {
-    renderView('campo/index', 'Modo Campo (PWA)', 'campo');
     exit;
 }
 

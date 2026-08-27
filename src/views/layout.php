@@ -34,8 +34,8 @@ $alertasNaoLidos = $db->query("SELECT COUNT(*) FROM alertas WHERE lido=0")->fetc
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
 <link rel="manifest" href="/manifest.json">
 <title><?= e($pageTitle ?? 'PecuáriaGest') ?> — PecuáriaGest</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="/assets/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+<link href="/assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
 <link href="/assets/css/style.css" rel="stylesheet">
 </head>
 <body>
@@ -62,18 +62,25 @@ $alertasNaoLidos = $db->query("SELECT COUNT(*) FROM alertas WHERE lido=0")->fetc
     <?php endforeach; ?>
 
     <div class="nav-section-label mt-2">Conta</div>
-    <a href="/logout" class="nav-link text-danger-emphasis">
-      <i class="bi bi-box-arrow-left"></i>
-      Sair
-    </a>
+    <?php if ($user): ?>
+      <a href="/logout" class="nav-link text-danger-emphasis">
+        <i class="bi bi-box-arrow-left"></i>
+        Sair
+      </a>
+    <?php else: ?>
+      <a href="/login" class="nav-link text-success">
+        <i class="bi bi-box-arrow-in-right"></i>
+        Entrar no Painel
+      </a>
+    <?php endif; ?>
   </div>
 
   <div class="sidebar-footer">
     <div class="sidebar-user">
-      <div class="avatar"><?= e($userInitial) ?></div>
+      <div class="avatar"><?= e($user ? $userInitial : 'C') ?></div>
       <div class="user-info">
-        <strong><?= e($user['nome'] ?? '') ?></strong>
-        <small><?= e($user['tipo'] ?? 'admin') ?></small>
+        <strong><?= e($user['nome'] ?? 'Operador de Campo') ?></strong>
+        <small><?= e($user['tipo'] ?? 'modo offline') ?></small>
       </div>
     </div>
   </div>
@@ -89,13 +96,19 @@ $alertasNaoLidos = $db->query("SELECT COUNT(*) FROM alertas WHERE lido=0")->fetc
       <h4><?= e($pageTitle ?? '') ?></h4>
     </div>
     <div class="d-flex align-items-center gap-2">
-      <?php if ($alertasNaoLidos > 0): ?>
+      <?php if ($alertasNaoLidos > 0 && $user): ?>
         <a href="/alertas" class="btn btn-sm btn-outline-danger position-relative">
           <i class="bi bi-bell-fill"></i>
           <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:.6rem"><?= $alertasNaoLidos ?></span>
         </a>
       <?php endif; ?>
-      <span class="text-muted small d-none d-md-block">Bem-vindo, <?= e($user['nome'] ?? '') ?></span>
+      <?php if ($user): ?>
+        <span class="text-muted small d-none d-md-block">Bem-vindo, <?= e($user['nome'] ?? '') ?></span>
+      <?php else: ?>
+        <a href="/login" class="btn btn-sm btn-outline-success">
+          <i class="bi bi-box-arrow-in-right me-1"></i>Entrar no Painel
+        </a>
+      <?php endif; ?>
     </div>
   </div>
 
@@ -111,8 +124,8 @@ $alertasNaoLidos = $db->query("SELECT COUNT(*) FROM alertas WHERE lido=0")->fetc
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="/assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<script src="/assets/vendor/chartjs/chart.umd.min.js"></script>
 <script>
 document.getElementById('sidebarToggle')?.addEventListener('click', () => {
   document.querySelector('.sidebar').classList.toggle('open');

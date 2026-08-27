@@ -1,18 +1,24 @@
 # 📊 PecuáriaGest — Status do Projeto & Roteiro do TCC
 
-> **Data da Última Atualização:** 26/08/2026  
-> **Status Geral do Sistema:** Painel Web 100% Funcional; Módulo PWA estruturado (necessita revisão de instalação no celular em rede local/HTTPS).
+> **Data da Última Atualização:** 27/08/2026  
+> **Status Geral do Sistema:** Painel Web 100% Funcional e estável; Módulo Mobile PWA em fase ativa de depuração de ciclo de vida offline e estabilização de interface.
 
 ---
 
-> [!NOTE]
-> **📌 PENDÊNCIA / PRÓXIMO PASSO (Mobile PWA):**  
-> Ao testar a instalação do PWA no celular via IP local (`http://192.168.x.x:8080`), o navegador pode bloquear a instalação automática devido à exigência de **HTTPS (Contexto Seguro)** nos navegadores móveis modernos (Android Chrome e iOS Safari).  
-> **Ações para validar na próxima sessão:**  
-> 1. Testar no Chrome Android ativando a flag `chrome://flags/#unsafely-treat-insecure-origin-as-secure` com a URL do IP local.  
-> 2. Ou rodar um túnel HTTPS temporário (ex: `ngrok http 8080`).  
-> 3. No deploy final da AWS (EC2), com certificado SSL (HTTPS), a instalação nativa funcionará 100% sem bloqueios.  
-> 4. Executar a substituição dos emojis pelos ícones vetoriais do Bootstrap Icons conforme a tabela da Seção 3.
+> [!WARNING]
+> ### ⚠️ PENDÊNCIA CRÍTICA: Depuração de Inicialização Offline do PWA (Modo Campo)
+> **Sintoma Observado em Testes Práticos no Smartphone Real:**
+> - Ao abrir o aplicativo a partir de um *cold start* (fechando todos os aplicativos em segundo plano, ativando o Modo Avião e abrindo o atalho do Chrome na tela inicial), a interface fica **completamente congelada/bloqueada**:
+>   - Os botões das abas e de salvar não respondem ao clique/toque.
+>   - Os campos de entrada de dados (`inputs`) ficam inoperantes (não recebem foco nem permitem digitação).
+>   - O indicador de conexão no topo retorna falsamente que o dispositivo está *conectado / online*, mesmo com o aparelho sem nenhuma rede.
+>   - A única exceção que responde é o link HTML puro *"Entrar no Painel"* (`/login`).
+> - **Cenário em que funciona:** Se o aplicativo for aberto previamente com rede ligada e a conexão for desligada posteriormente com a tela já ativa, os formulários operam.
+> 
+> **Hipóteses & Próximos Passos de Investigação:**
+> 1. Investigar erro de lógica no ciclo de vida de inicialização (`DOMContentLoaded`, listeners bloqueantes, falhas no carregamento de scripts locais em standalone ou promessas não resolvidas no IndexedDB em cold start).
+> 2. Decisão do desenvolvedor: **Manter a teimosia técnica e aprofundar o estudo da tecnologia PWA** para tentar sanar essa deficiência de lógica.
+> 3. Ponderar e registrar no TCC se o PWA se sustenta como solução definitiva para o campo ou se será necessária uma alternativa nativa/híbrida (como empacotamento em APK via Capacitor) para eliminar a dependência do comportamento do navegador móvel.
 
 ---
 
@@ -44,15 +50,13 @@ O sistema foi preparado para ser o objeto de estudo de caso comparativo do TCC:
 - [x] **Memória de Bezerro / Filhote:** Detecção automática de animais com idade $\le 12$ meses com selo *"🌱 Bezerro / Filhote"*. A primeira foto de filhote é preservada no cartão *"Memória de Filhote"* mesmo após o animal se tornar adulto.
 - [x] **Censura Automática (Óbito / Conteúdo Sensível):** Fotos de animais mortos ou marcadas como sensíveis recebem desfoque visual forte por padrão (`filter: blur(18px)`) com aviso *"⚠️ Conteúdo Sensível — Clique para ver"* e revelação interativa com um clique.
 
-### C. Módulo Mobile PWA Offline (`/campo`) & Instalação
-- [x] **Geração dos Ícones PWA Oficiais (`public/assets/icons/`):** Ícones em alta resolução gerados (`icon-192.png`, `icon-512.png`, `maskable-icon-512.png` e `apple-touch-icon.png`), eliminando erros 404 que impediam a instalação no celular.
+### C. Módulo Mobile PWA Offline (`/campo`)
+- [x] **Eliminação Total de CDNs Externas:** Download local de todos os assets (`public/assets/vendor/bootstrap/`, `public/assets/vendor/bootstrap-icons/` com fontes WOFF2 e `chartjs/`).
 - [x] **Web App Manifest Atualizado (`public/manifest.json`):** Configurado com `id: "/campo"`, `scope: "/"`, `display: "standalone"` e propósitos `any` e `maskable`.
-- [x] **Botão Nativo de Instalação e Card Promocional:** Adicionado card com botão *"📲 Instalar Aplicativo"* que escuta o evento `beforeinstallprompt` do navegador e aciona o diálogo nativo com 1 clique.
-- [x] **Modal com Guia Passo a Passo:** Instruções visuais detalhadas para usuários Android (Chrome/Edge/Samsung) e iOS (Safari - *Adicionar à Tela de Início*).
-- [x] **Service Worker Otimizado (`public/sw.js`):** Cache local inteligente com versionamento `v2` cobrindo assets, telas, ícones e fontes.
-- [x] **Engine Offline em IndexedDB (`public/assets/js/pwa-campo.js`):** Armazena no celular todos os lançamentos de pesagens, novos bezerros e eventos de saúde realizados sem conexão.
-- [x] **Compressão de Fotos via Canvas:** Redimensionamento automático antes de salvar localmente.
-- [x] **Sincronização Híbrida (`/api/sync`):** Botão de sincronização em lote com envio de dados e fotos para o servidor central assim que houver conexão.
+- [x] **Interface em Abas Táteis Diretas:** Redesenho de `/campo` com abas para Pesagem, Bezerro, Saúde e Fila de Sincronização, removendo dependência de modais suspensos.
+- [x] **Engine Offline em IndexedDB (`public/assets/js/pwa-campo.js`):** Gravação local de registros com suporte a fotos comprimidas via Canvas.
+- [x] **Sincronização com Nuvem (`/api/sync`):** Suporte a envio autenticado de dados e fotos para o servidor central com validação de credenciais de usuário.
+- [ ] **Estabilização do Cold Start Offline:** Resolver o congelamento da interface quando aberto sem internet diretamente pelo atalho do celular.
 
 ### D. Infraestrutura & Banco de Dados
 - [x] **Suporte a Banco Dual (SQLite + PostgreSQL):** Configuração em `src/config.php` e `src/db.php` que alterna automaticamente entre SQLite (local) e PostgreSQL (AWS RDS).
@@ -60,14 +64,31 @@ O sistema foi preparado para ser o objeto de estudo de caso comparativo do TCC:
 
 ---
 
-## 🎨 3. Planejamento de Substituição dos Emojis por Ícones Vetoriais
+## 👥 3. Planejamento da Hierarquia de Usuários & Controle de Acesso (RBAC)
 
-Para elevar o padrão visual para a apresentação acadêmica do TCC, foi feito o levantamento dos emojis e a correspondência com a biblioteca **Bootstrap Icons** (já integrada ao projeto):
+Para atender aos requisitos de segurança e governança de dados da fazenda e enriquecer o TCC, foi desenhada a seguinte estrutura de perfis de usuário:
+
+| Perfil | Destinatário Principal | Telas e Recursos Permitidos | Restrições de Acesso |
+|---|---|---|---|
+| **`admin` / `gerente`** | Proprietário, Administrador, Gerente Geral | Acesso irrestrito a todo o sistema: Dashboard consolidado, Relatórios analíticos com CSV, Custos de medicamentos, Gestão de Pastos, Central de Alertas, Histórico completo e Gerenciamento de Usuários. | Nenhuma restrição. |
+| **`campo` / `trabalhador`** | Peão, Campeiro, Operador de Manejo | Acesso direto e exclusivo ao **Modo Campo PWA (`/campo`)**. Registro de pesagens, nascimentos de bezerros, manejos sanitários e sincronização offline. | Sem acesso ao Dashboard, faturamento, custos de medicamentos, relatórios gerenciais ou exclusão definitiva de animais. |
+| **`veterinario`** | Médico Veterinário, Zootecnista | Acesso a Fichas de Animais, Histórico de Pesagens, Módulo de Saúde & Vacinas, Módulo Reprodutivo e Alertas Clínicos. | Sem acesso a dados de faturamento/custos administrativos e sem permissão de alteração de usuários. |
+
+### Fluxo de Login por Perfil:
+1. Usuário com perfil `campo` autentica-se e é **redirecionado automaticamente** para `/campo`.
+2. A barra lateral administrativa e os links para dashboards/relatórios são suprimidos para perfis de campo.
+3. Se um trabalhador tentar digitar URLs administrativas na barra de endereços (ex: `/dashboard` ou `/relatorios`), o sistema redireciona com mensagem informativa.
+
+---
+
+## 🎨 4. Planejamento de Substituição dos Emojis por Ícones Vetoriais
+
+Para elevar o padrão visual para a apresentação acadêmica formal do TCC, foi feito o levantamento dos emojis e a correspondência com a biblioteca **Bootstrap Icons** (já integrada localmente ao projeto):
 
 | Emoji Atual | Localização | Ícone Vetorial Recomendado | Justificativa |
 |:---:|---|---|---|
 | 🐄 / 🐂 | Logo, sidebar, login, avatar de animais | `<i class="bi bi-tag-fill"></i>` ou SVG do Rebanho | Padronização e sobriedade institucional |
-| ⚖️ | Pesagens, balança, modais | `<i class="bi bi-rulers"></i>` ou `<i class="bi bi-speedometer2"></i>` | Identificação técnica de pesagem/métrica |
+| ⚖️ | Pesagens, balança, abas | `<i class="bi bi-rulers"></i>` ou `<i class="bi bi-speedometer2"></i>` | Identificação técnica de pesagem/métrica |
 | ⚕️ | Saúde, manejo, vacinas | `<i class="bi bi-heart-pulse-fill"></i>` | Símbolo universal de saúde animal |
 | 🐣 / 🌱 | Nascimento, bezerro, memória de filhote | `<i class="bi bi-stars"></i>` ou `<i class="bi bi-flower1"></i>` | Representação elegante de início de ciclo |
 | ⚠️ | Óbito, censura de foto, alertas | `<i class="bi bi-exclamation-triangle-fill"></i>` | Padrão visual de atenção/conteúdo sensível |
@@ -79,36 +100,32 @@ Para elevar o padrão visual para a apresentação acadêmica do TCC, foi feito 
 
 ---
 
-## 🧪 4. Como Testar o PWA no Celular
-
-1. **Obtenha o IP da Máquina:** No terminal Windows, execute `ipconfig` e anote o IPv4 (ex: `192.168.1.105`).
-2. **Abra no Celular:** Acesse `http://192.168.1.105:8080/campo`.
-3. **Instalação:**
-   - **No Android (Chrome):** O card verde exibirá o botão **"Instalar Aplicativo"**. Clique nele ou acerte nos 3 pontinhos (⋮) ➔ *"Instalar aplicativo"*.
-   - **No iPhone (Safari):** Toque no botão Compartilhar (quadrado com seta ⎋) ➔ *"Adicionar à Tela de Início"*.
-4. **Teste Offline:**
-   - Ative o **Modo Avião** no celular.
-   - Abra o app instalado pela tela inicial.
-   - Registre pesagens e bezerros com fotos.
-   - Desative o Modo Avião e clique em **"Sincronizar com a Nuvem"**.
-
----
-
 ## 🎯 5. Roteiro dos Próximos Passos para o TCC
 
-### Passo 1: Deploy na Nuvem (AWS)
+### Passo 1: Depuração & Estabilização do Modo Campo (PWA)
+- [ ] Analisar o ciclo de vida de cold start no smartphone para destravar inputs e botões quando aberto offline.
+- [ ] Testar persistência do Service Worker em modo standalone.
+- [ ] Estudo e ponderação comparativa entre PWA vs. Solução Nativa/Capacitor para fundamentação no TCC.
+
+### Passo 2: Hierarquia de Acesso (RBAC)
+- [ ] Criar middleware/função de checagem de perfil no `src/auth.php`.
+- [ ] Redirecionamento automático de usuários `campo` para `/campo`.
+- [ ] Ocultação contextual do menu lateral conforme o tipo de usuário.
+- [ ] Tela de cadastro e listagem de usuários para o Administrador.
+
+### Passo 3: Deploy na Nuvem (AWS)
 - [ ] Criar instância **Amazon EC2** (Ubuntu / Free Tier).
 - [ ] Criar instância de banco gerenciado **Amazon RDS (PostgreSQL)**.
 - [ ] Configurar Security Groups (Portas 80, 443 e porta 5432 restrita à EC2).
 - [ ] Subir o Docker na EC2 configurando as variáveis de ambiente do RDS.
 - [ ] Configurar domínio/IP público e certificado SSL (HTTPS Let's Encrypt para habilitar instalação PWA sem avisos).
 
-### Passo 2: Testes de Benchmark (JMeter)
+### Passo 4: Testes de Benchmark (JMeter)
 - [ ] Criar script no **Apache JMeter** simulando cenários de carga concorrente (20, 50 e 100 trabalhadores sincronizando pesagens simultaneamente).
 - [ ] Executar o teste no ambiente **On-Premise (Local)** e registrar Latência, Throughput e CPU/RAM.
 - [ ] Executar o mesmo teste no ambiente **Nuvem (AWS)** e registrar Latência, Throughput e CloudWatch.
 
-### Passo 3: Elaboração dos Resultados do TCC
+### Passo 5: Elaboração dos Resultados do TCC
 - [ ] Tabela comparativa de Desempenho (On-Premise vs AWS).
 - [ ] Tabela comparativa de Custos (CapEx Local vs OpEx AWS ~US$ 126/mês).
 - [ ] Redação do capítulo de Resultados, Discussão e Considerações Finais.
