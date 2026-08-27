@@ -206,10 +206,10 @@ function renderView(string $view, string $title, string $page, array $data = [],
     require __DIR__ . '/../src/views/layout.php';
 }
 
-// ── PWA / MODO CAMPO (Acesso Livre Offline / Standalone sem Login Prévio) ──
+// ── PWA / MODO CAMPO (App Shell Autônomo 100% Mobile sem Layout Desktop) ──
 if ($uri === '/campo' || $uri === '/mobile') {
     $db = getDb();
-    renderView('campo/index', 'Modo Campo (PWA)', 'campo');
+    require __DIR__ . '/../src/views/campo/index.php';
     exit;
 }
 

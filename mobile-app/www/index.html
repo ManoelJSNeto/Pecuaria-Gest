@@ -1,29 +1,13 @@
-<?php
-// Consulta inicial de animais (para primeiro carregamento com rede)
-$animaisIniciais = [];
-try {
-    $animaisIniciais = $db->query("SELECT brinco, nome, sexo, raca FROM animais WHERE status != 'morto' AND status != 'vendido' ORDER BY brinco")->fetchAll();
-} catch (Exception $e) {}
-?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#1a4d2e">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="PecuáriaGest">
-  <link rel="manifest" href="/manifest.json">
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
-  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
-  <title>Modo Campo — PecuáriaGest</title>
+  <title>PecuáriaGest Campo</title>
   
-  <!-- CSS 100% Local (Zero Dependência Externa) -->
-  <link href="/assets/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
-  <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- CSS Nativo Local -->
+  <link href="./assets/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+  <link href="./assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
   
   <style>
     :root {
@@ -34,7 +18,7 @@ try {
     }
     body {
       background: #f4f6f4;
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-family: system-ui, -apple-system, sans-serif;
       color: #2c3e2d;
       margin: 0;
       padding: 0;
@@ -45,11 +29,6 @@ try {
       -webkit-user-select: text !important;
       user-select: text !important;
       touch-action: manipulation !important;
-      pointer-events: auto !important;
-    }
-    .campo-nav-btn, button {
-      -webkit-user-select: none !important;
-      user-select: none !important;
     }
     .mobile-app-wrapper {
       max-width: 600px;
@@ -58,7 +37,6 @@ try {
       display: flex;
       flex-direction: column;
       background: #ffffff;
-      box-shadow: 0 0 20px rgba(0,0,0,0.06);
     }
     .mobile-top-header {
       background: linear-gradient(135deg, #1a4d2e 0%, #2d7a4e 100%);
@@ -202,54 +180,31 @@ try {
 
 <div class="mobile-app-wrapper">
 
-  <!-- Header Superior Mobile -->
+  <!-- Header Superior Mobile Nativo -->
   <header class="mobile-top-header">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
       <div class="d-flex align-items-center gap-2">
         <span class="fs-4">📱</span>
         <div>
-          <h5 class="mb-0 fw-bold text-white">PecuáriaGest Campo</h5>
-          <small class="text-white text-opacity-75" style="font-size: 0.72rem;">Coleta 100% autônoma no pasto</small>
+          <h5 class="mb-0 fw-bold text-white">PecuáriaGest App</h5>
+          <small class="text-white text-opacity-75" style="font-size: 0.72rem;">Coleta Nativa Offline no Pasto</small>
         </div>
       </div>
       <div class="d-flex align-items-center gap-2">
         <div id="connectionStatusBadge" class="badge bg-danger shadow-sm d-inline-flex align-items-center gap-1">
           <span class="status-dot offline"></span> Offline (Modo Campo)
         </div>
-        <a href="/login" class="btn btn-sm btn-outline-light py-1 px-2" style="font-size:0.75rem" title="Acessar Painel">
-          <i class="bi bi-box-arrow-in-right"></i> Painel
-        </a>
+        <button type="button" class="btn btn-sm btn-outline-light py-1 px-2" onclick="openServerConfigModal()" title="Configurar Servidor">
+          <i class="bi bi-gear-fill"></i>
+        </button>
       </div>
     </div>
   </header>
 
-  <!-- Conteúdo Principal do App Shell -->
+  <!-- Conteúdo Principal -->
   <main class="mobile-content">
 
-    <!-- Card de Instalação do Aplicativo (PWA) -->
-    <div id="pwaInstallCard" class="card mb-3 border-success border-2 shadow-sm" style="background: #e8f5ee; display:none;">
-      <div class="card-body p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <div class="d-flex align-items-center gap-2">
-          <div class="rounded-circle bg-success text-white p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;">
-            <i class="bi bi-download fs-5"></i>
-          </div>
-          <div>
-            <h6 class="mb-0 fw-bold text-success" style="font-size:0.9rem;">Instalar Aplicativo</h6>
-            <small class="text-muted" style="font-size:0.75rem;">Acesse direto da tela inicial</small>
-          </div>
-        </div>
-        <div class="d-flex gap-1">
-          <button type="button" class="btn btn-success fw-bold btn-sm px-2 py-1 shadow-sm" id="btnInstallPwa" onclick="triggerPwaInstall()" style="font-size:0.8rem;">
-            <i class="bi bi-phone-fill me-1"></i> Instalar
-          </button>
-          <button type="button" class="btn btn-outline-success btn-sm px-2 py-1" data-bs-toggle="modal" data-bs-target="#modalComoInstalar" style="font-size:0.8rem;">
-            <i class="bi bi-question-circle"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Barra de Abas Táteis (Touch Tab Bar) -->
+    <!-- Barra de Abas Táteis -->
     <div class="campo-nav-bar">
       <button type="button" class="campo-nav-btn btn-tab-pesagem active" id="tabBtn_pesagem" onclick="switchCampoTab('pesagem')">
         <span class="tab-icon">⚖️</span>
@@ -269,15 +224,11 @@ try {
       </button>
     </div>
 
-    <!-- Datalist para autocompletar de brincos (populado via IndexedDB) -->
-    <datalist id="animaisListPwa">
-      <?php foreach ($animaisIniciais as $an): ?>
-        <option value="<?= htmlspecialchars($an['brinco']) ?>"><?= htmlspecialchars($an['nome'] ? $an['nome'].' — ' : '') ?><?= htmlspecialchars($an['raca'] ?? '') ?> (<?= $an['sexo']==='M'?'Macho':'Fêmea' ?>)</option>
-      <?php endforeach; ?>
-    </datalist>
+    <!-- Datalist para autocompletar de brincos (armazenado nativamente) -->
+    <datalist id="animaisListApp"></datalist>
 
     <!-- ============================================================ -->
-    <!-- ABA 1: REGISTRO DE PESAGEM RÁPIDA -->
+    <!-- ABA 1: REGISTRO DE PESAGEM -->
     <!-- ============================================================ -->
     <div class="campo-tab-pane active" id="tabPane_pesagem">
       <div class="card border-warning border-2 shadow-sm mb-4">
@@ -289,10 +240,10 @@ try {
           <span class="badge bg-warning text-dark fw-bold">Modo Rápido</span>
         </div>
         <div class="card-body p-3">
-          <form id="formPwaPesagem" onsubmit="handlePwaPesagem(event)">
+          <form id="formAppPesagem" onsubmit="handleAppPesagem(event)">
             <div class="mb-3">
               <label class="form-label fw-bold small">Brinco do Animal *</label>
-              <input type="text" id="p_brinco" class="form-control touch-input-lg" list="animaisListPwa" required placeholder="Digite ou selecione o brinco" autocomplete="off">
+              <input type="text" id="p_brinco" class="form-control touch-input-lg" list="animaisListApp" required placeholder="Digite ou selecione o brinco" autocomplete="off">
             </div>
             <div class="mb-3">
               <label class="form-label fw-bold small">Peso Atual (kg) *</label>
@@ -301,7 +252,7 @@ try {
             <div class="row g-2 mb-3">
               <div class="col-6">
                 <label class="form-label fw-bold small">Data da Pesagem</label>
-                <input type="date" id="p_data" class="form-control" value="<?= date('Y-m-d') ?>">
+                <input type="date" id="p_data" class="form-control">
               </div>
               <div class="col-6">
                 <label class="form-label fw-bold small">Observação</label>
@@ -325,7 +276,7 @@ try {
     </div>
 
     <!-- ============================================================ -->
-    <!-- ABA 2: NOVO BEZERRO / NASCIMENTO -->
+    <!-- ABA 2: NOVO BEZERRO -->
     <!-- ============================================================ -->
     <div class="campo-tab-pane" id="tabPane_bezerro">
       <div class="card border-success border-2 shadow-sm mb-4">
@@ -337,7 +288,7 @@ try {
           <span class="badge bg-white text-success fw-bold">Memória de Filhote</span>
         </div>
         <div class="card-body p-3">
-          <form id="formPwaBezerro" onsubmit="handlePwaBezerro(event)">
+          <form id="formAppBezerro" onsubmit="handleAppBezerro(event)">
             <div class="row g-2 mb-3">
               <div class="col-7">
                 <label class="form-label fw-bold small">Brinco do Bezerro *</label>
@@ -363,7 +314,7 @@ try {
             </div>
             <div class="mb-3">
               <label class="form-label fw-bold small">Data de Nascimento</label>
-              <input type="date" id="b_data" class="form-control" value="<?= date('Y-m-d') ?>">
+              <input type="date" id="b_data" class="form-control">
             </div>
             <div class="mb-3">
               <label class="form-label fw-bold small text-success">🌱 Foto do Bezerro (Memória de Filhote)</label>
@@ -382,7 +333,7 @@ try {
     </div>
 
     <!-- ============================================================ -->
-    <!-- ABA 3: EVENTO DE SAÚDE / MANEJO / ÓBITO -->
+    <!-- ABA 3: SAÚDE / MANEJO -->
     <!-- ============================================================ -->
     <div class="campo-tab-pane" id="tabPane_saude">
       <div class="card border-danger border-2 shadow-sm mb-4">
@@ -394,10 +345,10 @@ try {
           <span class="badge bg-white text-danger fw-bold">Clínico</span>
         </div>
         <div class="card-body p-3">
-          <form id="formPwaSaude" onsubmit="handlePwaSaude(event)">
+          <form id="formAppSaude" onsubmit="handleAppSaude(event)">
             <div class="mb-3">
               <label class="form-label fw-bold small">Brinco do Animal *</label>
-              <input type="text" id="s_brinco" class="form-control touch-input-lg" list="animaisListPwa" required placeholder="Selecione o brinco" autocomplete="off">
+              <input type="text" id="s_brinco" class="form-control touch-input-lg" list="animaisListApp" required placeholder="Selecione o brinco" autocomplete="off">
             </div>
             <div class="mb-3">
               <label class="form-label fw-bold small">Tipo de Evento *</label>
@@ -473,49 +424,32 @@ try {
   </main>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODAL: COMO INSTALAR O APLICATIVO -->
-<!-- ============================================================ -->
-<div class="modal fade" id="modalComoInstalar" tabindex="-1" aria-hidden="true">
+<!-- MODAL: CONFIGURAÇÃO DO SERVIDOR -->
+<div class="modal fade" id="modalConfigServidor" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header bg-success text-white">
-        <h6 class="modal-title fw-bold"><i class="bi bi-phone-fill me-2"></i>Como Instalar o Aplicativo</h6>
+      <div class="modal-header bg-dark text-white py-2 px-3">
+        <h6 class="modal-title fw-bold"><i class="bi bi-hdd-network-fill me-2"></i>Endereço do Servidor Central</h6>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body p-3">
-        <div class="mb-3">
-          <h6 class="fw-bold text-success d-flex align-items-center gap-2 mb-1" style="font-size:0.9rem;">
-            <i class="bi bi-android2 fs-5"></i> No Android (Chrome / Edge)
-          </h6>
-          <ol class="small text-secondary ps-3 mb-0">
-            <li class="mb-1">Toque no botão verde <strong>"Instalar"</strong> acima.</li>
-            <li class="mb-1">Ou toque nos <strong>3 pontinhos (⋮)</strong> no canto superior direito do navegador.</li>
-            <li>Selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela inicial"</strong>.</li>
-          </ol>
+      <form onsubmit="handleSaveServerConfig(event)">
+        <div class="modal-body p-3">
+          <label class="form-label fw-bold small">URL do Backend Central:</label>
+          <input type="url" id="server_api_url" class="form-control" required placeholder="http://192.168.1.100:8080">
+          <small class="text-muted d-block mt-2">
+            Informe o IP ou domínio do servidor central (ex: <code>http://192.168.1.50:8080</code> ou sua URL na nuvem).
+          </small>
         </div>
-        <hr class="my-2">
-        <div class="mb-2">
-          <h6 class="fw-bold text-dark d-flex align-items-center gap-2 mb-1" style="font-size:0.9rem;">
-            <i class="bi bi-apple fs-5"></i> No iPhone / iPad (Safari)
-          </h6>
-          <ol class="small text-secondary ps-3 mb-0">
-            <li class="mb-1">Abra este link no navegador <strong>Safari</strong>.</li>
-            <li class="mb-1">Toque no botão <strong>Compartilhar</strong> (<i class="bi bi-box-arrow-up text-primary"></i> no rodapé).</li>
-            <li>Toque em <strong>"Adicionar à Tela de Início"</strong>.</li>
-          </ol>
+        <div class="modal-footer p-2">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Fechar</button>
+          <button type="submit" class="btn btn-success btn-sm fw-bold">Salvar Endereço</button>
         </div>
-      </div>
-      <div class="modal-footer p-2">
-        <button type="button" class="btn btn-success fw-bold w-100 btn-sm" data-bs-dismiss="modal">Entendi, vamos lá!</button>
-      </div>
+      </form>
     </div>
   </div>
 </div>
 
-<!-- ============================================================ -->
 <!-- MODAL: AUTENTICAÇÃO PARA SINCRONIZAÇÃO -->
-<!-- ============================================================ -->
 <div class="modal fade" id="modalAuthSync" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -554,145 +488,8 @@ try {
   </div>
 </div>
 
-<!-- Scripts 100% Locais -->
-<script src="/assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
-<script src="/assets/js/pwa-campo.js"></script>
-<script>
-// Alternância de Abas em JavaScript Puro
-function switchCampoTab(tabId) {
-  document.querySelectorAll('.campo-tab-pane').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.campo-nav-btn').forEach(el => el.classList.remove('active'));
-  
-  const targetPane = document.getElementById('tabPane_' + tabId);
-  const targetBtn = document.getElementById('tabBtn_' + tabId);
-  
-  if (targetPane) targetPane.classList.add('active');
-  if (targetBtn) targetBtn.classList.add('active');
-  
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// Manipuladores de Preview de Foto
-function handleFotoPreview(input, previewBoxId) {
-  const box = document.getElementById(previewBoxId);
-  if (!box) return;
-  const file = input.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      box.querySelector('img').src = e.target.result;
-      box.style.display = 'block';
-    };
-    reader.readAsDataURL(file);
-  } else {
-    box.style.display = 'none';
-  }
-}
-
-function removeFotoPreview(inputId, previewBoxId) {
-  const input = document.getElementById(inputId);
-  const box = document.getElementById(previewBoxId);
-  if (input) input.value = '';
-  if (box) {
-    box.querySelector('img').src = '';
-    box.style.display = 'none';
-  }
-}
-
-// Manipuladores de Submissão de Formulários no IndexedDB
-async function handlePwaPesagem(e) {
-  e.preventDefault();
-  try {
-    const brinco = document.getElementById('p_brinco').value.trim();
-    const peso = parseFloat(document.getElementById('p_peso').value);
-    const data = document.getElementById('p_data').value;
-    const obs = document.getElementById('p_obs').value.trim();
-    const fotoFile = document.getElementById('p_foto').files[0];
-
-    let fotoBase64 = null;
-    if (fotoFile) {
-      fotoBase64 = await compressImage(fotoFile);
-    }
-
-    await addQueueItem('pesagem', { brinco, peso, data, observacao: obs }, fotoBase64);
-    
-    document.getElementById('formPwaPesagem').reset();
-    removeFotoPreview('p_foto', 'preview_p');
-    document.getElementById('p_data').value = new Date().toISOString().split('T')[0];
-
-    if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
-    showToast(`✅ Pesagem de ${peso}kg salva no celular!`, 'success');
-  } catch (err) {
-    console.error('Erro ao salvar pesagem:', err);
-    showToast('⚠️ Erro ao salvar pesagem: ' + err.message, 'danger');
-  }
-}
-
-async function handlePwaBezerro(e) {
-  e.preventDefault();
-  try {
-    const brinco = document.getElementById('b_brinco').value.trim();
-    const sexo = document.getElementById('b_sexo').value;
-    const nome = document.getElementById('b_nome').value.trim();
-    const raca = document.getElementById('b_raca').value.trim();
-    const data = document.getElementById('b_data').value;
-    const fotoFile = document.getElementById('b_foto').files[0];
-
-    let fotoBase64 = null;
-    if (fotoFile) {
-      fotoBase64 = await compressImage(fotoFile);
-    }
-
-    await addQueueItem('animal', { brinco, sexo, nome, raca, data_nascimento: data }, fotoBase64);
-    
-    document.getElementById('formPwaBezerro').reset();
-    removeFotoPreview('b_foto', 'preview_b');
-    document.getElementById('b_data').value = new Date().toISOString().split('T')[0];
-    document.getElementById('b_raca').value = 'Nelore';
-
-    if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
-    showToast(`✅ Bezerro ${brinco} cadastrado e salvo no celular!`, 'success');
-  } catch (err) {
-    console.error('Erro ao cadastrar bezerro:', err);
-    showToast('⚠️ Erro ao salvar bezerro: ' + err.message, 'danger');
-  }
-}
-
-async function handlePwaSaude(e) {
-  e.preventDefault();
-  try {
-    const brinco = document.getElementById('s_brinco').value.trim();
-    const tipo = document.getElementById('s_tipo').value;
-    const desc = document.getElementById('s_desc').value.trim();
-    const med = document.getElementById('s_med').value.trim();
-    const dose = document.getElementById('s_dose').value.trim();
-    const isSensivel = document.getElementById('s_sensivel').checked || tipo === 'Óbito';
-    const fotoFile = document.getElementById('s_foto').files[0];
-
-    let fotoBase64 = null;
-    if (fotoFile) {
-      fotoBase64 = await compressImage(fotoFile);
-    }
-
-    await addQueueItem('saude', { brinco, tipo, descricao: desc, medicamento: med, dose, is_sensivel: isSensivel ? 1 : 0 }, fotoBase64);
-    
-    document.getElementById('formPwaSaude').reset();
-    removeFotoPreview('s_foto', 'preview_s');
-
-    if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
-    showToast(`✅ Evento de ${tipo} para ${brinco} salvo no celular!`, 'success');
-  } catch (err) {
-    console.error('Erro ao registrar saúde:', err);
-    showToast('⚠️ Erro ao salvar saúde: ' + err.message, 'danger');
-  }
-}
-
-function toggleObitoSensivel(val) {
-  const check = document.getElementById('s_sensivel');
-  if (check && val === 'Óbito') {
-    check.checked = true;
-  }
-}
-</script>
+<!-- Scripts Locais -->
+<script src="./assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<script src="./js/app.js"></script>
 </body>
 </html>

@@ -1,9 +1,8 @@
-const CACHE_NAME = 'pecuaria-campo-v6';
+const CACHE_NAME = 'pecuaria-campo-v8';
 const ASSETS_TO_CACHE = [
   '/campo',
   '/mobile',
   '/manifest.json',
-  '/assets/css/style.css',
   '/assets/js/pwa-campo.js',
   '/assets/vendor/bootstrap/bootstrap.min.css',
   '/assets/vendor/bootstrap/bootstrap.bundle.min.js',
@@ -45,11 +44,27 @@ self.addEventListener('fetch', (event) => {
 
   // 1. Ignora requisições não-GET e endpoints de sincronização API
   if (event.request.method !== 'GET') return;
-  if (url.pathname.startsWith('/api/')) return;
+  if (url.pathname.startsWith('/api/sync')) return;
   // Ignora pings ativos de verificação de conexão para não retornar cache falso
   if (url.searchParams.has('ping')) return;
 
-  // 2. Ativos Estáticos e Imagens: Cache-First Imediato
+  // 2. Endpoint /api/animais: Network First com fallback de Cache
+  if (url.pathname === '/api/animais') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // 3. Ativos Estáticos e Imagens: Cache-First Imediato
   if (url.pathname.startsWith('/assets/') || url.pathname === '/favicon.svg' || url.pathname === '/manifest.json') {
     event.respondWith(
       caches.match(event.request).then((cachedResponse) => {
@@ -74,7 +89,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 3. Navegação / Telas HTML (/campo, /mobile, start_url): Cache-First Imediato (Zero Espera de Rede)
+  // 4. Navegação / Telas HTML (/campo, /mobile, start_url): Cache-First Imediato (Zero Espera de Rede)
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {

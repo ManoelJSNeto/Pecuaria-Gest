@@ -1,8 +1,8 @@
 // ============================================================
-// PecuáriaGest — PWA & Offline Engine para Modo Campo
+// PecuáriaGest — PWA & Offline Engine para Modo Campo (App Shell)
 // ============================================================
 
-// 1. Registro do Service Worker & Auto-Atualização
+// 1. Registro do Service Worker (Sem reload bloqueante)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
@@ -14,28 +14,24 @@ if ('serviceWorker' in navigator) {
       })
       .catch((err) => console.warn('Falha ao registrar ServiceWorker:', err));
   });
-
-  let refreshing = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!refreshing) {
-      refreshing = true;
-      window.location.reload();
-    }
-  });
 }
 
-// 2. Banco de Dados Local (IndexedDB)
+// 2. Banco de Dados Local (IndexedDB v2: Fila Offline + Cache de Animais)
 const DB_NAME = 'PecuariaCampoDB';
-const DB_VERSION = 1;
-const STORE_NAME = 'fila_offline';
+const DB_VERSION = 2;
+const STORE_QUEUE = 'fila_offline';
+const STORE_ANIMALS = 'animais_cache';
 
 function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
     request.onupgradeneeded = (e) => {
       const db = e.target.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+      if (!db.objectStoreNames.contains(STORE_QUEUE)) {
+        db.createObjectStore(STORE_QUEUE, { keyPath: 'id', autoIncrement: true });
+      }
+      if (!db.objectStoreNames.contains(STORE_ANIMALS)) {
+        db.createObjectStore(STORE_ANIMALS, { keyPath: 'brinco' });
       }
     };
     request.onsuccess = (e) => resolve(e.target.result);
@@ -46,8 +42,8 @@ function openDB() {
 async function addQueueItem(tipo, data, fotoBase64 = null) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    const store = tx.objectStore(STORE_NAME);
+    const tx = db.transaction(STORE_QUEUE, 'readwrite');
+    const store = tx.objectStore(STORE_QUEUE);
     const item = {
       tipo: tipo, // 'pesagem' | 'saude' | 'animal'
       data: data,
@@ -56,6 +52,10 @@ async function addQueueItem(tipo, data, fotoBase64 = null) {
     };
     const req = store.add(item);
     req.onsuccess = () => {
+      // Se for novo animal, atualiza o cache local de animais imediatamente
+      if (tipo === 'animal' && data.brinco) {
+        saveAnimalToCache(data);
+      }
       updatePendingBadge();
       resolve(req.result);
     };
@@ -66,8 +66,8 @@ async function addQueueItem(tipo, data, fotoBase64 = null) {
 async function getAllQueueItems() {
   const db = await openDB();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readonly');
-    const store = tx.objectStore(STORE_NAME);
+    const tx = db.transaction(STORE_QUEUE, 'readonly');
+    const store = tx.objectStore(STORE_QUEUE);
     const req = store.getAll();
     req.onsuccess = () => resolve(req.result || []);
     req.onerror = () => reject(req.error);
@@ -77,8 +77,8 @@ async function getAllQueueItems() {
 async function clearQueueItems(ids) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    const store = tx.objectStore(STORE_NAME);
+    const tx = db.transaction(STORE_QUEUE, 'readwrite');
+    const store = tx.objectStore(STORE_QUEUE);
     ids.forEach(id => store.delete(id));
     tx.oncomplete = () => {
       updatePendingBadge();
@@ -88,66 +88,117 @@ async function clearQueueItems(ids) {
   });
 }
 
-// 3. Compressor de Foto com Canvas Resiliente
-function compressImage(file, maxDimension = 1200, quality = 0.75) {
+// 3. Cache Local de Animais (IndexedDB) para Autocompletar 100% Offline
+async function saveAnimalToCache(animal) {
+  try {
+    const db = await openDB();
+    const tx = db.transaction(STORE_ANIMALS, 'readwrite');
+    const store = tx.objectStore(STORE_ANIMALS);
+    store.put(animal);
+    populateAnimalsDatalist();
+  } catch (e) {
+    console.warn('Erro ao salvar animal no cache local:', e);
+  }
+}
+
+async function syncAnimalsCache() {
+  if (!navigator.onLine) return;
+  try {
+    const res = await fetch('/api/animais');
+    if (!res.ok) return;
+    const data = await res.json();
+    const animais = data.animais || data || [];
+    const db = await openDB();
+    const tx = db.transaction(STORE_ANIMALS, 'readwrite');
+    const store = tx.objectStore(STORE_ANIMALS);
+    animais.forEach(a => store.put(a));
+    populateAnimalsDatalist();
+  } catch (err) {
+    console.warn('Erro ao atualizar cache de animais:', err);
+  }
+}
+
+async function populateAnimalsDatalist() {
+  try {
+    const db = await openDB();
+    const tx = db.transaction(STORE_ANIMALS, 'readonly');
+    const store = tx.objectStore(STORE_ANIMALS);
+    const req = store.getAll();
+    req.onsuccess = () => {
+      const animais = req.result || [];
+      const datalist = document.getElementById('animaisListPwa');
+      if (datalist && animais.length > 0) {
+        datalist.innerHTML = animais.map(a => 
+          `<option value="${a.brinco}">${a.nome ? a.nome + ' — ' : ''}${a.raca || ''} (${a.sexo === 'M' ? 'Macho' : 'Fêmea'})</option>`
+        ).join('');
+      }
+    };
+  } catch (err) {
+    console.warn('Erro ao ler animais do IndexedDB:', err);
+  }
+}
+
+// 4. Utilitário de Compressão de Imagens no Cliente (Canvas)
+function compressImage(file, maxWidth = 1000, maxHeight = 1000, quality = 0.7) {
   return new Promise((resolve) => {
-    if (!file) {
+    if (!file || !file.type.startsWith('image/')) {
       resolve(null);
       return;
     }
+
     const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (event) => {
-      try {
-        const img = new Image();
-        img.src = event.target.result;
-        img.onload = () => {
-          try {
-            let width = img.width;
-            let height = img.height;
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          let width = img.width;
+          let height = img.height;
 
-            if (width > height) {
-              if (width > maxDimension) {
-                height = Math.round((height * maxDimension) / width);
-                width = maxDimension;
-              }
-            } else {
-              if (height > maxDimension) {
-                width = Math.round((width * maxDimension) / height);
-                height = maxDimension;
-              }
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
             }
-
-            const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-
-            const dataUrl = canvas.toDataURL('image/jpeg', quality);
-            resolve(dataUrl);
-          } catch (canvasErr) {
-            console.warn('Canvas falhou no redimensionamento, usando foto original:', canvasErr);
-            resolve(event.target.result);
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
           }
-        };
-        img.onerror = () => {
-          console.warn('Falha ao decodificar imagem para o Canvas, usando original.');
-          resolve(event.target.result);
-        };
-      } catch (err) {
-        console.warn('Erro geral ao processar imagem:', err);
-        resolve(event.target.result || null);
-      }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          resolve(dataUrl);
+        } catch (err) {
+          console.warn('Falha no redimensionamento Canvas, usando original:', err);
+          resolve(e.target.result);
+        }
+      };
+
+      img.onerror = () => {
+        console.warn('Erro ao processar imagem para compressão');
+        resolve(e.target.result);
+      };
+
+      img.src = e.target.result;
     };
+
     reader.onerror = (err) => {
       console.warn('Erro ao ler arquivo com FileReader:', err);
       resolve(null);
     };
+
+    reader.readAsDataURL(file);
   });
 }
 
-// 4. Indicador de Conexão Ativo & Visão Pessimista
+// 5. Indicador de Conexão Ativo & Visão Pessimista
 let isServerOnline = false;
 
 function renderStatusBadge(online) {
@@ -164,17 +215,16 @@ function renderStatusBadge(online) {
 }
 
 async function checkRealConnectivity() {
-  // Se o próprio navegador indicar offline, já assume offline de imediato
-  if (!navigator.onLine) {
+  // Verificação rápida de modo avião / sem rede nativo
+  if (!navigator.onLine || (navigator.connection && navigator.connection.type === 'none')) {
     isServerOnline = false;
     renderStatusBadge(false);
     return false;
   }
 
-  // Se navigator.onLine for true, confirma com ping ativo e timeout de 2.5s no servidor
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 2500);
+    const timer = setTimeout(() => controller.abort(), 800); // 800ms max timeout para não travar a UI
 
     const res = await fetch('/favicon.svg?ping=' + Date.now(), {
       method: 'HEAD',
@@ -186,6 +236,7 @@ async function checkRealConnectivity() {
     if (res.ok || res.status === 304) {
       if (!isServerOnline) {
         showToast('🟢 Conexão com o servidor confirmada! Você pode sincronizar.', 'success');
+        syncAnimalsCache(); // Atualiza cache de animais silenciosamente
       }
       isServerOnline = true;
       renderStatusBadge(true);
@@ -212,7 +263,7 @@ window.addEventListener('offline', () => {
   showToast('🔴 Sem internet no momento. Seus lançamentos serão salvos com segurança no celular.', 'warning');
 });
 
-// 5. Atualização da Contagem de Pendências no UI
+// 6. Atualização da Contagem de Pendências no UI
 async function updatePendingBadge() {
   const countEl = document.getElementById('pendingCount');
   const countListEl = document.getElementById('pendingItemsList');
@@ -235,9 +286,9 @@ async function updatePendingBadge() {
 
     if (countListEl) {
       if (count === 0) {
-        countListEl.innerHTML = '<li class="list-group-item text-muted text-center py-3 small">Nenhum registro pendente no celular.</li>';
+        countListEl.innerHTML = '<li class="list-group-item text-muted text-center py-4 small">Nenhum registro pendente no celular.</li>';
       } else {
-        countListEl.innerHTML = items.map((it, idx) => {
+        countListEl.innerHTML = items.map((it) => {
           let icon = '⚖️';
           let title = `Pesagem: ${it.data.brinco || 'Animal'} (${it.data.peso || 0} kg)`;
           if (it.tipo === 'animal') {
@@ -266,7 +317,7 @@ async function updatePendingBadge() {
   }
 }
 
-// 6. Sincronização com o Backend & Autenticação
+// 7. Sincronização com o Backend & Autenticação
 function openAuthSyncModal() {
   const modalEl = document.getElementById('modalAuthSync');
   if (!modalEl) return;
@@ -390,8 +441,7 @@ async function executeSync(authData = {}, shouldSave = false) {
     const response = await fetch('/api/sync', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': 'pecuaria-mobile-key'
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload)
     });
@@ -410,7 +460,6 @@ async function executeSync(authData = {}, shouldSave = false) {
     const res = await response.json();
     await clearQueueItems(itemIds);
 
-    // Salva credenciais se o usuário marcou para lembrar
     if (shouldSave && authData.auth_email && authData.auth_senha) {
       localStorage.setItem('pwa_sync_auth', JSON.stringify({ email: authData.auth_email, senha: authData.auth_senha }));
     }
@@ -424,7 +473,7 @@ async function executeSync(authData = {}, shouldSave = false) {
   }
 }
 
-// 7. Utilitário de Toast de Feedback
+// 8. Utilitário de Toast de Feedback
 function showToast(message, type = 'info') {
   let container = document.getElementById('toastContainer');
   if (!container) {
@@ -452,13 +501,12 @@ function showToast(message, type = 'info') {
   }, 5000);
 }
 
-// 8. Controle de Instalação do PWA
+// 9. Controle de Instalação do PWA
 let deferredPrompt = null;
 
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  console.log('Evento beforeinstallprompt capturado com sucesso!');
   const installCard = document.getElementById('pwaInstallCard');
   if (installCard && !isAppInstalled()) {
     installCard.style.display = 'block';
@@ -473,7 +521,6 @@ async function triggerPwaInstall() {
   if (deferredPrompt) {
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    console.log('Resultado do prompt de instalação:', outcome);
     if (outcome === 'accepted') {
       showToast('🎉 Aplicativo adicionado à sua tela inicial!', 'success');
       const installCard = document.getElementById('pwaInstallCard');
@@ -492,23 +539,29 @@ async function triggerPwaInstall() {
 }
 
 window.addEventListener('appinstalled', () => {
-  console.log('PecuáriaGest PWA instalado com sucesso!');
   deferredPrompt = null;
   const installCard = document.getElementById('pwaInstallCard');
   if (installCard) installCard.style.display = 'none';
   showToast('✅ Aplicativo instalado com sucesso!', 'success');
 });
 
-// Inicialização ao carregar a página: visão pessimista por padrão
+// Inicialização ao carregar a página
 document.addEventListener('DOMContentLoaded', () => {
   renderStatusBadge(false); // Sempre começa como Offline por padrão
-  checkRealConnectivity();  // Confirma via ping ativo com o servidor
-  setInterval(checkRealConnectivity, 10000); // Reavalia a cada 10s
-
+  
+  // Prioridade 1: Carrega dados do IndexedDB local imediatamente
+  populateAnimalsDatalist();
   updatePendingBadge();
+
   if (isAppInstalled()) {
     const installCard = document.getElementById('pwaInstallCard');
     if (installCard) installCard.style.display = 'none';
   }
-});
 
+  // Prioridade 2: Checagem de rede em segundo plano após a interface estar montada
+  setTimeout(() => {
+    checkRealConnectivity();
+  }, 1000);
+
+  setInterval(checkRealConnectivity, 12000);
+});

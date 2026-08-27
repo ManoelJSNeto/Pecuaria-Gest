@@ -28,3 +28,12 @@ Thumbs.db
 *.zip
 *.tar.gz
 *.bak
+
+# Node & Mobile Build Artifacts
+node_modules/
+mobile-app/node_modules/
+mobile-app/android/.gradle/
+mobile-app/android/build/
+mobile-app/android/app/build/
+mobile-app/android/captures/
+
