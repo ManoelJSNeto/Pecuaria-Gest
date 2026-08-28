@@ -13,6 +13,7 @@ $navItems = [
     ['href' => '/relatorios',     'icon' => 'bi-bar-chart-line', 'label' => 'Relatórios'],
     ['href' => '/alertas',        'icon' => 'bi-bell',           'label' => 'Alertas'],
     ['href' => '/sincronizacoes', 'icon' => 'bi-arrow-repeat',    'label' => 'Sinc. Mobile'],
+    ['href' => '/configuracoes',  'icon' => 'bi-gear-fill',       'label' => 'Configurações'],
 ];
 
 $db = getDb();

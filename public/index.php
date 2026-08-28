@@ -189,6 +189,11 @@ if (str_starts_with($uri, '/api/')) {
                 $db->prepare("INSERT INTO alertas (animal_id, tipo, mensagem, lido) VALUES (NULL, 'sincronizacao', ?, 0)")
                    ->execute(["📦 Coleta sincronizada via {$dispositivoNome}: {$resumoMsg}."]);
             } catch (Exception $e) {}
+
+            // Dispara e-mail de notificação formatado para o Proprietário/Gerente
+            try {
+                notifyOwnerOnSyncEmail($processados, $body['dispositivo'] ?? 'App Campo');
+            } catch (Exception $e) {}
         }
 
         echo json_encode(['status'=>$status,'processados'=>$processados,'erros'=>$erros]);
@@ -693,6 +698,57 @@ if ($uri === '/relatorios') {
 // ── SINCRONIZAÇÕES ──
 if ($uri === '/sincronizacoes') {
     renderView('sincronizacoes/index', 'Sincronização Mobile', 'sincronizacoes');
+    exit;
+}
+
+// ── CONFIGURAÇÕES DO SISTEMA & NOTIFICAÇÕES ──
+if ($uri === '/configuracoes') {
+    requireAuth();
+    renderView('configuracoes/index', 'Configurações do Sistema', 'configuracoes');
+    exit;
+}
+
+if ($uri === '/configuracoes/salvar' && $method === 'POST') {
+    requireAuth();
+    if (!csrf_verify()) {
+        flash('error', 'Token de segurança expirado. Tente novamente.');
+        redirect('/configuracoes');
+    }
+    
+    $enabled = isset($_POST['notif_email_enabled']) ? '1' : '0';
+    $destinatario = trim($_POST['notif_email_destinatario'] ?? '');
+    $from = trim($_POST['notif_smtp_from'] ?? '');
+
+    setSysConfig('notif_email_enabled', $enabled);
+    setSysConfig('notif_email_destinatario', $destinatario);
+    setSysConfig('notif_smtp_from', $from);
+
+    flash('success', 'Configurações de notificação salvas com sucesso!');
+    redirect('/configuracoes');
+    exit;
+}
+
+if ($uri === '/configuracoes/testar-email') {
+    requireAuth();
+    $destinatario = getSysConfig('notif_email_destinatario', DEFAULT_ADMIN_EMAIL);
+    
+    $assunto = "🧪 [PecuáriaGest] Teste de Notificação do Sistema";
+    $corpo = '
+    <div style="font-family:Arial,sans-serif;padding:20px;background:#f4f6f4;color:#2c3e2d;">
+      <div style="max-width:500px;margin:0 auto;background:#fff;padding:20px;border-radius:8px;border-top:4px solid #1a4d2e;">
+        <h3 style="color:#1a4d2e;margin-top:0;">✅ Teste de E-mail Bem-Sucedido!</h3>
+        <p>Este é um e-mail de teste disparado pelo sistema <strong>PecuáriaGest</strong> para validar o canal de comunicação com o proprietário.</p>
+        <p style="font-size:12px;color:#6b7280;">Data e hora: ' . date('d/m/Y H:i:s') . '</p>
+      </div>
+    </div>';
+
+    $enviado = sendNotificationEmail($destinatario, $assunto, $corpo);
+    if ($enviado) {
+        flash('success', "E-mail de teste enviado para {$destinatario}!");
+    } else {
+        flash('info', "Tentativa de envio de e-mail registrada para {$destinatario}. (Em ambiente local de desenvolvimento, configure o SMTP no php.ini ou na AWS em produção).");
+    }
+    redirect('/configuracoes');
     exit;
 }
 

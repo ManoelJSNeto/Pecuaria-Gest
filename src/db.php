@@ -129,6 +129,12 @@ function initDb(PDO $db): void {
             observacao TEXT,
             created_at TIMESTAMP DEFAULT $now
         );
+
+        CREATE TABLE IF NOT EXISTS configuracoes (
+            chave TEXT PRIMARY KEY,
+            valor TEXT,
+            created_at TIMESTAMP DEFAULT $now
+        );
     ");
 
     // Seed admin user if none exists
