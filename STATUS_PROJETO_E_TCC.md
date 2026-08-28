@@ -1,7 +1,7 @@
 # 📊 PecuáriaGest — Status do Projeto & Roteiro do TCC
 
-> **Data da Última Atualização:** 27/08/2026  
-> **Status Geral do Sistema:** Painel Web 100% Funcional; App Mobile Nativo Android (APK via Capacitor) totalmente implementado, testado e validado em campo com funcionamento offline fluido e sincronização via API REST.
+> **Data da Última Atualização:** 28/08/2026  
+> **Status Geral do Sistema:** Painel Web 100% Funcional e estável; App Mobile Nativo Android (APK via Capacitor) totalmente implementado, testado e validado em campo com funcionamento offline fluido, Auto-Sync e notificações automáticas por e-mail e painel para o proprietário.
 
 ---
 
@@ -56,12 +56,19 @@ O sistema é o objeto de estudo de caso comparativo do TCC entre dois ambientes:
 - [x] **App Nativo Android Estruturado (`mobile-app/`):** Projeto Capacitor 8 configurado com Gradle e Android SDK.
 - [x] **Interface em Abas Táteis Diretas:** Telas dedicadas para Pesagem, Bezerro, Saúde e Fila de Sincronização, com navegação fluida em JavaScript puro.
 - [x] **Motor Offline & Memória Local (`mobile-app/www/js/app.js`):** Armazenamento local de registros pendentes e cache de brincos de animais para autocompletar sem internet.
+- [x] **Auto-Sync Inteligente em Segundo Plano:** O app detecta a reconexão à rede Wi-Fi/4G e descarrega automaticamente as pendências com vibração tátil de confirmação.
 - [x] **Compressão Inteligente de Fotos no Cliente:** Redução automática de imagens de alta resolução para Base64 leve (~200KB) via Canvas API antes de enfileirar.
 - [x] **Conectividade & Configuração Flexível de Servidor:** Modal de ajuste de IP (ex: `http://192.168.x.x:8080` ou URL da AWS) com detecção ativa de status **🟢 Online / 🔴 Offline**.
 - [x] **Sincronização Autenticada com Transação Atômica (`/api/sync`):** Envio em lote com validação de credenciais de usuário cadastrado e liberação de CORS.
 - [x] **Compilação Automática CI/CD (`.github/workflows/build-apk.yml`):** Geração do arquivo `app-debug.apk` no GitHub Actions a cada push.
 
-### D. Infraestrutura & Banco de Dados
+### D. Módulo de Notificações & Configurações do Sistema (`/configuracoes`)
+- [x] **Geração Automática de Alertas no Painel Web:** Disparo automático de notificações no sininho 🔔 com contadores de pesagens, novos bezerros e manejos recebidos.
+- [x] **Disparo de E-mails Automáticos em HTML:** Envio de relatório formatado para a caixa de entrada do proprietário/gerente a cada lote sincronizado.
+- [x] **Painel de Configurações do Sistema (`/configuracoes`):** Interface para o proprietário ativar/desativar e-mails, definir destinatário, e-mail remetente e botão de teste de disparo imediato.
+- [x] **Tabela de Configurações Persistente (`configuracoes`):** Armazenamento dinâmico de preferências no banco de dados.
+
+### E. Infraestrutura & Banco de Dados
 - [x] **Suporte a Banco Dual (SQLite + PostgreSQL):** Configuração em `src/config.php` e `src/db.php` que alterna automaticamente entre SQLite (local) e PostgreSQL (AWS RDS).
 - [x] **Ambiente Docker Otimizado (`Dockerfile` + `docker-compose.yml`):** Imagem Debian Slim com PHP 8.2 FPM, Nginx, `php-pgsql` e `php-sqlite3`, com espelhamento de volumes (`./public` e `./src`) para desenvolvimento em tempo real.
 
