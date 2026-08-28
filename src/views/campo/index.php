@@ -556,7 +556,7 @@ try {
 
 <!-- Scripts 100% Locais -->
 <script src="/assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
-<script src="/assets/js/pwa-campo.js"></script>
+<script src="/assets/js/pwa-campo.js?v=<?= time() ?>"></script>
 <script>
 // Alternância de Abas em JavaScript Puro
 function switchCampoTab(tabId) {
@@ -604,10 +604,16 @@ async function handlePwaPesagem(e) {
   e.preventDefault();
   try {
     const brinco = document.getElementById('p_brinco').value.trim();
-    const peso = parseFloat(document.getElementById('p_peso').value);
+    const rawPeso = (document.getElementById('p_peso').value || '').toString().replace(',', '.');
+    const peso = parseFloat(rawPeso);
     const data = document.getElementById('p_data').value;
     const obs = document.getElementById('p_obs').value.trim();
     const fotoFile = document.getElementById('p_foto').files[0];
+
+    if (isNaN(peso) || peso <= 0) {
+      showToast('Informe um peso válido.', 'warning');
+      return;
+    }
 
     let fotoBase64 = null;
     if (fotoFile) {

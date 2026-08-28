@@ -225,7 +225,7 @@ async function checkRealConnectivity() {
 
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 800); // 800ms max timeout para não travar a UI
+    const timer = setTimeout(() => controller.abort(), 3500); // 3.5s timeout robusto para rede local e Wi-Fi
 
     const res = await fetch('/favicon.svg?ping=' + Date.now(), {
       method: 'HEAD',
@@ -236,7 +236,8 @@ async function checkRealConnectivity() {
 
     if (res.ok || res.status === 304) {
       if (!isServerOnline) {
-        showToast('Conexão com o servidor confirmada! Sincronizando dados...', 'success');
+        console.log('[Auto-Sync] Conexão com o servidor restabelecida!');
+        showToast('Conexão com o servidor confirmada!', 'success');
         syncAnimalsCache(); // Atualiza cache de animais silenciosamente
       }
       isServerOnline = true;
@@ -368,9 +369,14 @@ async function triggerAutoSync() {
   const items = await getAllQueueItems();
   if (items.length === 0) return;
 
+  console.log(`[Auto-Sync] ${items.length} pendências encontradas na fila local. Verificando conectividade...`);
+
   if (!isServerOnline) {
     const online = await checkRealConnectivity();
-    if (!online) return;
+    if (!online) {
+      console.log('[Auto-Sync] Servidor offline no momento. Dados mantidos com segurança no IndexedDB.');
+      return;
+    }
   }
 
   isSyncing = true;
@@ -382,6 +388,7 @@ async function triggerAutoSync() {
 
   const payload = {
     dispositivo: 'PWA Modo Campo (Auto-Sync Automático)',
+    api_key: 'pecuaria-mobile-key',
     auth_email: authData.email || '',
     auth_senha: authData.senha || '',
     animais_novos: [],
@@ -402,24 +409,32 @@ async function triggerAutoSync() {
   });
 
   try {
+    console.log('[Auto-Sync] Enviando lote para /api/sync...', payload);
     const response = await fetch('/api/sync', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': 'pecuaria-mobile-key'
+      },
       credentials: 'include',
       body: JSON.stringify(payload)
     });
 
     if (response.ok) {
       const data = await response.json();
+      console.log('[Auto-Sync] Resposta recebida com sucesso:', data);
       await clearQueueItems(itemIds);
       if (navigator.vibrate) navigator.vibrate([30, 20, 30]);
       showToast(`Auto-Sync: ${data.processados?.pesagens || 0} pesagens, ${data.processados?.saude || 0} manejos e ${data.processados?.animais_novos || 0} novos animais sincronizados automaticamente!`, 'success');
       syncAnimalsCache();
-    } else if (response.status === 401 && !savedAuthStr) {
-      console.log('Auto-sync aguardando credenciais salvas.');
+    } else if (response.status === 401) {
+      console.warn('[Auto-Sync] Autenticação necessária. Abrindo modal para salvar credenciais no celular.');
+      openAuthSyncModal();
+    } else {
+      console.warn('[Auto-Sync] Servidor retornou código HTTP:', response.status);
     }
   } catch (err) {
-    console.warn('Auto-Sync aguardando conexão:', err);
+    console.warn('[Auto-Sync] Falha na transmissão de rede:', err);
   } finally {
     isSyncing = false;
     updatePendingBadge();

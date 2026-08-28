@@ -75,8 +75,13 @@ if (str_starts_with($uri, '/api/')) {
     if ($uri === '/api/sync' && $method === 'POST') {
         $body = json_decode(file_get_contents('php://input'), true) ?? [];
         
-        // Validação de segurança: Exige sessão ativa OU credenciais válidas no payload
+        // Validação de segurança: Exige sessão ativa OU credenciais válidas OU API Key
         $authOk = isLoggedIn();
+        $apiKey = $_SERVER['HTTP_X_API_KEY'] ?? ($body['api_key'] ?? '');
+        if (!$authOk && !empty($apiKey) && $apiKey === API_KEY) {
+            $authOk = true;
+        }
+
         if (!$authOk && !empty($body['auth_email']) && !empty($body['auth_senha'])) {
             $email = trim($body['auth_email']);
             $senha = (string)$body['auth_senha'];
