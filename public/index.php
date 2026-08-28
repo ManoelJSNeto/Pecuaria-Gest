@@ -703,13 +703,13 @@ if ($uri === '/sincronizacoes') {
 
 // ── CONFIGURAÇÕES DO SISTEMA & NOTIFICAÇÕES ──
 if ($uri === '/configuracoes') {
-    requireAuth();
+    requireLogin();
     renderView('configuracoes/index', 'Configurações do Sistema', 'configuracoes');
     exit;
 }
 
 if ($uri === '/configuracoes/salvar' && $method === 'POST') {
-    requireAuth();
+    requireLogin();
     if (!csrf_verify()) {
         flash('error', 'Token de segurança expirado. Tente novamente.');
         redirect('/configuracoes');
@@ -729,7 +729,7 @@ if ($uri === '/configuracoes/salvar' && $method === 'POST') {
 }
 
 if ($uri === '/configuracoes/testar-email') {
-    requireAuth();
+    requireLogin();
     $destinatario = getSysConfig('notif_email_destinatario', DEFAULT_ADMIN_EMAIL);
     
     $assunto = "🧪 [PecuáriaGest] Teste de Notificação do Sistema";

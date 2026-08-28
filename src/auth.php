@@ -13,6 +13,10 @@ function requireLogin(): void {
     }
 }
 
+function requireAuth(): void {
+    requireLogin();
+}
+
 function attemptLogin(string $email, string $senha): bool {
     $db = getDb();
     $stmt = $db->prepare("SELECT * FROM usuarios WHERE email = ? AND ativo = 1 LIMIT 1");
