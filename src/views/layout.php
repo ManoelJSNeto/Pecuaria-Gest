@@ -4,16 +4,17 @@ $user  = currentUser();
 $userInitial = strtoupper(substr($user['nome'] ?? 'A', 0, 1));
 
 $navItems = [
-    ['href' => '/dashboard',      'icon' => 'bi-speedometer2',   'label' => 'Dashboard'],
-    ['href' => '/animais',        'icon' => 'bi-heart-fill',     'label' => 'Animais'],
-    ['href' => '/pesagens',       'icon' => 'bi-rulers',         'label' => 'Pesagens'],
-    ['href' => '/saude',          'icon' => 'bi-heart-pulse',    'label' => 'Saúde'],
-    ['href' => '/pastagens',      'icon' => 'bi-tree',           'label' => 'Pastagens'],
-    ['href' => '/reproducao',     'icon' => 'bi-diagram-3',      'label' => 'Reprodução'],
-    ['href' => '/relatorios',     'icon' => 'bi-bar-chart-line', 'label' => 'Relatórios'],
-    ['href' => '/alertas',        'icon' => 'bi-bell',           'label' => 'Alertas'],
-    ['href' => '/sincronizacoes', 'icon' => 'bi-arrow-repeat',    'label' => 'Sinc. Mobile'],
-    ['href' => '/configuracoes',  'icon' => 'bi-gear-fill',       'label' => 'Configurações'],
+    ['href' => '/dashboard',      'icon' => 'bi-speedometer2',   'label' => 'Dashboard',        'perm' => null],
+    ['href' => '/animais',        'icon' => 'bi-heart-fill',     'label' => 'Animais',          'perm' => 'ver_animais'],
+    ['href' => '/pesagens',       'icon' => 'bi-rulers',         'label' => 'Pesagens',         'perm' => 'ver_pesagens'],
+    ['href' => '/saude',          'icon' => 'bi-heart-pulse',    'label' => 'Saúde',            'perm' => 'ver_saude'],
+    ['href' => '/pastagens',      'icon' => 'bi-tree',           'label' => 'Pastagens',        'perm' => 'ver_pastagens'],
+    ['href' => '/reproducao',     'icon' => 'bi-diagram-3',      'label' => 'Reprodução',       'perm' => 'ver_reproducao'],
+    ['href' => '/relatorios',     'icon' => 'bi-bar-chart-line', 'label' => 'Relatórios',       'perm' => 'ver_relatorios'],
+    ['href' => '/alertas',        'icon' => 'bi-bell',           'label' => 'Alertas',          'perm' => 'ver_alertas'],
+    ['href' => '/sincronizacoes', 'icon' => 'bi-arrow-repeat',    'label' => 'Sinc. Mobile',     'perm' => null],
+    ['href' => '/usuarios',       'icon' => 'bi-people-fill',    'label' => 'Equipe & Acessos', 'perm' => 'gerenciar_usuarios'],
+    ['href' => '/configuracoes',  'icon' => 'bi-gear-fill',       'label' => 'Configurações',    'perm' => 'gerenciar_configuracoes'],
 ];
 
 $db = getDb();
@@ -43,15 +44,24 @@ $alertasNaoLidos = $db->query("SELECT COUNT(*) FROM alertas WHERE lido=0")->fetc
 <!-- Sidebar -->
 <nav class="sidebar">
   <div class="sidebar-brand">
-    <div class="brand-icon">🐄</div>
-    <h5>PecuáriaGest</h5>
-    <small>Sistema de Gestão</small>
+    <div class="brand-icon">
+      <i class="bi bi-tag-fill text-white fs-4"></i>
+    </div>
+    <div class="brand-text">
+      <h4>PecuáriaGest</h4>
+      <small>Gestão Integrada</small>
+    </div>
   </div>
 
   <div class="sidebar-nav">
     <div class="nav-section-label">Principal</div>
     <?php foreach ($navItems as $item): ?>
-      <?php $active = ($currentPage === ltrim($item['href'], '/')); ?>
+      <?php 
+        if (!empty($item['perm']) && !can($item['perm'])) {
+            continue;
+        }
+        $active = ($currentPage === ltrim($item['href'], '/'));
+      ?>
       <a href="<?= $item['href'] ?>" class="nav-link <?= $active ? 'active' : '' ?>">
         <i class="bi <?= $item['icon'] ?>"></i>
         <?= $item['label'] ?>
@@ -80,7 +90,7 @@ $alertasNaoLidos = $db->query("SELECT COUNT(*) FROM alertas WHERE lido=0")->fetc
       <div class="avatar"><?= e($user ? $userInitial : 'C') ?></div>
       <div class="user-info">
         <strong><?= e($user['nome'] ?? 'Operador de Campo') ?></strong>
-        <small><?= e($user['tipo'] ?? 'modo offline') ?></small>
+        <small><?= e($user['cargo'] ?? ($user['tipo'] ?? 'Colaborador')) ?></small>
       </div>
     </div>
   </div>

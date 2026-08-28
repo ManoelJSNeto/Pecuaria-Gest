@@ -752,6 +752,156 @@ if ($uri === '/configuracoes/testar-email') {
     exit;
 }
 
+// ── GESTÃO DE USUÁRIOS & PERMISSÕES GRANULARES ──
+if ($uri === '/usuarios') {
+    requirePermission('gerenciar_usuarios');
+    renderView('usuarios/index', 'Gestão de Usuários & Permissões', 'usuarios');
+    exit;
+}
+
+if ($uri === '/usuarios/novo') {
+    requirePermission('gerenciar_usuarios');
+    renderView('usuarios/form', 'Novo Colaborador', 'usuarios', ['usuario' => []]);
+    exit;
+}
+
+if ($uri === '/usuarios/criar' && $method === 'POST') {
+    requirePermission('gerenciar_usuarios');
+    if (!csrf_verify()) {
+        flash('error', 'Token de segurança expirado.');
+        redirect('/usuarios/novo');
+    }
+
+    $nome   = trim($_POST['nome'] ?? '');
+    $email  = trim($_POST['email'] ?? '');
+    $senha  = $_POST['senha'] ?? '';
+    $cargo  = trim($_POST['cargo'] ?? 'Colaborador');
+    $tipo   = $_POST['tipo'] ?? 'usuario';
+    $ativo  = isset($_POST['ativo']) ? 1 : 0;
+    $perms  = $_POST['perm'] ?? [];
+
+    if (empty($nome) || empty($email) || empty($senha)) {
+        flash('error', 'Nome, e-mail e senha são obrigatórios.');
+        redirect('/usuarios/novo');
+    }
+
+    // Valida se e-mail já existe
+    $exists = $db->prepare("SELECT id FROM usuarios WHERE email = ? LIMIT 1");
+    $exists->execute([$email]);
+    if ($exists->fetch()) {
+        flash('error', 'Já existe um colaborador cadastrado com este e-mail.');
+        redirect('/usuarios/novo');
+    }
+
+    $hash = password_hash($senha, PASSWORD_BCRYPT);
+    $permsJson = json_encode($perms);
+
+    $stmt = $db->prepare("INSERT INTO usuarios (nome, email, senha, tipo, cargo, permissoes, ativo) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$nome, $email, $hash, $tipo, $cargo, $permsJson, $ativo]);
+
+    flash('success', "Colaborador {$nome} cadastrado com sucesso!");
+    redirect('/usuarios');
+    exit;
+}
+
+if (preg_match('#^/usuarios/(\d+)/editar$#', $uri, $m)) {
+    requirePermission('gerenciar_usuarios');
+    $stmt = $db->prepare("SELECT * FROM usuarios WHERE id = ? LIMIT 1");
+    $stmt->execute([$m[1]]);
+    $u = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$u) {
+        flash('error', 'Usuário não encontrado.');
+        redirect('/usuarios');
+    }
+    renderView('usuarios/form', 'Editar Colaborador', 'usuarios', ['usuario' => $u]);
+    exit;
+}
+
+if (preg_match('#^/usuarios/(\d+)/salvar$#', $uri, $m) && $method === 'POST') {
+    requirePermission('gerenciar_usuarios');
+    if (!csrf_verify()) {
+        flash('error', 'Token de segurança expirado.');
+        redirect("/usuarios/{$m[1]}/editar");
+    }
+
+    $id     = (int)$m[1];
+    $nome   = trim($_POST['nome'] ?? '');
+    $email  = trim($_POST['email'] ?? '');
+    $senha  = $_POST['senha'] ?? '';
+    $cargo  = trim($_POST['cargo'] ?? 'Colaborador');
+    $tipo   = $_POST['tipo'] ?? 'usuario';
+    $ativo  = isset($_POST['ativo']) ? 1 : 0;
+    $perms  = $_POST['perm'] ?? [];
+
+    if (empty($nome) || empty($email)) {
+        flash('error', 'Nome e e-mail são obrigatórios.');
+        redirect("/usuarios/{$id}/editar");
+    }
+
+    // Valida e-mail duplicado em outro ID
+    $check = $db->prepare("SELECT id FROM usuarios WHERE email = ? AND id != ? LIMIT 1");
+    $check->execute([$email, $id]);
+    if ($check->fetch()) {
+        flash('error', 'Este e-mail já está sendo utilizado por outro colaborador.');
+        redirect("/usuarios/{$id}/editar");
+    }
+
+    $permsJson = json_encode($perms);
+
+    if (!empty($senha)) {
+        $hash = password_hash($senha, PASSWORD_BCRYPT);
+        $stmt = $db->prepare("UPDATE usuarios SET nome = ?, email = ?, senha = ?, tipo = ?, cargo = ?, permissoes = ?, ativo = ? WHERE id = ?");
+        $stmt->execute([$nome, $email, $hash, $tipo, $cargo, $permsJson, $ativo, $id]);
+    } else {
+        $stmt = $db->prepare("UPDATE usuarios SET nome = ?, email = ?, tipo = ?, cargo = ?, permissoes = ?, ativo = ? WHERE id = ?");
+        $stmt->execute([$nome, $email, $tipo, $cargo, $permsJson, $ativo, $id]);
+    }
+
+    // Se editou o próprio usuário logado, atualiza a sessão
+    if ($_SESSION['user_id'] == $id) {
+        $updatedUser = $db->prepare("SELECT * FROM usuarios WHERE id = ? LIMIT 1");
+        $updatedUser->execute([$id]);
+        $_SESSION['user'] = $updatedUser->fetch(PDO::FETCH_ASSOC);
+    }
+
+    flash('success', "Dados de {$nome} atualizados com sucesso!");
+    redirect('/usuarios');
+    exit;
+}
+
+if (preg_match('#^/usuarios/(\d+)/toggle-status$#', $uri, $m)) {
+    requirePermission('gerenciar_usuarios');
+    $id = (int)$m[1];
+    if ($_SESSION['user_id'] == $id) {
+        flash('error', 'Você não pode desativar seu próprio usuário.');
+        redirect('/usuarios');
+    }
+
+    $db->prepare("UPDATE usuarios SET ativo = (1 - ativo) WHERE id = ?")->execute([$id]);
+    flash('success', 'Status do usuário alterado com sucesso.');
+    redirect('/usuarios');
+    exit;
+}
+
+if (preg_match('#^/usuarios/(\d+)/excluir$#', $uri, $m) && $method === 'POST') {
+    requirePermission('gerenciar_usuarios');
+    if (!csrf_verify()) {
+        flash('error', 'Token de segurança expirado.');
+        redirect('/usuarios');
+    }
+
+    $id = (int)$m[1];
+    if ($_SESSION['user_id'] == $id) {
+        flash('error', 'Você não pode excluir seu próprio usuário.');
+        redirect('/usuarios');
+    }
+
+    $db->prepare("DELETE FROM usuarios WHERE id = ?")->execute([$id]);
+    flash('success', 'Usuário removido da equipe com sucesso.');
+    redirect('/usuarios');
+    exit;
+}
+
 // 404
 http_response_code(404);
 echo '<div style="font-family:sans-serif;text-align:center;padding:4rem;color:#666">

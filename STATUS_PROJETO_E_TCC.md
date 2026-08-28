@@ -68,25 +68,20 @@ O sistema é o objeto de estudo de caso comparativo do TCC entre dois ambientes:
 - [x] **Painel de Configurações do Sistema (`/configuracoes`):** Interface para o proprietário ativar/desativar e-mails, definir destinatário, e-mail remetente e botão de teste de disparo imediato.
 - [x] **Tabela de Configurações Persistente (`configuracoes`):** Armazenamento dinâmico de preferências no banco de dados.
 
-### E. Infraestrutura & Banco de Dados
+### E. Gestão de Equipe & Permissões Granulares (`/usuarios`)
+- [x] **Matriz de Permissões Granulares (RBAC/ABAC):** Controle individual por módulo (Animais, Pesagens, Saúde, Pastagens, Reprodução, Relatórios, Alertas, App Mobile e Notificações).
+- [x] **Motor de Verificação `can()` e `requirePermission()`:** Validação de privilégios em rotas e botões com bloqueio automático e mensagens flash informativas.
+- [x] **Menu Lateral Dinâmico:** Ocultação automática de módulos e relatórios aos quais o colaborador não possui acesso.
+- [x] **Presets Rápidos de Permissão:** Botões de 1 clique para configurar perfis de *Veterinário*, *Campo/Vaqueiro* e *Apenas Leitura*.
+- [x] **Gestão de Status de Conta:** Ativação/desativação imediata de acesso sem exclusão de histórico.
+
+### F. Infraestrutura & Banco de Dados
 - [x] **Suporte a Banco Dual (SQLite + PostgreSQL):** Configuração em `src/config.php` e `src/db.php` que alterna automaticamente entre SQLite (local) e PostgreSQL (AWS RDS).
 - [x] **Ambiente Docker Otimizado (`Dockerfile` + `docker-compose.yml`):** Imagem Debian Slim com PHP 8.2 FPM, Nginx, `php-pgsql` e `php-sqlite3`, com espelhamento de volumes (`./public` e `./src`) para desenvolvimento em tempo real.
 
 ---
 
-## 👥 3. Planejamento da Hierarquia de Usuários & Controle de Acesso (RBAC)
-
-Para atender aos requisitos de segurança e governança de dados da fazenda e enriquecer o TCC, foi desenhada a seguinte estrutura de perfis de usuário:
-
-| Perfil | Destinatário Principal | Telas e Recursos Permitidos | Restrições de Acesso |
-|---|---|---|---|
-| **`admin` / `gerente`** | Proprietário, Administrador, Gerente Geral | Acesso irrestrito a todo o sistema: Dashboard consolidado, Relatórios analíticos com CSV, Custos de medicamentos, Gestão de Pastos, Central de Alertas, Histórico completo e Gerenciamento de Usuários. | Nenhuma restrição. |
-| **`campo` / `trabalhador`** | Peão, Campeiro, Operador de Manejo | Acesso exclusivo ao **App Nativo de Coleta de Campo** e autorização para sincronizar registros na API. | Sem acesso ao Dashboard, faturamento, custos de medicamentos, relatórios gerenciais ou exclusão definitiva de animais. |
-| **`veterinario`** | Médico Veterinário, Zootecnista | Acesso a Fichas de Animais, Histórico de Pesagens, Módulo de Saúde & Vacinas, Módulo Reprodutivo e Alertas Clínicos. | Sem acesso a dados de faturamento/custos administrativos e sem permissão de alteração de usuários. |
-
----
-
-## 🎨 4. Planejamento de Substituição dos Emojis por Ícones Vetoriais
+## 🎨 3. Planejamento de Substituição dos Emojis por Ícones Vetoriais
 
 Para elevar o padrão visual para a apresentação acadêmica formal do TCC, foi feito o levantamento dos emojis e a correspondência com a biblioteca **Bootstrap Icons** (já integrada localmente ao projeto):
 
@@ -105,29 +100,24 @@ Para elevar o padrão visual para a apresentação acadêmica formal do TCC, foi
 
 ---
 
-## 🎯 5. Roteiro dos Próximos Passos para o TCC
+## 🎯 4. Roteiro dos Próximos Passos para o TCC
 
-### Passo 1: Hierarquia de Acesso (RBAC)
-- [ ] Criar middleware/função de checagem de perfil no `src/auth.php`.
-- [ ] Ocultação contextual do menu lateral conforme o perfil do usuário logado.
-- [ ] Tela de cadastro e listagem de usuários para o Administrador gerenciar senhas e permissões.
-
-### Passo 2: Substituição dos Emojis por Ícones Vetoriais
+### Passo 1: Substituição dos Emojis por Ícones Vetoriais
 - [ ] Aplicar a tabela de substituição com Bootstrap Icons em todas as views do painel e no app mobile.
 
-### Passo 3: Deploy na Nuvem (AWS)
+### Passo 2: Deploy na Nuvem (AWS)
 - [ ] Criar instância **Amazon EC2** (Ubuntu / Free Tier).
 - [ ] Criar instância de banco gerenciado **Amazon RDS (PostgreSQL)**.
 - [ ] Configurar Security Groups (Portas 80, 443 e porta 5432 restrita à EC2).
 - [ ] Subir o Docker na EC2 configurando as variáveis de ambiente do RDS.
 - [ ] Testar sincronização do APK diretamente com o IP/domínio da AWS.
 
-### Passo 4: Testes de Benchmark (JMeter)
+### Passo 3: Testes de Benchmark (JMeter)
 - [ ] Criar script no **Apache JMeter** simulando cenários de carga concorrente (20, 50 e 100 trabalhadores sincronizando pesagens simultaneamente).
 - [ ] Executar o teste no ambiente **On-Premise (Local)** e registrar Latência, Throughput e CPU/RAM.
 - [ ] Executar o mesmo teste no ambiente **Nuvem (AWS)** e registrar Latência, Throughput e CloudWatch.
 
-### Passo 5: Elaboração dos Resultados do TCC
+### Passo 4: Elaboração dos Resultados do TCC
 - [ ] Tabela comparativa de Desempenho (On-Premise vs AWS).
 - [ ] Tabela comparativa de Custos (CapEx Local vs OpEx AWS ~US$ 126/mês).
 - [ ] Redação do capítulo de Resultados, Discussão e Considerações Finais.

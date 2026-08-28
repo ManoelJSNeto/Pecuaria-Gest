@@ -27,7 +27,9 @@ function initDb(PDO $db): void {
             nome TEXT NOT NULL,
             email TEXT UNIQUE NOT NULL,
             senha TEXT NOT NULL,
-            tipo TEXT DEFAULT 'admin',
+            tipo TEXT DEFAULT 'usuario',
+            cargo TEXT DEFAULT 'Colaborador',
+            permissoes TEXT DEFAULT '{}',
             ativo INTEGER DEFAULT 1,
             ultimo_acesso TEXT,
             created_at TIMESTAMP DEFAULT $now
@@ -137,11 +139,15 @@ function initDb(PDO $db): void {
         );
     ");
 
+    // Migrações dinâmicas para bases já existentes
+    try { $db->exec("ALTER TABLE usuarios ADD COLUMN cargo TEXT DEFAULT 'Colaborador'"); } catch (Exception $e) {}
+    try { $db->exec("ALTER TABLE usuarios ADD COLUMN permissoes TEXT DEFAULT '{}'"); } catch (Exception $e) {}
+
     // Seed admin user if none exists
     $count = $db->query("SELECT COUNT(*) FROM usuarios")->fetchColumn();
     if ($count == 0) {
         $hash = password_hash(DEFAULT_ADMIN_PASS, PASSWORD_BCRYPT);
-        $db->prepare("INSERT INTO usuarios (nome, email, senha, tipo) VALUES (?, ?, ?, 'admin')")
+        $db->prepare("INSERT INTO usuarios (nome, email, senha, tipo, cargo, permissoes) VALUES (?, ?, ?, 'admin', 'Proprietário Geral', '{}')")
            ->execute(['Administrador', DEFAULT_ADMIN_EMAIL, $hash]);
     }
 
