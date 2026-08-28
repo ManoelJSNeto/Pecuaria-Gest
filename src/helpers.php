@@ -58,15 +58,15 @@ function formatDateTime(?string $date): string {
 
 function statusBadge(string $status): string {
     $map = [
-        'ativo'     => 'success',
-        'doente'    => 'danger',
-        'vendido'   => 'secondary',
-        'morto'     => 'dark',
-        'prenha'    => 'info',
-        'desmamado' => 'warning',
+        'ativo'     => 'bg-success text-white',
+        'doente'    => 'bg-danger text-white',
+        'vendido'   => 'bg-secondary text-white',
+        'morto'     => 'bg-dark text-white border border-light border-opacity-50',
+        'prenha'    => 'bg-info text-dark',
+        'desmamado' => 'bg-warning text-dark',
     ];
-    $color = $map[$status] ?? 'primary';
-    return '<span class="badge bg-' . $color . '">' . ucfirst(e($status)) . '</span>';
+    $classes = $map[$status] ?? 'bg-primary text-white';
+    return '<span class="badge ' . $classes . '">' . ucfirst(e($status)) . '</span>';
 }
 
 function sexoLabel(string $sexo): string {

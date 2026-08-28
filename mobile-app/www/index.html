@@ -85,9 +85,9 @@
       text-align: center;
       touch-action: manipulation;
     }
-    .campo-nav-btn span.tab-icon {
+    .campo-nav-btn .tab-icon {
       font-size: 1.35rem;
-      margin-bottom: 2px;
+      margin-bottom: 3px;
       line-height: 1;
     }
     .campo-nav-btn:active {
@@ -184,14 +184,14 @@
   <header class="mobile-top-header">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
       <div class="d-flex align-items-center gap-2">
-        <i class="bi bi-phone-fill fs-4 text-white"></i>
+        <img src="./favicon.svg" alt="PecuáriaGest Logo" style="width: 38px; height: 38px; border-radius: 9px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
         <div>
           <h5 class="mb-0 fw-bold text-white">PecuáriaGest App</h5>
           <small class="text-white text-opacity-75" style="font-size: 0.72rem;">Coleta Nativa Offline no Pasto</small>
         </div>
       </div>
       <div class="d-flex align-items-center gap-2">
-        <div id="connectionStatusBadge" class="badge bg-danger shadow-sm d-inline-flex align-items-center gap-1">
+        <div id="connectionStatusBadge" class="badge bg-danger shadow-sm d-inline-flex align-items-center gap-1 text-white">
           <span class="status-dot offline"></span> Offline (Modo Campo)
         </div>
         <button type="button" class="btn btn-sm btn-outline-light py-1 px-2" onclick="openServerConfigModal()" title="Configurar Servidor">
@@ -428,8 +428,8 @@
 <div class="modal fade" id="modalConfigServidor" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header bg-dark text-white py-2 px-3">
-        <h6 class="modal-title fw-bold"><i class="bi bi-gear-fill me-2"></i>Configurações do Aplicativo</h6>
+      <div class="modal-header text-white py-2 px-3" style="background: linear-gradient(135deg, #1a4d2e 0%, #2d7a4e 100%);">
+        <h6 class="modal-title fw-bold text-white"><i class="bi bi-gear-fill me-2"></i>Configurações do Aplicativo</h6>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form onsubmit="handleSaveServerConfig(event)">

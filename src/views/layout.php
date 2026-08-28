@@ -43,13 +43,11 @@ $alertasNaoLidos = $db->query("SELECT COUNT(*) FROM alertas WHERE lido=0")->fetc
 
 <!-- Sidebar -->
 <nav class="sidebar">
-  <div class="sidebar-brand">
-    <div class="brand-icon">
-      <i class="bi bi-tag-fill text-white fs-4"></i>
-    </div>
+  <div class="sidebar-brand d-flex align-items-center gap-2">
+    <img src="/favicon.svg" alt="PecuáriaGest Logo" class="brand-logo" style="width: 38px; height: 38px; border-radius: 8px;">
     <div class="brand-text">
-      <h4>PecuáriaGest</h4>
-      <small>Gestão Integrada</small>
+      <h4 class="mb-0 text-white fw-bold">PecuáriaGest</h4>
+      <small style="color:#a3e6be;">Gestão Integrada</small>
     </div>
   </div>
 

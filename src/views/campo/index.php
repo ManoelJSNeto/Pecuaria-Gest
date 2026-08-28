@@ -206,14 +206,14 @@ try {
   <header class="mobile-top-header">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
       <div class="d-flex align-items-center gap-2">
-        <i class="bi bi-phone-fill fs-4 text-white"></i>
+        <img src="/favicon.svg" alt="PecuáriaGest Logo" style="width: 38px; height: 38px; border-radius: 9px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
         <div>
           <h5 class="mb-0 fw-bold text-white">PecuáriaGest Campo</h5>
           <small class="text-white text-opacity-75" style="font-size: 0.72rem;">Coleta 100% autônoma no pasto</small>
         </div>
       </div>
       <div class="d-flex align-items-center gap-2">
-        <div id="connectionStatusBadge" class="badge bg-danger shadow-sm d-inline-flex align-items-center gap-1">
+        <div id="connectionStatusBadge" class="badge bg-danger shadow-sm d-inline-flex align-items-center gap-1 text-white">
           <span class="status-dot offline"></span> Offline (Modo Campo)
         </div>
         <a href="/login" class="btn btn-sm btn-outline-light py-1 px-2" style="font-size:0.75rem" title="Acessar Painel">

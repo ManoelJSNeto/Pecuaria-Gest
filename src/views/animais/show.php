@@ -58,19 +58,34 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
     <?php endif; ?>
     <div class="flex-grow-1">
       <div class="d-flex align-items-center gap-2 flex-wrap">
-        <h3 class="mb-0 fw-800"><?= e($animal['brinco']) ?></h3>
-        <?php if ($animal['nome']): ?><span class="opacity-75">"<?= e($animal['nome']) ?>"</span><?php endif; ?>
-        <span class="badge bg-white text-dark"><?= statusBadge($animal['status']) ?></span>
+        <h3 class="mb-0 fw-800 text-white"><?= e($animal['brinco']) ?></h3>
+        <?php if ($animal['nome']): ?><span class="text-white-50">"<?= e($animal['nome']) ?>"</span><?php endif; ?>
+        <?= statusBadge($animal['status']) ?>
         <?php if ($isPuppy): ?>
-          <span class="badge bg-success"><i class="bi bi-stars me-1"></i>Bezerro / Filhote</span>
+          <span class="badge bg-success border border-white border-opacity-25"><i class="bi bi-stars me-1"></i>Bezerro / Filhote</span>
         <?php endif; ?>
       </div>
-      <div class="mt-2 d-flex flex-wrap gap-3">
-        <span><small class="opacity-60">Raça</small><br><strong><?= e($animal['raca'] ?? '—') ?></strong></span>
-        <span><small class="opacity-60">Sexo</small><br><strong><?= sexoLabel($animal['sexo']) ?></strong></span>
-        <span><small class="opacity-60">Idade</small><br><strong><?= calcIdade($animal['data_nascimento']) ?></strong></span>
-        <span><small class="opacity-60">Nascimento</small><br><strong><?= formatDate($animal['data_nascimento']) ?></strong></span>
-        <span><small class="opacity-60">Pastagem</small><br><strong><?= e($pasto['nome'] ?? '—') ?></strong></span>
+      <div class="mt-3 d-flex flex-wrap gap-2">
+        <div class="bg-white bg-opacity-10 border border-white border-opacity-25 rounded-2 px-3 py-1 text-center">
+          <small class="text-white-50 d-block" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;">Raça</small>
+          <strong class="text-white small"><?= e($animal['raca'] ?? '—') ?></strong>
+        </div>
+        <div class="bg-white bg-opacity-10 border border-white border-opacity-25 rounded-2 px-3 py-1 text-center">
+          <small class="text-white-50 d-block" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;">Sexo</small>
+          <strong class="text-white small"><?= sexoLabel($animal['sexo']) ?></strong>
+        </div>
+        <div class="bg-white bg-opacity-10 border border-white border-opacity-25 rounded-2 px-3 py-1 text-center">
+          <small class="text-white-50 d-block" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;">Idade</small>
+          <strong class="text-white small"><?= calcIdade($animal['data_nascimento']) ?></strong>
+        </div>
+        <div class="bg-white bg-opacity-10 border border-white border-opacity-25 rounded-2 px-3 py-1 text-center">
+          <small class="text-white-50 d-block" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;">Nascimento</small>
+          <strong class="text-white small"><?= formatDate($animal['data_nascimento']) ?></strong>
+        </div>
+        <div class="bg-white bg-opacity-10 border border-white border-opacity-25 rounded-2 px-3 py-1 text-center">
+          <small class="text-white-50 d-block" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;">Pastagem</small>
+          <strong class="text-white small"><?= e($pasto['nome'] ?? '—') ?></strong>
+        </div>
       </div>
     </div>
     <div class="d-flex gap-2 flex-wrap">
