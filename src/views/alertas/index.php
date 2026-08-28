@@ -29,14 +29,16 @@ $naoLidos = array_filter($alertas, fn($al) => !$al['lido']);
             'saude','vacina' => 'danger',
             'pesagem'        => 'primary',
             'reproducao'     => 'info',
+            'sincronizacao'  => 'success',
             default          => 'secondary',
           };
           $tipoIcon = match($al['tipo']) {
-            'saude'      => 'bi-heart-pulse-fill',
-            'vacina'     => 'bi-shield-plus',
-            'pesagem'    => 'bi-rulers',
-            'reproducao' => 'bi-diagram-3',
-            default      => 'bi-exclamation-circle',
+            'saude'         => 'bi-heart-pulse-fill',
+            'vacina'        => 'bi-shield-plus',
+            'pesagem'       => 'bi-rulers',
+            'reproducao'    => 'bi-diagram-3',
+            'sincronizacao' => 'bi-cloud-arrow-down-fill',
+            default         => 'bi-exclamation-circle',
           };
         ?>
         <tr class="<?= !$al['lido'] ? 'table-warning' : '' ?>" style="<?= !$al['lido'] ? 'opacity:1' : 'opacity:.65' ?>">

@@ -174,6 +174,23 @@ if (str_starts_with($uri, '/api/')) {
         $db->prepare("INSERT INTO sincronizacoes (dispositivo,ip,dados_recebidos,status,detalhes) VALUES (?,?,?,?,?)")
            ->execute([$body['dispositivo']??'desconhecido',$_SERVER['REMOTE_ADDR']??'',$total,$status,json_encode(['processados'=>$processados,'erros'=>$erros])]);
 
+        // Cria alerta/notificação no Painel Web para o Proprietário
+        if ($total > 0) {
+            $msgPartes = [];
+            if ($processados['pesagens'] > 0)     $msgPartes[] = "{$processados['pesagens']} pesagens";
+            if ($processados['animais_novos'] > 0) $msgPartes[] = "{$processados['animais_novos']} novos bezerros";
+            if ($processados['saude'] > 0)         $msgPartes[] = "{$processados['saude']} manejos sanitários";
+            if ($processados['fotos'] > 0)         $msgPartes[] = "{$processados['fotos']} fotos";
+
+            $resumoMsg = implode(', ', $msgPartes);
+            $dispositivoNome = htmlspecialchars($body['dispositivo'] ?? 'App Campo');
+            
+            try {
+                $db->prepare("INSERT INTO alertas (animal_id, tipo, mensagem, lido) VALUES (NULL, 'sincronizacao', ?, 0)")
+                   ->execute(["📦 Coleta sincronizada via {$dispositivoNome}: {$resumoMsg}."]);
+            } catch (Exception $e) {}
+        }
+
         echo json_encode(['status'=>$status,'processados'=>$processados,'erros'=>$erros]);
         exit;
     }

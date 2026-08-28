@@ -424,25 +424,39 @@
   </main>
 </div>
 
-<!-- MODAL: CONFIGURAÇÃO DO SERVIDOR -->
+<!-- MODAL: CONFIGURAÇÃO DO SERVIDOR & AUTO-SYNC -->
 <div class="modal fade" id="modalConfigServidor" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header bg-dark text-white py-2 px-3">
-        <h6 class="modal-title fw-bold"><i class="bi bi-hdd-network-fill me-2"></i>Endereço do Servidor Central</h6>
+        <h6 class="modal-title fw-bold"><i class="bi bi-gear-fill me-2"></i>Configurações do Aplicativo</h6>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form onsubmit="handleSaveServerConfig(event)">
         <div class="modal-body p-3">
-          <label class="form-label fw-bold small">URL do Backend Central:</label>
-          <input type="url" id="server_api_url" class="form-control" required placeholder="http://192.168.1.100:8080">
-          <small class="text-muted d-block mt-2">
-            Informe o IP ou domínio do servidor central (ex: <code>http://192.168.1.50:8080</code> ou sua URL na nuvem).
-          </small>
+          <div class="mb-3">
+            <label class="form-label fw-bold small">URL do Backend Central:</label>
+            <input type="url" id="server_api_url" class="form-control" required placeholder="http://192.168.1.100:8080">
+            <small class="text-muted d-block mt-1" style="font-size:0.75rem;">
+              IP local da fazenda (ex: <code>http://192.168.3.56:8080</code>) ou URL na nuvem AWS.
+            </small>
+          </div>
+          
+          <hr class="my-3">
+          
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="config_auto_sync" checked>
+            <label class="form-check-label fw-bold small" for="config_auto_sync">
+              🔄 Sincronização Automática (Auto-Sync)
+            </label>
+            <small class="text-muted d-block" style="font-size:0.75rem;">
+              Descarrega os registros pendentes automaticamente assim que o celular detectar a rede da fazenda.
+            </small>
+          </div>
         </div>
         <div class="modal-footer p-2">
           <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Fechar</button>
-          <button type="submit" class="btn btn-success btn-sm fw-bold">Salvar Endereço</button>
+          <button type="submit" class="btn btn-success btn-sm fw-bold">Salvar Configurações</button>
         </div>
       </form>
     </div>

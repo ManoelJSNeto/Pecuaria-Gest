@@ -1,15 +1,18 @@
 // ============================================================
-// PecuáriaGest App Nativo — Motor Offline & Sincronização
+// PecuáriaGest App Nativo — Motor Offline, Auto-Sync & API
 // ============================================================
 
 const STORAGE_QUEUE_KEY = 'pecuaria_native_queue';
 const STORAGE_ANIMALS_KEY = 'pecuaria_native_animals';
 const STORAGE_SERVER_KEY = 'pecuaria_native_server_url';
 const STORAGE_AUTH_KEY = 'pecuaria_native_auth';
+const STORAGE_AUTO_SYNC_KEY = 'pecuaria_native_auto_sync';
 
-// 1. Obter URL do Servidor Central
+let isSyncing = false;
+
+// 1. Obter URL do Servidor Central & Auto-Sync Config
 function getServerUrl() {
-  return localStorage.getItem(STORAGE_SERVER_KEY) || 'http://192.168.1.100:8080';
+  return localStorage.getItem(STORAGE_SERVER_KEY) || 'http://192.168.3.56:8080';
 }
 
 function setServerUrl(url) {
@@ -18,6 +21,14 @@ function setServerUrl(url) {
     cleanUrl = cleanUrl.slice(0, -1);
   }
   localStorage.setItem(STORAGE_SERVER_KEY, cleanUrl);
+}
+
+function isAutoSyncEnabled() {
+  return localStorage.getItem(STORAGE_AUTO_SYNC_KEY) !== 'false';
+}
+
+function setAutoSyncEnabled(enabled) {
+  localStorage.setItem(STORAGE_AUTO_SYNC_KEY, enabled ? 'true' : 'false');
 }
 
 // 2. Fila Offline Local
@@ -49,6 +60,11 @@ function addToQueue(tipo, data, fotoBase64 = null) {
   // Se for novo animal, atualiza cache local de autocompletar
   if (tipo === 'animal' && data.brinco) {
     saveAnimalToCache(data);
+  }
+
+  // Tenta sincronizar automaticamente se já estiver online
+  if (isServerOnline && isAutoSyncEnabled()) {
+    setTimeout(triggerAutoSync, 800);
   }
 }
 
@@ -179,6 +195,11 @@ async function checkServerConnectivity() {
       }
       isServerOnline = true;
       renderStatusBadge(true);
+
+      // Dispara Auto-Sync se houver registros na fila
+      if (isAutoSyncEnabled()) {
+        triggerAutoSync();
+      }
       return true;
     } else {
       isServerOnline = false;
@@ -246,7 +267,11 @@ function updatePendingBadge() {
 function openServerConfigModal() {
   const modalEl = document.getElementById('modalConfigServidor');
   const inputEl = document.getElementById('server_api_url');
+  const autoSyncEl = document.getElementById('config_auto_sync');
+  
   if (inputEl) inputEl.value = getServerUrl();
+  if (autoSyncEl) autoSyncEl.checked = isAutoSyncEnabled();
+
   if (modalEl && typeof bootstrap !== 'undefined') {
     const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
     modal.show();
@@ -256,13 +281,19 @@ function openServerConfigModal() {
 function handleSaveServerConfig(e) {
   e.preventDefault();
   const inputEl = document.getElementById('server_api_url');
+  const autoSyncEl = document.getElementById('config_auto_sync');
+
   if (inputEl && inputEl.value) {
     setServerUrl(inputEl.value);
-    showToast('⚙️ Endereço do servidor atualizado!', 'success');
-    const modalEl = document.getElementById('modalConfigServidor');
-    if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
-    checkServerConnectivity();
   }
+  if (autoSyncEl) {
+    setAutoSyncEnabled(autoSyncEl.checked);
+  }
+
+  showToast('⚙️ Configurações salvas com sucesso!', 'success');
+  const modalEl = document.getElementById('modalConfigServidor');
+  if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
+  checkServerConnectivity();
 }
 
 function openAuthSyncModal() {
@@ -319,10 +350,74 @@ async function handleAuthSync(e) {
   await executeSync({ email, senha }, salvar);
 }
 
+// Auto-Sync Silencioso em Segundo Plano
+async function triggerAutoSync() {
+  if (isSyncing || !isAutoSyncEnabled()) return;
+  const items = getLocalQueue();
+  if (items.length === 0) return;
+
+  const savedAuthStr = localStorage.getItem(STORAGE_AUTH_KEY);
+  if (!savedAuthStr) return;
+
+  let authData = null;
+  try {
+    authData = JSON.parse(savedAuthStr);
+    if (!authData.email || !authData.senha) return;
+  } catch (e) {
+    return;
+  }
+
+  isSyncing = true;
+  const payload = {
+    dispositivo: 'App Nativo Android (Auto-Sync Automático)',
+    auth_email: authData.email || '',
+    auth_senha: authData.senha || '',
+    animais_novos: [],
+    pesagens: [],
+    saude: []
+  };
+
+  const itemIds = [];
+  items.forEach(it => {
+    itemIds.push(it.id);
+    if (it.tipo === 'animal') {
+      payload.animais_novos.push({ ...it.data, foto_base64: it.foto_base64 });
+    } else if (it.tipo === 'pesagem') {
+      payload.pesagens.push({ ...it.data, foto_base64: it.foto_base64 });
+    } else if (it.tipo === 'saude') {
+      payload.saude.push({ ...it.data, foto_base64: it.foto_base64 });
+    }
+  });
+
+  const serverUrl = getServerUrl();
+  try {
+    const res = await fetch(`${serverUrl}/api/sync`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      removeItemsFromQueue(itemIds);
+      if (navigator.vibrate) navigator.vibrate([30, 20, 30]);
+      showToast(`🔄 Auto-Sync: ${data.processados?.pesagens || 0} pesagens, ${data.processados?.saude || 0} manejos e ${data.processados?.animais_novos || 0} bezerros sincronizados automaticamente!`, 'success');
+    } else if (res.status === 401) {
+      localStorage.removeItem(STORAGE_AUTH_KEY);
+    }
+  } catch (e) {
+    console.warn('Falha no Auto-Sync:', e);
+  } finally {
+    isSyncing = false;
+    updatePendingBadge();
+  }
+}
+
 async function executeSync(authData, shouldSave = false) {
   const items = getLocalQueue();
   if (items.length === 0) return;
 
+  isSyncing = true;
   const btnSync = document.getElementById('btnSyncNow');
   if (btnSync) {
     btnSync.disabled = true;
@@ -330,7 +425,7 @@ async function executeSync(authData, shouldSave = false) {
   }
 
   const payload = {
-    dispositivo: 'App Nativo Android (Capacitor)',
+    dispositivo: 'App Nativo Android (Sincronização Manual)',
     auth_email: authData.email || '',
     auth_senha: authData.senha || '',
     animais_novos: [],
@@ -380,6 +475,7 @@ async function executeSync(authData, shouldSave = false) {
   } catch (err) {
     showToast('❌ Erro na sincronização: ' + err.message, 'danger');
   } finally {
+    isSyncing = false;
     updatePendingBadge();
   }
 }
@@ -454,15 +550,21 @@ function toggleObitoSensivel(val) {
   }
 }
 
-// Submissão de Pesagem
+// Submissão de Pesagem (Suporte flexível a ponto e vírgula)
 async function handleAppPesagem(e) {
   e.preventDefault();
   try {
     const brinco = document.getElementById('p_brinco').value.trim();
-    const peso = parseFloat(document.getElementById('p_peso').value);
+    const rawPeso = (document.getElementById('p_peso').value || '').toString().replace(',', '.');
+    const peso = parseFloat(rawPeso);
     const data = document.getElementById('p_data').value;
     const obs = document.getElementById('p_obs').value.trim();
     const fotoFile = document.getElementById('p_foto').files[0];
+
+    if (isNaN(peso) || peso <= 0) {
+      showToast('⚠️ Informe um peso válido.', 'warning');
+      return;
+    }
 
     let fotoBase64 = null;
     if (fotoFile) {
@@ -559,4 +661,9 @@ document.addEventListener('DOMContentLoaded', () => {
     checkServerConnectivity();
   }, 1000);
   setInterval(checkServerConnectivity, 15000);
+
+  // Reconexão imediata ao voltar à rede
+  window.addEventListener('online', () => {
+    checkServerConnectivity();
+  });
 });
