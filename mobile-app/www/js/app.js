@@ -396,6 +396,7 @@ async function triggerAutoSync() {
     const res = await fetch(`${serverUrl}/api/sync`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(payload)
     });
 
@@ -452,6 +453,7 @@ async function executeSync(authData, shouldSave = false) {
     const res = await fetch(`${serverUrl}/api/sync`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(payload)
     });
 

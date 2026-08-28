@@ -57,6 +57,7 @@ async function addQueueItem(tipo, data, fotoBase64 = null) {
         saveAnimalToCache(data);
       }
       updatePendingBadge();
+      setTimeout(triggerAutoSync, 600); // Dispara Auto-Sync se estiver conectado
       resolve(req.result);
     };
     req.onerror = () => reject(req.error);
@@ -235,11 +236,12 @@ async function checkRealConnectivity() {
 
     if (res.ok || res.status === 304) {
       if (!isServerOnline) {
-        showToast('Conexão com o servidor confirmada! Você pode sincronizar.', 'success');
+        showToast('Conexão com o servidor confirmada! Sincronizando dados...', 'success');
         syncAnimalsCache(); // Atualiza cache de animais silenciosamente
       }
       isServerOnline = true;
       renderStatusBadge(true);
+      triggerAutoSync(); // Dispara Auto-Sync se houver registros na fila
       return true;
     } else {
       isServerOnline = false;
@@ -254,7 +256,9 @@ async function checkRealConnectivity() {
 }
 
 window.addEventListener('online', () => {
-  checkRealConnectivity();
+  checkRealConnectivity().then(online => {
+    if (online) triggerAutoSync();
+  });
 });
 
 window.addEventListener('offline', () => {
@@ -356,6 +360,72 @@ function closeAuthSyncModal() {
   if (backdrop) backdrop.remove();
 }
 
+let isSyncing = false;
+
+// Auto-Sync Silencioso em Segundo Plano
+async function triggerAutoSync() {
+  if (isSyncing) return;
+  const items = await getAllQueueItems();
+  if (items.length === 0) return;
+
+  if (!isServerOnline) {
+    const online = await checkRealConnectivity();
+    if (!online) return;
+  }
+
+  isSyncing = true;
+  const savedAuthStr = localStorage.getItem('pwa_sync_auth');
+  let authData = {};
+  if (savedAuthStr) {
+    try { authData = JSON.parse(savedAuthStr); } catch (e) {}
+  }
+
+  const payload = {
+    dispositivo: 'PWA Modo Campo (Auto-Sync Automático)',
+    auth_email: authData.email || '',
+    auth_senha: authData.senha || '',
+    animais_novos: [],
+    pesagens: [],
+    saude: []
+  };
+
+  const itemIds = [];
+  items.forEach(it => {
+    itemIds.push(it.id);
+    if (it.tipo === 'animal') {
+      payload.animais_novos.push({ ...it.data, foto_base64: it.foto_base64 });
+    } else if (it.tipo === 'pesagem') {
+      payload.pesagens.push({ ...it.data, foto_base64: it.foto_base64 });
+    } else if (it.tipo === 'saude') {
+      payload.saude.push({ ...it.data, foto_base64: it.foto_base64 });
+    }
+  });
+
+  try {
+    const response = await fetch('/api/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload)
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      await clearQueueItems(itemIds);
+      if (navigator.vibrate) navigator.vibrate([30, 20, 30]);
+      showToast(`Auto-Sync: ${data.processados?.pesagens || 0} pesagens, ${data.processados?.saude || 0} manejos e ${data.processados?.animais_novos || 0} novos animais sincronizados automaticamente!`, 'success');
+      syncAnimalsCache();
+    } else if (response.status === 401 && !savedAuthStr) {
+      console.log('Auto-sync aguardando credenciais salvas.');
+    }
+  } catch (err) {
+    console.warn('Auto-Sync aguardando conexão:', err);
+  } finally {
+    isSyncing = false;
+    updatePendingBadge();
+  }
+}
+
 async function syncOfflineData() {
   const items = await getAllQueueItems();
   if (items.length === 0) {
@@ -403,6 +473,7 @@ async function executeSync(authData = {}, shouldSave = false) {
   const items = await getAllQueueItems();
   if (items.length === 0) return;
 
+  isSyncing = true;
   if (btnSync) {
     btnSync.disabled = true;
     btnSync.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sincronizando...';
@@ -445,6 +516,7 @@ async function executeSync(authData = {}, shouldSave = false) {
       headers: {
         'Content-Type': 'application/json'
       },
+      credentials: 'include',
       body: JSON.stringify(payload)
     });
 
@@ -471,6 +543,7 @@ async function executeSync(authData = {}, shouldSave = false) {
     console.error('Erro na sincronização:', err);
     showToast('Erro ao sincronizar com o servidor: ' + err.message, 'danger');
   } finally {
+    isSyncing = false;
     updatePendingBadge();
   }
 }
