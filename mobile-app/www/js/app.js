@@ -191,7 +191,7 @@ async function checkServerConnectivity() {
         setCachedAnimals(animais);
       }
       if (!isServerOnline) {
-        showToast('🟢 Conectado ao servidor da fazenda!', 'success');
+        showToast('Conectado ao servidor da fazenda!', 'success');
       }
       isServerOnline = true;
       renderStatusBadge(true);
@@ -238,22 +238,24 @@ function updatePendingBadge() {
       countListEl.innerHTML = '<li class="list-group-item text-muted text-center py-4 small">Nenhum registro pendente no celular.</li>';
     } else {
       countListEl.innerHTML = items.map((it) => {
-        let icon = '⚖️';
+        let iconHtml = '<i class="bi bi-rulers text-warning"></i>';
         let title = `Pesagem: ${it.data.brinco || 'Animal'} (${it.data.peso || 0} kg)`;
         if (it.tipo === 'animal') {
-          icon = '🐣';
+          iconHtml = '<i class="bi bi-stars text-success"></i>';
           title = `Novo Animal: ${it.data.brinco || 'Sem brinco'} (${it.data.sexo === 'M' ? 'Macho' : 'Fêmea'})`;
         } else if (it.tipo === 'saude') {
-          icon = '⚕️';
+          iconHtml = '<i class="bi bi-heart-pulse-fill text-danger"></i>';
           title = `Saúde: ${it.data.brinco || 'Animal'} - ${it.data.tipo || 'Tratamento'}`;
         }
-        const hasPhoto = it.foto_base64 ? '<span class="badge bg-secondary ms-1">📷 Foto</span>' : '';
+        const hasPhoto = it.foto_base64 ? '<span class="badge bg-secondary ms-1"><i class="bi bi-camera-fill me-1"></i>Foto</span>' : '';
         return `
           <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-            <div>
-              <span class="me-2">${icon}</span>
-              <strong>${title}</strong>
-              ${hasPhoto}
+            <div class="d-flex align-items-center gap-2">
+              <span class="fs-5">${iconHtml}</span>
+              <div>
+                <strong>${title}</strong>
+                ${hasPhoto}
+              </div>
             </div>
             <small class="text-muted">${new Date(it.criado_em).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
           </li>
@@ -290,7 +292,7 @@ function handleSaveServerConfig(e) {
     setAutoSyncEnabled(autoSyncEl.checked);
   }
 
-  showToast('⚙️ Configurações salvas com sucesso!', 'success');
+  showToast('Configurações salvas com sucesso!', 'success');
   const modalEl = document.getElementById('modalConfigServidor');
   if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
   checkServerConnectivity();
@@ -320,7 +322,7 @@ async function syncOfflineData() {
 
   const online = await checkServerConnectivity();
   if (!online) {
-    showToast('⚠️ Servidor inacessível. Verifique se está conectado ao Wi-Fi da fazenda ou ajuste o IP na engrenagem ⚙️.', 'warning');
+    showToast('Servidor inacessível. Verifique se está conectado ao Wi-Fi da fazenda ou ajuste as configurações de IP.', 'warning');
     return;
   }
 
@@ -401,7 +403,7 @@ async function triggerAutoSync() {
       const data = await res.json();
       removeItemsFromQueue(itemIds);
       if (navigator.vibrate) navigator.vibrate([30, 20, 30]);
-      showToast(`🔄 Auto-Sync: ${data.processados?.pesagens || 0} pesagens, ${data.processados?.saude || 0} manejos e ${data.processados?.animais_novos || 0} bezerros sincronizados automaticamente!`, 'success');
+      showToast(`Auto-Sync: ${data.processados?.pesagens || 0} pesagens, ${data.processados?.saude || 0} manejos e ${data.processados?.animais_novos || 0} bezerros sincronizados automaticamente!`, 'success');
     } else if (res.status === 401) {
       localStorage.removeItem(STORAGE_AUTH_KEY);
     }
@@ -455,7 +457,7 @@ async function executeSync(authData, shouldSave = false) {
 
     if (res.status === 401) {
       localStorage.removeItem(STORAGE_AUTH_KEY);
-      showToast('❌ E-mail ou senha incorretos para autorizar a sincronização.', 'danger');
+      showToast('E-mail ou senha incorretos para autorizar a sincronização.', 'danger');
       openAuthSyncModal();
       return;
     }
@@ -471,16 +473,16 @@ async function executeSync(authData, shouldSave = false) {
       localStorage.setItem(STORAGE_AUTH_KEY, JSON.stringify(authData));
     }
 
-    showToast(`✅ Sincronizado com sucesso! ${data.processados?.pesagens || 0} pesagens, ${data.processados?.saude || 0} manejos e ${data.processados?.animais_novos || 0} bezerros gravados na nuvem.`, 'success');
+    showToast(`Sincronizado com sucesso! ${data.processados?.pesagens || 0} pesagens, ${data.processados?.saude || 0} manejos e ${data.processados?.animais_novos || 0} bezerros gravados na nuvem.`, 'success');
   } catch (err) {
-    showToast('❌ Erro na sincronização: ' + err.message, 'danger');
+    showToast('Erro na sincronização: ' + err.message, 'danger');
   } finally {
     isSyncing = false;
     updatePendingBadge();
   }
 }
 
-// 8. Utilitário de Toast
+// 8. Utilitário de Toast com Ícones Vetoriais
 function showToast(message, type = 'info') {
   let container = document.getElementById('toastContainer');
   if (!container) {
@@ -491,12 +493,17 @@ function showToast(message, type = 'info') {
     document.body.appendChild(container);
   }
 
+  const iconClass = type === 'success' ? 'bi-check-circle-fill' : (type === 'danger' ? 'bi-x-circle-fill' : (type === 'warning' ? 'bi-exclamation-triangle-fill' : 'bi-info-circle-fill'));
+
   const toastEl = document.createElement('div');
   toastEl.className = `toast align-items-center text-bg-${type} border-0 show shadow-lg mb-2`;
   toastEl.role = 'alert';
   toastEl.innerHTML = `
-    <div class="d-flex">
-      <div class="toast-body fw-bold">${message}</div>
+    <div class="d-flex align-items-center">
+      <div class="toast-body fw-bold d-flex align-items-center gap-2">
+        <i class="bi ${iconClass} fs-5"></i>
+        <span>${message}</span>
+      </div>
       <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
     </div>
   `;
@@ -562,7 +569,7 @@ async function handleAppPesagem(e) {
     const fotoFile = document.getElementById('p_foto').files[0];
 
     if (isNaN(peso) || peso <= 0) {
-      showToast('⚠️ Informe um peso válido.', 'warning');
+      showToast('Informe um peso válido.', 'warning');
       return;
     }
 
@@ -578,9 +585,9 @@ async function handleAppPesagem(e) {
     document.getElementById('p_data').value = new Date().toISOString().split('T')[0];
 
     if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
-    showToast(`✅ Pesagem de ${peso}kg salva no celular!`, 'success');
+    showToast(`Pesagem de ${peso}kg salva no celular!`, 'success');
   } catch (err) {
-    showToast('⚠️ Erro ao salvar: ' + err.message, 'danger');
+    showToast('Erro ao salvar: ' + err.message, 'danger');
   }
 }
 
@@ -608,9 +615,9 @@ async function handleAppBezerro(e) {
     document.getElementById('b_raca').value = 'Nelore';
 
     if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
-    showToast(`✅ Bezerro ${brinco} salvo no celular!`, 'success');
+    showToast(`Bezerro ${brinco} salvo no celular!`, 'success');
   } catch (err) {
-    showToast('⚠️ Erro ao salvar: ' + err.message, 'danger');
+    showToast('Erro ao salvar: ' + err.message, 'danger');
   }
 }
 
@@ -637,9 +644,9 @@ async function handleAppSaude(e) {
     removeFotoPreview('s_foto', 'preview_s');
 
     if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
-    showToast(`✅ Evento de ${tipo} para ${brinco} salvo no celular!`, 'success');
+    showToast(`Evento de ${tipo} para ${brinco} salvo no celular!`, 'success');
   } catch (err) {
-    showToast('⚠️ Erro ao salvar: ' + err.message, 'danger');
+    showToast('Erro ao salvar: ' + err.message, 'danger');
   }
 }
 

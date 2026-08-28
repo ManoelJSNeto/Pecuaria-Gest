@@ -29,7 +29,7 @@ if (empty($pesoTrend)) {
 <div class="row g-3 mb-4">
   <div class="col-sm-6 col-xl-3">
     <div class="stat-card">
-      <div class="stat-icon" style="background:#e8f5ee">🐄</div>
+      <div class="stat-icon" style="background:#e8f5ee"><i class="bi bi-tag-fill text-success fs-4"></i></div>
       <div>
         <div class="stat-value"><?= $totalAnimais ?></div>
         <div class="stat-label">Total no Rebanho</div>
@@ -39,7 +39,7 @@ if (empty($pesoTrend)) {
   </div>
   <div class="col-sm-6 col-xl-3">
     <div class="stat-card">
-      <div class="stat-icon" style="background:#fff3cd">⚕️</div>
+      <div class="stat-icon" style="background:#fff3cd"><i class="bi bi-heart-pulse-fill text-warning fs-4"></i></div>
       <div>
         <div class="stat-value" style="color:<?= $totalDoentes > 0 ? '#dc3545' : '#1a4d2e' ?>"><?= $totalDoentes ?></div>
         <div class="stat-label">Em Tratamento</div>
@@ -49,7 +49,7 @@ if (empty($pesoTrend)) {
   </div>
   <div class="col-sm-6 col-xl-3">
     <div class="stat-card">
-      <div class="stat-icon" style="background:#e8f5ee">⚖️</div>
+      <div class="stat-icon" style="background:#e8f5ee"><i class="bi bi-rulers text-success fs-4"></i></div>
       <div>
         <div class="stat-value"><?= $pesoMedio ? number_format($pesoMedio, 0) : '—' ?></div>
         <div class="stat-label">Peso Médio (kg)</div>
@@ -59,7 +59,7 @@ if (empty($pesoTrend)) {
   </div>
   <div class="col-sm-6 col-xl-3">
     <div class="stat-card">
-      <div class="stat-icon" style="background:<?= $alertasAtivos > 0 ? '#ffe5e5' : '#e8f5ee' ?>">🔔</div>
+      <div class="stat-icon" style="background:<?= $alertasAtivos > 0 ? '#ffe5e5' : '#e8f5ee' ?>"><i class="bi bi-bell-fill <?= $alertasAtivos > 0 ? 'text-danger' : 'text-success' ?> fs-4"></i></div>
       <div>
         <div class="stat-value" style="color:<?= $alertasAtivos > 0 ? '#dc3545' : '#1a4d2e' ?>"><?= $alertasAtivos ?></div>
         <div class="stat-label">Alertas Ativos</div>

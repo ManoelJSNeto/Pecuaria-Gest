@@ -9,13 +9,13 @@ $apiUrl = "$proto://$host/api/sync";
 ?>
 <div class="row g-3 mb-4">
   <div class="col-md-4">
-    <div class="stat-card"><div class="stat-icon" style="background:#e3f2fd">📱</div><div><div class="stat-value"><?= $totalSincs ?></div><div class="stat-label">Sincronizações</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#e3f2fd"><i class="bi bi-phone-fill text-primary fs-4"></i></div><div><div class="stat-value"><?= $totalSincs ?></div><div class="stat-label">Sincronizações</div></div></div>
   </div>
   <div class="col-md-4">
-    <div class="stat-card"><div class="stat-icon" style="background:#e8f5ee">📦</div><div><div class="stat-value"><?= $totalDados ?? 0 ?></div><div class="stat-label">Registros Recebidos</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#e8f5ee"><i class="bi bi-box-seam-fill text-success fs-4"></i></div><div><div class="stat-value"><?= $totalDados ?? 0 ?></div><div class="stat-label">Registros Recebidos</div></div></div>
   </div>
   <div class="col-md-4">
-    <div class="stat-card"><div class="stat-icon" style="background:#fff3cd">🕐</div><div><div class="stat-value small fw-700"><?= $logs ? formatDateTime($logs[0]['created_at']) : '—' ?></div><div class="stat-label">Última Sinc.</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#fff3cd"><i class="bi bi-clock-history text-warning fs-4"></i></div><div><div class="stat-value small fw-700"><?= $logs ? formatDateTime($logs[0]['created_at']) : '—' ?></div><div class="stat-label">Última Sinc.</div></div></div>
   </div>
 </div>
 
@@ -28,14 +28,14 @@ $apiUrl = "$proto://$host/api/sync";
         <label class="form-label small fw-600">Endpoint</label>
         <div class="input-group input-group-sm">
           <input type="text" class="form-control font-monospace" value="<?= e($apiUrl) ?>" readonly id="apiEndpoint">
-          <button class="btn btn-outline-secondary" onclick="navigator.clipboard.writeText(document.getElementById('apiEndpoint').value);this.textContent='✓'">Copiar</button>
+          <button class="btn btn-outline-secondary" onclick="navigator.clipboard.writeText(document.getElementById('apiEndpoint').value);this.innerHTML='<i class=\'bi bi-check-lg\'></i>';"><i class="bi bi-clipboard"></i> Copiar</button>
         </div>
       </div>
       <div class="col-md-6">
         <label class="form-label small fw-600">API Key</label>
         <div class="input-group input-group-sm">
           <input type="text" class="form-control font-monospace" value="pecuaria-mobile-key" readonly id="apiKey">
-          <button class="btn btn-outline-secondary" onclick="navigator.clipboard.writeText(document.getElementById('apiKey').value);this.textContent='✓'">Copiar</button>
+          <button class="btn btn-outline-secondary" onclick="navigator.clipboard.writeText(document.getElementById('apiKey').value);this.innerHTML='<i class=\'bi bi-check-lg\'></i>';"><i class="bi bi-clipboard"></i> Copiar</button>
         </div>
       </div>
     </div>

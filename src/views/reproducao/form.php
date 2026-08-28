@@ -25,7 +25,7 @@ $preAnimal   = $r['animal_id'] ?? ($_GET['animal_id'] ?? null);
               <option value="">— Selecione —</option>
               <?php foreach ($animais as $a): ?>
                 <option value="<?= $a['id'] ?>" <?= $preAnimal == $a['id'] ? 'selected' : '' ?>>
-                  <?= e($a['brinco']) ?> (<?= $a['sexo']==='F'?'♀ Fêmea':'♂ Macho' ?>)<?= $a['nome']?' — '.e($a['nome']):'' ?>
+                  <?= e($a['brinco']) ?> (<?= $a['sexo']==='F'?'Fêmea':'Macho' ?>)<?= $a['nome']?' — '.e($a['nome']):'' ?>
                 </option>
               <?php endforeach; ?>
             </select>

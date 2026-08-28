@@ -29,8 +29,8 @@ $animaisF  = $db->query("SELECT id, brinco, nome FROM animais ORDER BY brinco")-
           <div class="col-md-4">
             <label class="form-label">Sexo *</label>
             <select name="sexo" class="form-select" required>
-              <option value="M" <?= ($a['sexo']??'M')==='M'?'selected':'' ?>>♂ Macho</option>
-              <option value="F" <?= ($a['sexo']??'')==='F'?'selected':'' ?>>♀ Fêmea</option>
+              <option value="M" <?= ($a['sexo']??'M')==='M'?'selected':'' ?>>Macho</option>
+              <option value="F" <?= ($a['sexo']??'')==='F'?'selected':'' ?>>Fêmea</option>
             </select>
           </div>
           <div class="col-md-4">
@@ -126,7 +126,7 @@ $animaisF  = $db->query("SELECT id, brinco, nome FROM animais ORDER BY brinco")-
           <label class="form-label small fw-bold">Enviar <?= !empty($a['foto_url']) ? 'Nova ' : '' ?>Foto</label>
           <input type="file" name="foto" class="form-control form-control-sm" accept="image/*">
           <small class="text-muted d-block mt-2">
-            💡 Se for bezerro/filhote, a foto é gravada com destaque permanente como <strong>Memória de Nascimento</strong>.
+            <i class="bi bi-info-circle text-success me-1"></i> Se for bezerro/filhote, a foto é gravada com destaque permanente como <strong>Memória de Nascimento</strong>.
           </small>
         </div>
       </div>

@@ -206,7 +206,7 @@ try {
   <header class="mobile-top-header">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
       <div class="d-flex align-items-center gap-2">
-        <span class="fs-4">📱</span>
+        <i class="bi bi-phone-fill fs-4 text-white"></i>
         <div>
           <h5 class="mb-0 fw-bold text-white">PecuáriaGest Campo</h5>
           <small class="text-white text-opacity-75" style="font-size: 0.72rem;">Coleta 100% autônoma no pasto</small>
@@ -252,19 +252,19 @@ try {
     <!-- Barra de Abas Táteis (Touch Tab Bar) -->
     <div class="campo-nav-bar">
       <button type="button" class="campo-nav-btn btn-tab-pesagem active" id="tabBtn_pesagem" onclick="switchCampoTab('pesagem')">
-        <span class="tab-icon">⚖️</span>
+        <i class="bi bi-rulers tab-icon fs-5"></i>
         <span>Pesagem</span>
       </button>
       <button type="button" class="campo-nav-btn btn-tab-bezerro" id="tabBtn_bezerro" onclick="switchCampoTab('bezerro')">
-        <span class="tab-icon">🐣</span>
+        <i class="bi bi-stars tab-icon fs-5"></i>
         <span>Bezerro</span>
       </button>
       <button type="button" class="campo-nav-btn btn-tab-saude" id="tabBtn_saude" onclick="switchCampoTab('saude')">
-        <span class="tab-icon">⚕️</span>
+        <i class="bi bi-heart-pulse-fill tab-icon fs-5"></i>
         <span>Saúde</span>
       </button>
       <button type="button" class="campo-nav-btn btn-tab-fila" id="tabBtn_fila" onclick="switchCampoTab('fila')">
-        <span class="tab-icon">📦</span>
+        <i class="bi bi-box-seam-fill tab-icon fs-5"></i>
         <span>Fila (<strong id="tabPendingBadge">0</strong>)</span>
       </button>
     </div>
@@ -283,7 +283,7 @@ try {
       <div class="card border-warning border-2 shadow-sm mb-4">
         <div class="card-header bg-warning bg-opacity-25 py-2 px-3 d-flex align-items-center justify-content-between">
           <div class="d-flex align-items-center gap-2">
-            <span class="fs-5">⚖️</span>
+            <i class="bi bi-rulers fs-5 text-dark"></i>
             <h6 class="mb-0 fw-bold text-dark">Registrar Pesagem</h6>
           </div>
           <span class="badge bg-warning text-dark fw-bold">Modo Rápido</span>
@@ -309,7 +309,7 @@ try {
               </div>
             </div>
             <div class="mb-3">
-              <label class="form-label fw-bold small">📷 Foto da Pesagem (Câmera ou Galeria)</label>
+              <label class="form-label fw-bold small"><i class="bi bi-camera-fill me-1"></i> Foto da Pesagem (Câmera ou Galeria)</label>
               <input type="file" id="p_foto" class="form-control" accept="image/*" onchange="handleFotoPreview(this, 'preview_p')">
               <div id="preview_p" class="foto-preview-box">
                 <img src="" alt="Preview">
@@ -331,7 +331,7 @@ try {
       <div class="card border-success border-2 shadow-sm mb-4">
         <div class="card-header bg-success text-white py-2 px-3 d-flex align-items-center justify-content-between">
           <div class="d-flex align-items-center gap-2">
-            <span class="fs-5">🐣</span>
+            <i class="bi bi-stars fs-5 text-white"></i>
             <h6 class="mb-0 fw-bold text-white">Nascimento / Bezerro</h6>
           </div>
           <span class="badge bg-white text-success fw-bold">Memória de Filhote</span>
@@ -346,8 +346,8 @@ try {
               <div class="col-5">
                 <label class="form-label fw-bold small">Sexo *</label>
                 <select id="b_sexo" class="form-select touch-input-lg">
-                  <option value="M">♂ Macho</option>
-                  <option value="F">♀ Fêmea</option>
+                  <option value="M">Macho</option>
+                  <option value="F">Fêmea</option>
                 </select>
               </div>
             </div>
@@ -366,7 +366,7 @@ try {
               <input type="date" id="b_data" class="form-control" value="<?= date('Y-m-d') ?>">
             </div>
             <div class="mb-3">
-              <label class="form-label fw-bold small text-success">🌱 Foto do Bezerro (Memória de Filhote)</label>
+              <label class="form-label fw-bold small text-success"><i class="bi bi-stars me-1"></i> Foto do Bezerro (Memória de Filhote)</label>
               <input type="file" id="b_foto" class="form-control" accept="image/*" onchange="handleFotoPreview(this, 'preview_b')">
               <div id="preview_b" class="foto-preview-box">
                 <img src="" alt="Preview">
@@ -388,7 +388,7 @@ try {
       <div class="card border-danger border-2 shadow-sm mb-4">
         <div class="card-header bg-danger text-white py-2 px-3 d-flex align-items-center justify-content-between">
           <div class="d-flex align-items-center gap-2">
-            <span class="fs-5">⚕️</span>
+            <i class="bi bi-heart-pulse-fill fs-5 text-white"></i>
             <h6 class="mb-0 fw-bold text-white">Saúde / Manejo / Óbito</h6>
           </div>
           <span class="badge bg-white text-danger fw-bold">Clínico</span>
@@ -407,7 +407,7 @@ try {
                 <option value="Curativo">Curativo</option>
                 <option value="Vermifugação">Vermifugação</option>
                 <option value="Exame">Exame</option>
-                <option value="Óbito">⚠️ Óbito / Morte do Animal</option>
+                <option value="Óbito">Óbito / Morte do Animal</option>
               </select>
             </div>
             <div class="mb-3">
@@ -425,7 +425,7 @@ try {
               </div>
             </div>
             <div class="mb-3">
-              <label class="form-label fw-bold small">📷 Foto do Manejo / Laudo (Opcional)</label>
+              <label class="form-label fw-bold small"><i class="bi bi-camera-fill me-1"></i> Foto do Manejo / Laudo (Opcional)</label>
               <input type="file" id="s_foto" class="form-control" accept="image/*" onchange="handleFotoPreview(this, 'preview_s')">
               <div id="preview_s" class="foto-preview-box">
                 <img src="" alt="Preview">
@@ -435,7 +435,7 @@ try {
             <div class="form-check form-switch mb-3" id="sensivelSwitchGroup">
               <input class="form-check-input" type="checkbox" id="s_sensivel" value="1">
               <label class="form-check-label small fw-bold text-danger" for="s_sensivel">
-                ⚠️ Censurar foto por padrão (Desfoque de proteção visual)
+                <i class="bi bi-eye-slash-fill me-1"></i> Censurar foto por padrão (Desfoque de proteção visual)
               </label>
             </div>
             <button type="submit" class="btn btn-danger touch-btn-submit">
@@ -453,7 +453,7 @@ try {
       <div class="card border-primary border-2 shadow-sm mb-4">
         <div class="card-header bg-primary text-white py-2 px-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div class="d-flex align-items-center gap-2">
-            <span class="fs-5">📦</span>
+            <i class="bi bi-box-seam-fill fs-5 text-white"></i>
             <h6 class="mb-0 fw-bold text-white">Memória Local (<span id="pendingCount">0</span> pendências)</h6>
           </div>
           <button type="button" class="btn btn-light fw-bold text-primary btn-sm shadow-sm" id="btnSyncNow" onclick="syncOfflineData()">
@@ -621,10 +621,10 @@ async function handlePwaPesagem(e) {
     document.getElementById('p_data').value = new Date().toISOString().split('T')[0];
 
     if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
-    showToast(`✅ Pesagem de ${peso}kg salva no celular!`, 'success');
+    showToast(`Pesagem de ${peso}kg salva no celular!`, 'success');
   } catch (err) {
     console.error('Erro ao salvar pesagem:', err);
-    showToast('⚠️ Erro ao salvar pesagem: ' + err.message, 'danger');
+    showToast('Erro ao salvar pesagem: ' + err.message, 'danger');
   }
 }
 
@@ -651,10 +651,10 @@ async function handlePwaBezerro(e) {
     document.getElementById('b_raca').value = 'Nelore';
 
     if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
-    showToast(`✅ Bezerro ${brinco} cadastrado e salvo no celular!`, 'success');
+    showToast(`Bezerro ${brinco} cadastrado e salvo no celular!`, 'success');
   } catch (err) {
     console.error('Erro ao cadastrar bezerro:', err);
-    showToast('⚠️ Erro ao salvar bezerro: ' + err.message, 'danger');
+    showToast('Erro ao salvar bezerro: ' + err.message, 'danger');
   }
 }
 
@@ -680,10 +680,10 @@ async function handlePwaSaude(e) {
     removeFotoPreview('s_foto', 'preview_s');
 
     if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
-    showToast(`✅ Evento de ${tipo} para ${brinco} salvo no celular!`, 'success');
+    showToast(`Evento de ${tipo} para ${brinco} salvo no celular!`, 'success');
   } catch (err) {
     console.error('Erro ao registrar saúde:', err);
-    showToast('⚠️ Erro ao salvar saúde: ' + err.message, 'danger');
+    showToast('Erro ao salvar saúde: ' + err.message, 'danger');
   }
 }
 

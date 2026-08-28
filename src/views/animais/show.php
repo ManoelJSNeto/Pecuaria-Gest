@@ -39,7 +39,7 @@ $chartLabels   = json_encode(array_map(fn($p) => $p['data'], $chartPesagens));
 $chartData     = json_encode(array_map(fn($p) => (float)$p['peso'], $chartPesagens));
 
 $pesoAtual = !empty($pesagens) ? $pesagens[0]['peso'] : $animal['peso_inicial'];
-$sexoEmoji = $animal['sexo'] === 'M' ? '🐂' : '🐄';
+$sexoIcon  = $animal['sexo'] === 'M' ? 'bi-gender-male text-primary' : 'bi-gender-female text-danger';
 $isPuppy   = isFilhote($animal['data_nascimento']);
 ?>
 <div class="mb-3 d-flex justify-content-between align-items-center">
@@ -54,7 +54,7 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
     <?php if (!empty($animal['foto_url'])): ?>
       <img src="<?= e($animal['foto_url']) ?>" alt="Foto" class="rounded-3 border border-white border-2 shadow" style="width: 76px; height: 76px; object-fit: cover;">
     <?php else: ?>
-      <div class="animal-big-avatar"><?= $sexoEmoji ?></div>
+      <div class="animal-big-avatar"><i class="bi <?= $sexoIcon ?> fs-1"></i></div>
     <?php endif; ?>
     <div class="flex-grow-1">
       <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -62,7 +62,7 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
         <?php if ($animal['nome']): ?><span class="opacity-75">"<?= e($animal['nome']) ?>"</span><?php endif; ?>
         <span class="badge bg-white text-dark"><?= statusBadge($animal['status']) ?></span>
         <?php if ($isPuppy): ?>
-          <span class="badge bg-success"><i class="bi bi-egg-fried me-1"></i>Bezerro / Filhote</span>
+          <span class="badge bg-success"><i class="bi bi-stars me-1"></i>Bezerro / Filhote</span>
         <?php endif; ?>
       </div>
       <div class="mt-2 d-flex flex-wrap gap-3">
@@ -146,11 +146,11 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
               <div class="col-md-3">
                 <label class="form-label small fw-bold">Tipo de Evento</label>
                 <select name="tipo_evento" class="form-select form-select-sm" id="tipoEventoSelect">
-                  <option value="perfil">📸 Perfil / Geral</option>
-                  <option value="nascimento">🐣 Nascimento / Filhote</option>
-                  <option value="pesagem">⚖️ Pesagem</option>
-                  <option value="saude">⚕️ Saúde / Manejo</option>
-                  <option value="obito">⚠️ Óbito / Morte</option>
+                  <option value="perfil">Perfil / Geral</option>
+                  <option value="nascimento">Nascimento / Filhote</option>
+                  <option value="pesagem">Pesagem</option>
+                  <option value="saude">Saúde / Manejo</option>
+                  <option value="obito">Óbito / Morte</option>
                 </select>
               </div>
               <div class="col-md-2">
@@ -165,7 +165,7 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
                 <div class="form-check form-switch">
                   <input class="form-check-input" type="checkbox" name="is_sensivel" value="1" id="checkSensivel">
                   <label class="form-check-label small" for="checkSensivel">
-                    ⚠️ Censurar por padrão (Desfoque de conteúdo sensível / óbito)
+                    <i class="bi bi-eye-slash-fill text-warning me-1"></i> Censurar por padrão (Desfoque de conteúdo sensível / óbito)
                   </label>
                 </div>
                 <button type="submit" class="btn btn-sm btn-success">
@@ -190,13 +190,13 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
               <?php 
                 $isCensurada = ($f['is_sensivel'] == 1 || $f['tipo_evento'] === 'obito' || $animal['status'] === 'morto');
                 $tipoIconMap = [
-                  'nascimento' => '🐣 Nascimento',
-                  'pesagem'    => '⚖️ Pesagem',
-                  'saude'      => '⚕️ Saúde',
-                  'obito'      => '⚠️ Óbito',
-                  'perfil'     => '📸 Perfil'
+                  'nascimento' => ['icon' => 'bi-stars', 'label' => 'Nascimento'],
+                  'pesagem'    => ['icon' => 'bi-rulers', 'label' => 'Pesagem'],
+                  'saude'      => ['icon' => 'bi-heart-pulse-fill', 'label' => 'Saúde'],
+                  'obito'      => ['icon' => 'bi-exclamation-triangle-fill', 'label' => 'Óbito'],
+                  'perfil'     => ['icon' => 'bi-camera-fill', 'label' => 'Perfil']
                 ];
-                $tipoTexto = $tipoIconMap[$f['tipo_evento']] ?? '📸 Foto';
+                $tipoInfo = $tipoIconMap[$f['tipo_evento']] ?? ['icon' => 'bi-image-fill', 'label' => 'Foto'];
               ?>
               <div class="foto-card <?= $isCensurada ? 'foto-censurada' : '' ?>">
                 <div class="foto-thumb-container">
@@ -210,7 +210,9 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
                 </div>
                 <div class="p-2 d-flex flex-column justify-content-between" style="min-height: 70px;">
                   <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span class="badge bg-light text-dark border small" style="font-size:.7rem;"><?= $tipoTexto ?></span>
+                    <span class="badge bg-light text-dark border small d-inline-flex align-items-center gap-1" style="font-size:.7rem;">
+                      <i class="bi <?= $tipoInfo['icon'] ?>"></i> <?= $tipoInfo['label'] ?>
+                    </span>
                     <small class="text-muted" style="font-size:.72rem;"><?= formatDate($f['data']) ?></small>
                   </div>
                   <?php if (!empty($f['observacao'])): ?>
@@ -296,7 +298,7 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
                   <td>
                     <div class="small fw-600"><?= e($s['tipo']) ?></div>
                     <div class="text-muted" style="font-size:.75rem"><?= e($s['descricao']) ?></div>
-                    <?php if ($s['medicamento']): ?><div class="text-info" style="font-size:.72rem">💊 <?= e($s['medicamento']) ?><?= $s['dose'] ? ' ('.e($s['dose']).')' : '' ?></div><?php endif; ?>
+                    <?php if ($s['medicamento']): ?><div class="text-info" style="font-size:.72rem"><i class="bi bi-capsule me-1"></i><?= e($s['medicamento']) ?><?= $s['dose'] ? ' ('.e($s['dose']).')' : '' ?></div><?php endif; ?>
                   </td>
                   <td class="text-end small text-muted text-nowrap">
                     <div><?= formatDate($s['data']) ?></div>

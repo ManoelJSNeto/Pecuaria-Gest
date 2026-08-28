@@ -70,7 +70,7 @@ function statusBadge(string $status): string {
 }
 
 function sexoLabel(string $sexo): string {
-    return $sexo === 'M' ? '♂ Macho' : '♀ Fêmea';
+    return $sexo === 'M' ? 'Macho' : 'Fêmea';
 }
 
 function calcIdade(?string $dataNasc): string {
@@ -212,7 +212,7 @@ function notifyOwnerOnSyncEmail(array $processados, string $dispositivo): void {
     if ($total === 0) return;
 
     $dataHora = date('d/m/Y \à\s H:i');
-    $assunto = "📦 [PecuáriaGest] Nova Coleta de Campo Sincronizada ({$total} registros)";
+    $assunto = "[PecuáriaGest] Nova Coleta de Campo Sincronizada ({$total} registros)";
 
     $corpo = '
     <!DOCTYPE html>
@@ -221,7 +221,7 @@ function notifyOwnerOnSyncEmail(array $processados, string $dispositivo): void {
     <body style="font-family: Arial, sans-serif; background-color: #f4f6f4; margin: 0; padding: 20px; color: #2c3e2d;">
       <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
         <div style="background: linear-gradient(135deg, #1a4d2e 0%, #2d7a4e 100%); color: #ffffff; padding: 20px; text-align: center;">
-          <h2 style="margin: 0; font-size: 22px;">🐂 PecuáriaGest</h2>
+          <h2 style="margin: 0; font-size: 22px; letter-spacing: -0.5px;">PecuáriaGest</h2>
           <p style="margin: 5px 0 0 0; opacity: 0.85; font-size: 14px;">Relatório Automático de Sincronização</p>
         </div>
         <div style="padding: 24px;">
@@ -240,19 +240,19 @@ function notifyOwnerOnSyncEmail(array $processados, string $dispositivo): void {
               <td style="padding: 10px 14px;">' . $dataHora . '</td>
             </tr>
             <tr style="border-bottom: 1px solid #e5e7eb;">
-              <td style="padding: 10px 14px; font-weight: bold;">⚖️ Pesagens:</td>
+              <td style="padding: 10px 14px; font-weight: bold;">Pesagens:</td>
               <td style="padding: 10px 14px;"><strong style="color: #d97706;">' . ($processados['pesagens'] ?? 0) . '</strong> registros</td>
             </tr>
             <tr style="border-bottom: 1px solid #e5e7eb;">
-              <td style="padding: 10px 14px; font-weight: bold;">🐣 Novos Bezerros:</td>
+              <td style="padding: 10px 14px; font-weight: bold;">Novos Bezerros:</td>
               <td style="padding: 10px 14px;"><strong style="color: #16a34a;">' . ($processados['animais_novos'] ?? 0) . '</strong> cadastrados</td>
             </tr>
             <tr style="border-bottom: 1px solid #e5e7eb;">
-              <td style="padding: 10px 14px; font-weight: bold;">⚕️ Manejos Sanitários:</td>
+              <td style="padding: 10px 14px; font-weight: bold;">Manejos Sanitários:</td>
               <td style="padding: 10px 14px;"><strong style="color: #dc2626;">' . ($processados['saude'] ?? 0) . '</strong> lançamentos</td>
             </tr>
             <tr>
-              <td style="padding: 10px 14px; font-weight: bold;">📷 Fotos Vinculadas:</td>
+              <td style="padding: 10px 14px; font-weight: bold;">Fotos Vinculadas:</td>
               <td style="padding: 10px 14px;"><strong>' . ($processados['fotos'] ?? 0) . '</strong> fotos salvas</td>
             </tr>
           </table>

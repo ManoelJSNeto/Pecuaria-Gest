@@ -115,13 +115,13 @@ if ($pastoF) {
           <?php endif; ?>
           <?php foreach ($animais as $a): ?>
             <?php
-              $bgColor = $a['sexo'] === 'M' ? '#e3f2fd' : '#fce4ec';
-              $emoji   = $a['sexo'] === 'M' ? '🐂' : '🐄';
+              $bgColor   = $a['sexo'] === 'M' ? '#e3f2fd' : '#fce4ec';
+              $iconClass = $a['sexo'] === 'M' ? 'bi-gender-male text-primary' : 'bi-gender-female text-danger';
             ?>
             <tr>
               <td>
                 <div class="d-flex align-items-center gap-2">
-                  <div class="animal-avatar" style="background:<?= $bgColor ?>"><?= $emoji ?></div>
+                  <div class="animal-avatar" style="background:<?= $bgColor ?>"><i class="bi <?= $iconClass ?> fs-5"></i></div>
                   <div>
                     <a href="/animais/<?= $a['id'] ?>" class="fw-700 text-decoration-none d-block" style="color:#1a4d2e">
                       <?= e($a['brinco']) ?>

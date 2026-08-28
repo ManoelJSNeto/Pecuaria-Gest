@@ -235,7 +235,7 @@ async function checkRealConnectivity() {
 
     if (res.ok || res.status === 304) {
       if (!isServerOnline) {
-        showToast('🟢 Conexão com o servidor confirmada! Você pode sincronizar.', 'success');
+        showToast('Conexão com o servidor confirmada! Você pode sincronizar.', 'success');
         syncAnimalsCache(); // Atualiza cache de animais silenciosamente
       }
       isServerOnline = true;
@@ -260,7 +260,7 @@ window.addEventListener('online', () => {
 window.addEventListener('offline', () => {
   isServerOnline = false;
   renderStatusBadge(false);
-  showToast('🔴 Sem internet no momento. Seus lançamentos serão salvos com segurança no celular.', 'warning');
+  showToast('Sem internet no momento. Seus lançamentos serão salvos com segurança no celular.', 'warning');
 });
 
 // 6. Atualização da Contagem de Pendências no UI
@@ -289,22 +289,24 @@ async function updatePendingBadge() {
         countListEl.innerHTML = '<li class="list-group-item text-muted text-center py-4 small">Nenhum registro pendente no celular.</li>';
       } else {
         countListEl.innerHTML = items.map((it) => {
-          let icon = '⚖️';
+          let iconHtml = '<i class="bi bi-rulers text-warning"></i>';
           let title = `Pesagem: ${it.data.brinco || 'Animal'} (${it.data.peso || 0} kg)`;
           if (it.tipo === 'animal') {
-            icon = '🐣';
+            iconHtml = '<i class="bi bi-stars text-success"></i>';
             title = `Novo Animal: ${it.data.brinco || 'Sem brinco'} (${it.data.sexo === 'M' ? 'Macho' : 'Fêmea'})`;
           } else if (it.tipo === 'saude') {
-            icon = '⚕️';
+            iconHtml = '<i class="bi bi-heart-pulse-fill text-danger"></i>';
             title = `Saúde: ${it.data.brinco || 'Animal'} - ${it.data.tipo || 'Tratamento'}`;
           }
-          const hasPhoto = it.foto_base64 ? '<span class="badge bg-secondary ms-1">📷 Foto</span>' : '';
+          const hasPhoto = it.foto_base64 ? '<span class="badge bg-secondary ms-1"><i class="bi bi-camera-fill me-1"></i>Foto</span>' : '';
           return `
             <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-              <div>
-                <span class="me-2">${icon}</span>
-                <strong>${title}</strong>
-                ${hasPhoto}
+              <div class="d-flex align-items-center gap-2">
+                <span class="fs-5">${iconHtml}</span>
+                <div>
+                  <strong>${title}</strong>
+                  ${hasPhoto}
+                </div>
               </div>
               <small class="text-muted">${new Date(it.criado_em).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
             </li>
@@ -364,7 +366,7 @@ async function syncOfflineData() {
   // Verifica conectividade real primeiro
   const online = await checkRealConnectivity();
   if (!online) {
-    showToast('⚠️ O servidor está inacessível no momento. Seus registros continuam salvos com segurança no celular.', 'warning');
+    showToast('O servidor está inacessível no momento. Seus registros continuam salvos com segurança no celular.', 'warning');
     return;
   }
 
@@ -448,7 +450,7 @@ async function executeSync(authData = {}, shouldSave = false) {
 
     if (response.status === 401) {
       localStorage.removeItem('pwa_sync_auth');
-      showToast('❌ E-mail ou senha incorretos para autorizar a sincronização.', 'danger');
+      showToast('E-mail ou senha incorretos para autorizar a sincronização.', 'danger');
       openAuthSyncModal();
       return;
     }
@@ -464,16 +466,16 @@ async function executeSync(authData = {}, shouldSave = false) {
       localStorage.setItem('pwa_sync_auth', JSON.stringify({ email: authData.auth_email, senha: authData.auth_senha }));
     }
 
-    showToast(`✅ Sincronizado com sucesso! ${res.processados.pesagens || 0} pesagens, ${res.processados.saude || 0} eventos de saúde e ${res.processados.animais_novos || 0} novos animais gravados na nuvem.`, 'success');
+    showToast(`Sincronizado com sucesso! ${res.processados.pesagens || 0} pesagens, ${res.processados.saude || 0} eventos de saúde e ${res.processados.animais_novos || 0} novos animais gravados na nuvem.`, 'success');
   } catch (err) {
     console.error('Erro na sincronização:', err);
-    showToast('❌ Erro ao sincronizar com o servidor: ' + err.message, 'danger');
+    showToast('Erro ao sincronizar com o servidor: ' + err.message, 'danger');
   } finally {
     updatePendingBadge();
   }
 }
 
-// 8. Utilitário de Toast de Feedback
+// 8. Utilitário de Toast com Ícones Vetoriais
 function showToast(message, type = 'info') {
   let container = document.getElementById('toastContainer');
   if (!container) {
@@ -484,13 +486,16 @@ function showToast(message, type = 'info') {
     document.body.appendChild(container);
   }
 
+  const iconClass = type === 'success' ? 'bi-check-circle-fill' : (type === 'danger' ? 'bi-x-circle-fill' : (type === 'warning' ? 'bi-exclamation-triangle-fill' : 'bi-info-circle-fill'));
+
   const toastEl = document.createElement('div');
   toastEl.className = `toast align-items-center text-bg-${type} border-0 show shadow-lg mb-2`;
   toastEl.role = 'alert';
   toastEl.innerHTML = `
-    <div class="d-flex">
-      <div class="toast-body fw-bold">
-        ${message}
+    <div class="d-flex align-items-center">
+      <div class="toast-body fw-bold d-flex align-items-center gap-2">
+        <i class="bi ${iconClass} fs-5"></i>
+        <span>${message}</span>
       </div>
       <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
     </div>
@@ -522,7 +527,7 @@ async function triggerPwaInstall() {
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
-      showToast('🎉 Aplicativo adicionado à sua tela inicial!', 'success');
+      showToast('Aplicativo adicionado à sua tela inicial!', 'success');
       const installCard = document.getElementById('pwaInstallCard');
       if (installCard) installCard.style.display = 'none';
     }
@@ -542,7 +547,7 @@ window.addEventListener('appinstalled', () => {
   deferredPrompt = null;
   const installCard = document.getElementById('pwaInstallCard');
   if (installCard) installCard.style.display = 'none';
-  showToast('✅ Aplicativo instalado com sucesso!', 'success');
+  showToast('Aplicativo instalado com sucesso!', 'success');
 });
 
 // Inicialização ao carregar a página

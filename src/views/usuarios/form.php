@@ -87,11 +87,11 @@ if ($isEdit) {
           
           <!-- Botões de Presets Rápidos -->
           <div class="btn-group btn-group-sm">
-            <button type="button" class="btn btn-outline-secondary" onclick="applyPreset('all')" title="Marcar tudo">⚡ Tudo</button>
-            <button type="button" class="btn btn-outline-secondary" onclick="applyPreset('none')" title="Desmarcar tudo">🧹 Limpar</button>
-            <button type="button" class="btn btn-outline-primary" onclick="applyPreset('veterinario')" title="Animais, Saúde, Reprodução e Pesagens">🩺 Veterinário</button>
-            <button type="button" class="btn btn-outline-success" onclick="applyPreset('campo')" title="Pesagens, Bezerros, Saúde e App">🤠 Campo</button>
-            <button type="button" class="btn btn-outline-info" onclick="applyPreset('leitura')" title="Apenas visualização">👁️ Leitura</button>
+            <button type="button" class="btn btn-outline-secondary" onclick="applyPreset('all')" title="Marcar tudo"><i class="bi bi-lightning-charge-fill me-1"></i>Tudo</button>
+            <button type="button" class="btn btn-outline-secondary" onclick="applyPreset('none')" title="Desmarcar tudo"><i class="bi bi-x-circle me-1"></i>Limpar</button>
+            <button type="button" class="btn btn-outline-primary" onclick="applyPreset('veterinario')" title="Animais, Saúde, Reprodução e Pesagens"><i class="bi bi-heart-pulse-fill me-1"></i>Veterinário</button>
+            <button type="button" class="btn btn-outline-success" onclick="applyPreset('campo')" title="Pesagens, Bezerros, Saúde e App"><i class="bi bi-phone-fill me-1"></i>Campo</button>
+            <button type="button" class="btn btn-outline-info" onclick="applyPreset('leitura')" title="Apenas visualização"><i class="bi bi-eye-fill me-1"></i>Leitura</button>
           </div>
         </div>
 
@@ -100,7 +100,7 @@ if ($isEdit) {
           <!-- MÓDULO: ANIMAIS -->
           <div class="mb-4 p-3 bg-light rounded-3 border">
             <div class="d-flex align-items-center gap-2 mb-2">
-              <span class="fs-5">🐂</span>
+              <i class="bi bi-tag-fill text-success fs-5"></i>
               <h6 class="mb-0 fw-bold text-dark">Gestão do Rebanho (Animais)</h6>
             </div>
             <div class="row g-2">
@@ -134,7 +134,7 @@ if ($isEdit) {
           <!-- MÓDULO: PESAGENS -->
           <div class="mb-4 p-3 bg-light rounded-3 border">
             <div class="d-flex align-items-center gap-2 mb-2">
-              <span class="fs-5">⚖️</span>
+              <i class="bi bi-rulers text-primary fs-5"></i>
               <h6 class="mb-0 fw-bold text-dark">Pesagens & Balança</h6>
             </div>
             <div class="row g-2">
@@ -168,7 +168,7 @@ if ($isEdit) {
           <!-- MÓDULO: SAÚDE & VACINAS -->
           <div class="mb-4 p-3 bg-light rounded-3 border">
             <div class="d-flex align-items-center gap-2 mb-2">
-              <span class="fs-5">⚕️</span>
+              <i class="bi bi-heart-pulse-fill text-danger fs-5"></i>
               <h6 class="mb-0 fw-bold text-dark">Saúde, Vacinas & Manejos</h6>
             </div>
             <div class="row g-2">
@@ -202,7 +202,7 @@ if ($isEdit) {
           <!-- MÓDULO: PASTAGENS -->
           <div class="mb-4 p-3 bg-light rounded-3 border">
             <div class="d-flex align-items-center gap-2 mb-2">
-              <span class="fs-5">🌿</span>
+              <i class="bi bi-tree-fill text-success fs-5"></i>
               <h6 class="mb-0 fw-bold text-dark">Pastagens & Lotes</h6>
             </div>
             <div class="row g-2">
@@ -236,7 +236,7 @@ if ($isEdit) {
           <!-- MÓDULO: REPRODUÇÃO -->
           <div class="mb-4 p-3 bg-light rounded-3 border">
             <div class="d-flex align-items-center gap-2 mb-2">
-              <span class="fs-5">🧬</span>
+              <i class="bi bi-diagram-3-fill text-info fs-5"></i>
               <h6 class="mb-0 fw-bold text-dark">Reprodução & Inseminação</h6>
             </div>
             <div class="row g-2">
@@ -270,7 +270,7 @@ if ($isEdit) {
           <!-- MÓDULO: RELATÓRIOS, ALERTAS & MOBILE -->
           <div class="p-3 bg-light rounded-3 border">
             <div class="d-flex align-items-center gap-2 mb-2">
-              <span class="fs-5">📊</span>
+              <i class="bi bi-sliders text-secondary fs-5"></i>
               <h6 class="mb-0 fw-bold text-dark">Relatórios, App Mobile & Sistema</h6>
             </div>
             <div class="row g-3">
@@ -289,13 +289,13 @@ if ($isEdit) {
               <div class="col-md-6">
                 <div class="form-check form-switch">
                   <input class="form-check-input perm-cb" type="checkbox" name="perm[pode_sincronizar_mobile]" value="1" id="p_mobile" <?= !empty($userPerms['pode_sincronizar_mobile']) ? 'checked' : '' ?>>
-                  <label class="form-check-label small fw-bold text-success" for="p_mobile">📱 Permitir Sincronização pelo App Mobile</label>
+                  <label class="form-check-label small fw-bold text-success" for="p_mobile"><i class="bi bi-phone-fill me-1"></i>Permitir Sincronização pelo App Mobile</label>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="form-check form-switch">
                   <input class="form-check-input perm-cb" type="checkbox" name="perm[receber_notificacao_email]" value="1" id="p_email" <?= !empty($userPerms['receber_notificacao_email']) ? 'checked' : '' ?>>
-                  <label class="form-check-label small" for="p_email">📧 Receber Notificações por E-mail</label>
+                  <label class="form-check-label small" for="p_email"><i class="bi bi-envelope-fill me-1"></i>Receber Notificações por E-mail</label>
                 </div>
               </div>
               <div class="col-md-6">
@@ -307,7 +307,7 @@ if ($isEdit) {
               <div class="col-md-6">
                 <div class="form-check form-switch">
                   <input class="form-check-input perm-cb" type="checkbox" name="perm[gerenciar_usuarios]" value="1" id="p_gerenciar_usuarios" <?= !empty($userPerms['gerenciar_usuarios']) ? 'checked' : '' ?>>
-                  <label class="form-check-label small text-primary fw-bold" for="p_gerenciar_usuarios">👥 Gerenciar Equipe / Usuários</label>
+                  <label class="form-check-label small text-primary fw-bold" for="p_gerenciar_usuarios"><i class="bi bi-people-fill me-1"></i>Gerenciar Equipe / Usuários</label>
                 </div>
               </div>
             </div>

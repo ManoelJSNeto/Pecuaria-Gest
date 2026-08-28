@@ -11,7 +11,9 @@
 <body>
 <div class="login-page">
   <div class="login-card">
-    <div class="login-brand">🐄</div>
+    <div class="login-brand text-center mb-2">
+      <i class="bi bi-tag-fill" style="font-size:2.8rem; color:var(--green-mid, #2d7a4e);"></i>
+    </div>
     <h4 class="text-center mb-1" style="color:#1a4d2e;font-weight:800">PecuáriaGest</h4>
     <p class="text-center text-muted small mb-4">Sistema de Gestão Pecuária Individual</p>
 

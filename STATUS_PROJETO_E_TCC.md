@@ -103,7 +103,7 @@ Para elevar o padrão visual para a apresentação acadêmica formal do TCC, foi
 ## 🎯 4. Roteiro dos Próximos Passos para o TCC
 
 ### Passo 1: Substituição dos Emojis por Ícones Vetoriais
-- [ ] Aplicar a tabela de substituição com Bootstrap Icons em todas as views do painel e no app mobile.
+- [x] Aplicar a tabela de substituição com Bootstrap Icons em todas as views do painel e no app mobile. (Concluído com 100% de cobertura)
 
 ### Passo 2: Deploy na Nuvem (AWS)
 - [ ] Criar instância **Amazon EC2** (Ubuntu / Free Tier).
