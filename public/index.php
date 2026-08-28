@@ -715,15 +715,27 @@ if ($uri === '/configuracoes/salvar' && $method === 'POST') {
         redirect('/configuracoes');
     }
     
-    $enabled = isset($_POST['notif_email_enabled']) ? '1' : '0';
+    $enabled      = isset($_POST['notif_email_enabled']) ? '1' : '0';
     $destinatario = trim($_POST['notif_email_destinatario'] ?? '');
-    $from = trim($_POST['notif_smtp_from'] ?? '');
+    $from         = trim($_POST['notif_smtp_from'] ?? '');
+    $smtpHost     = trim($_POST['notif_smtp_host'] ?? '');
+    $smtpPort     = trim($_POST['notif_smtp_port'] ?? '587');
+    $smtpUser     = trim($_POST['notif_smtp_user'] ?? '');
+    $smtpPass     = $_POST['notif_smtp_pass'] ?? '';
+    $smtpSecure   = trim($_POST['notif_smtp_secure'] ?? 'tls');
 
     setSysConfig('notif_email_enabled', $enabled);
     setSysConfig('notif_email_destinatario', $destinatario);
     setSysConfig('notif_smtp_from', $from);
+    setSysConfig('notif_smtp_host', $smtpHost);
+    setSysConfig('notif_smtp_port', $smtpPort);
+    setSysConfig('notif_smtp_user', $smtpUser);
+    if (!empty($smtpPass)) {
+        setSysConfig('notif_smtp_pass', $smtpPass);
+    }
+    setSysConfig('notif_smtp_secure', $smtpSecure);
 
-    flash('success', 'Configurações de notificação salvas com sucesso!');
+    flash('success', 'Configurações de e-mail e SMTP salvas com sucesso!');
     redirect('/configuracoes');
     exit;
 }
@@ -735,18 +747,24 @@ if ($uri === '/configuracoes/testar-email') {
     $assunto = "[PecuáriaGest] Teste de Notificação do Sistema";
     $corpo = '
     <div style="font-family:Arial,sans-serif;padding:20px;background:#f4f6f4;color:#2c3e2d;">
-      <div style="max-width:500px;margin:0 auto;background:#fff;padding:20px;border-radius:8px;border-top:4px solid #1a4d2e;">
-        <h3 style="color:#1a4d2e;margin-top:0;">Teste de E-mail Bem-Sucedido!</h3>
-        <p>Este é um e-mail de teste disparado pelo sistema <strong>PecuáriaGest</strong> para validar o canal de comunicação com o proprietário.</p>
-        <p style="font-size:12px;color:#6b7280;">Data e hora: ' . date('d/m/Y H:i:s') . '</p>
+      <div style="max-width:520px;margin:0 auto;background:#fff;padding:24px;border-radius:10px;border-top:5px solid #1a4d2e;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <h3 style="color:#1a4d2e;margin-top:0;font-size:20px;">Teste de Notificação SMTP Bem-Sucedido!</h3>
+        <p style="font-size:15px;line-height:1.5;">Este é um e-mail de teste disparado pelo sistema <strong>PecuáriaGest</strong> confirmando a comunicação ativa com o servidor.</p>
+        <div style="background:#f8faf8;padding:12px 16px;border-radius:6px;border:1px solid #e8ede9;margin:16px 0;font-size:13px;">
+          <strong>Destinatário:</strong> ' . htmlspecialchars($destinatario) . '<br>
+          <strong>Horário do Disparo:</strong> ' . date('d/m/Y H:i:s') . '<br>
+          <strong>Status:</strong> Conexão SMTP autenticada e entregue.
+        </div>
+        <p style="font-size:12px;color:#6b7280;margin-bottom:0;">PecuáriaGest — Gestão Agropecuária Integrada</p>
       </div>
     </div>';
 
-    $enviado = sendNotificationEmail($destinatario, $assunto, $corpo);
+    $errorMsg = null;
+    $enviado = sendNotificationEmail($destinatario, $assunto, $corpo, $errorMsg);
     if ($enviado) {
-        flash('success', "E-mail de teste enviado para {$destinatario}!");
+        flash('success', "E-mail de teste enviado com sucesso para {$destinatario}!");
     } else {
-        flash('info', "Tentativa de envio de e-mail registrada para {$destinatario}. (Em ambiente local de desenvolvimento, configure o SMTP no php.ini ou na AWS em produção).");
+        flash('error', "Falha no envio de e-mail: " . ($errorMsg ?: "Verifique as credenciais do servidor SMTP."));
     }
     redirect('/configuracoes');
     exit;

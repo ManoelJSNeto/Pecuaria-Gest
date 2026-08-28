@@ -1,16 +1,21 @@
 <?php
-$emailEnabled     = getSysConfig('notif_email_enabled', '1');
+$emailEnabled      = getSysConfig('notif_email_enabled', '1');
 $emailDestinatario = getSysConfig('notif_email_destinatario', DEFAULT_ADMIN_EMAIL);
-$emailFrom        = getSysConfig('notif_smtp_from', 'sistema@pecuariagest.com.br');
+$emailFrom         = getSysConfig('notif_smtp_from', 'sistema@pecuariagest.com.br');
+$smtpHost          = getSysConfig('notif_smtp_host', '');
+$smtpPort          = getSysConfig('notif_smtp_port', '587');
+$smtpUser          = getSysConfig('notif_smtp_user', '');
+$smtpPassSaved     = !empty(getSysConfig('notif_smtp_pass', ''));
+$smtpSecure        = getSysConfig('notif_smtp_secure', 'tls');
 
-$totalAnimais     = $db->query("SELECT COUNT(*) FROM animais WHERE status != 'morto' AND status != 'vendido'")->fetchColumn();
-$totalPesagens    = $db->query("SELECT COUNT(*) FROM pesagens")->fetchColumn();
-$totalSincs       = $db->query("SELECT COUNT(*) FROM sincronizacoes")->fetchColumn();
-$dbDriver         = DB_DRIVER === 'pgsql' ? 'PostgreSQL 16 (Amazon RDS / Nuvem)' : 'SQLite 3 (Armazenamento Local)';
+$totalAnimais      = $db->query("SELECT COUNT(*) FROM animais WHERE status != 'morto' AND status != 'vendido'")->fetchColumn();
+$totalPesagens     = $db->query("SELECT COUNT(*) FROM pesagens")->fetchColumn();
+$totalSincs        = $db->query("SELECT COUNT(*) FROM sincronizacoes")->fetchColumn();
+$dbDriver          = DB_DRIVER === 'pgsql' ? 'PostgreSQL 16 (Amazon RDS / Nuvem)' : 'SQLite 3 (Armazenamento Local)';
 ?>
 
 <div class="row g-4">
-  <!-- Coluna da Esquerda: Configurações de Notificação -->
+  <!-- Coluna da Esquerda: Configurações de Notificação & SMTP -->
   <div class="col-lg-7">
     <div class="card shadow-sm border-0 mb-4">
       <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between border-bottom">
@@ -19,8 +24,8 @@ $dbDriver         = DB_DRIVER === 'pgsql' ? 'PostgreSQL 16 (Amazon RDS / Nuvem)'
             <i class="bi bi-envelope-at-fill fs-5"></i>
           </div>
           <div>
-            <h6 class="mb-0 fw-bold">Notificações por E-mail do Proprietário</h6>
-            <small class="text-muted">Configurações de relatórios e alertas automáticos de campo</small>
+            <h6 class="mb-0 fw-bold">Notificações por E-mail & Servidor SMTP</h6>
+            <small class="text-muted">Configure o servidor de envio para relatórios de sincronização</small>
           </div>
         </div>
         <span class="badge bg-<?= $emailEnabled === '1' ? 'success' : 'secondary' ?>">
@@ -52,19 +57,73 @@ $dbDriver         = DB_DRIVER === 'pgsql' ? 'PostgreSQL 16 (Amazon RDS / Nuvem)'
           </div>
 
           <div class="mb-4">
-            <label class="form-label fw-bold small">E-mail Remetente do Sistema</label>
+            <label class="form-label fw-bold small">E-mail Remetente do Sistema (From)</label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-send-fill"></i></span>
-              <input type="email" name="notif_smtp_from" class="form-control" value="<?= e($emailFrom) ?>" placeholder="sistema@pecuariagest.com.br">
+              <input type="email" name="notif_smtp_from" id="smtp_from" class="form-control" value="<?= e($emailFrom) ?>" placeholder="sistema@pecuariagest.com.br">
             </div>
-            <small class="text-muted">Identificação do remetente configurada no servidor (SMTP/Amazon SES).</small>
+            <small class="text-muted">E-mail de envio cadastrado no provedor SMTP.</small>
+          </div>
+
+          <!-- Seção de Servidor SMTP Autenticado -->
+          <div class="border rounded-3 p-3 bg-light bg-opacity-50 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+              <h6 class="fw-bold mb-0 text-success d-flex align-items-center gap-1" style="font-size:0.9rem;">
+                <i class="bi bi-server"></i> Servidor de Envio SMTP (Gmail, SES, Outlook, Mailtrap)
+              </h6>
+              <!-- Presets Rápidos -->
+              <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-outline-secondary py-0" onclick="applySmtpPreset('gmail')">Gmail</button>
+                <button type="button" class="btn btn-outline-secondary py-0" onclick="applySmtpPreset('outlook')">Outlook</button>
+                <button type="button" class="btn btn-outline-secondary py-0" onclick="applySmtpPreset('mailtrap')">Mailtrap</button>
+                <button type="button" class="btn btn-outline-secondary py-0" onclick="applySmtpPreset('aws')">AWS SES</button>
+              </div>
+            </div>
+            <p class="text-muted small mb-3">
+              Permite o disparo real de e-mails em ambiente local (XAMPP) e na nuvem AWS sem depender do sendmail do Windows.
+            </p>
+
+            <div class="row g-2 mb-2">
+              <div class="col-md-8">
+                <label class="form-label small fw-bold">Servidor SMTP (Host)</label>
+                <input type="text" name="notif_smtp_host" id="smtp_host" class="form-control form-control-sm" value="<?= e($smtpHost) ?>" placeholder="Ex: smtp.gmail.com">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small fw-bold">Porta</label>
+                <input type="number" name="notif_smtp_port" id="smtp_port" class="form-control form-control-sm" value="<?= e($smtpPort) ?>" placeholder="587">
+              </div>
+            </div>
+
+            <div class="row g-2 mb-2">
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Usuário / E-mail de Login</label>
+                <input type="text" name="notif_smtp_user" id="smtp_user" class="form-control form-control-sm" value="<?= e($smtpUser) ?>" placeholder="seu-email@gmail.com">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">
+                  Senha SMTP <?= $smtpPassSaved ? '<span class="badge bg-success bg-opacity-10 text-success fw-normal">Salva</span>' : '' ?>
+                </label>
+                <input type="password" name="notif_smtp_pass" class="form-control form-control-sm" placeholder="<?= $smtpPassSaved ? 'Deixe em branco para manter' : 'Senha ou Senha de App' ?>" autocomplete="new-password">
+              </div>
+            </div>
+
+            <div class="row g-2">
+              <div class="col-md-12">
+                <label class="form-label small fw-bold">Criptografia</label>
+                <select name="notif_smtp_secure" id="smtp_secure" class="form-select form-select-sm">
+                  <option value="tls" <?= $smtpSecure === 'tls' ? 'selected' : '' ?>>TLS / STARTTLS (Porta 587 - Recomendado)</option>
+                  <option value="ssl" <?= $smtpSecure === 'ssl' ? 'selected' : '' ?>>SSL (Porta 465)</option>
+                  <option value="none" <?= $smtpSecure === 'none' ? 'selected' : '' ?>>Nenhuma (Servidores locais / Mailtrap porta 2525)</option>
+                </select>
+              </div>
+            </div>
           </div>
 
           <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2 border-top">
             <button type="submit" class="btn btn-primary fw-bold px-4">
               <i class="bi bi-check-lg me-1"></i> Salvar Configurações
             </button>
-            <a href="/configuracoes/testar-email" class="btn btn-outline-secondary btn-sm">
+            <a href="/configuracoes/testar-email" class="btn btn-outline-success btn-sm fw-bold">
               <i class="bi bi-envelope-paper-fill me-1"></i> Enviar E-mail de Teste
             </a>
           </div>
@@ -72,6 +131,35 @@ $dbDriver         = DB_DRIVER === 'pgsql' ? 'PostgreSQL 16 (Amazon RDS / Nuvem)'
       </div>
     </div>
   </div>
+
+  <script>
+  function applySmtpPreset(type) {
+    const host = document.getElementById('smtp_host');
+    const port = document.getElementById('smtp_port');
+    const secure = document.getElementById('smtp_secure');
+    
+    if (type === 'gmail') {
+      host.value = 'smtp.gmail.com';
+      port.value = '587';
+      secure.value = 'tls';
+      alert("Configuração do Gmail selecionada!\n\nNota: No Gmail, utilize seu endereço de e-mail e gere uma 'Senha de Aplicativo' (App Password) nas configurações de Segurança da sua conta Google.");
+    } else if (type === 'outlook') {
+      host.value = 'smtp.office365.com';
+      port.value = '587';
+      secure.value = 'tls';
+    } else if (type === 'mailtrap') {
+      host.value = 'sandbox.smtp.mailtrap.io';
+      port.value = '2525';
+      secure.value = 'none';
+      alert("Configuração do Mailtrap selecionada! Insira o Usuário e Senha da sua Inbox do Mailtrap.");
+    } else if (type === 'aws') {
+      host.value = 'email-smtp.us-east-1.amazonaws.com';
+      port.value = '587';
+      secure.value = 'tls';
+      alert("Configuração do Amazon SES selecionada! Utilize as credenciais SMTP geradas no console da AWS.");
+    }
+  }
+  </script>
 
   <!-- Coluna da Direita: Informações do Sistema & TCC -->
   <div class="col-lg-5">

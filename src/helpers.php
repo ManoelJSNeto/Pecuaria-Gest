@@ -188,17 +188,26 @@ function setSysConfig(string $chave, ?string $valor): void {
     } catch (Exception $e) {}
 }
 
-function sendNotificationEmail(string $destinatario, string $assunto, string $htmlCorpo): bool {
+require_once __DIR__ . '/mailer.php';
+
+function sendNotificationEmail(string $destinatario, string $assunto, string $htmlCorpo, ?string &$errorMsg = null): bool {
     $fromEmail = getSysConfig('notif_smtp_from', 'sistema@pecuariagest.com.br');
     $fromName  = 'PecuáriaGest';
-    
-    $headers  = "MIME-Version: 1.0\r\n";
-    $headers .= "Content-type: text/html; charset=UTF-8\r\n";
-    $headers .= "From: {$fromName} <{$fromEmail}>\r\n";
-    $headers .= "Reply-To: {$fromEmail}\r\n";
-    $headers .= "X-Mailer: PHP/" . phpversion();
 
-    return @mail($destinatario, $assunto, $htmlCorpo, $headers);
+    $host       = getSysConfig('notif_smtp_host', '');
+    $port       = (int)(getSysConfig('notif_smtp_port', '587') ?: 587);
+    $user       = getSysConfig('notif_smtp_user', '');
+    $pass       = getSysConfig('notif_smtp_pass', '');
+    $encryption = getSysConfig('notif_smtp_secure', 'tls');
+
+    $mailer = new PGLiteMailer($host, $port, $user, $pass, $encryption);
+    $success = $mailer->send($fromEmail, $fromName, $destinatario, $assunto, $htmlCorpo);
+
+    if (!$success) {
+        $errorMsg = $mailer->getLastError();
+    }
+
+    return $success;
 }
 
 function notifyOwnerOnSyncEmail(array $processados, string $dispositivo): void {
