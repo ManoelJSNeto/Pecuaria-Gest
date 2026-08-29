@@ -57,11 +57,17 @@ if ($uri === '/logout') {
     redirect('/login');
 }
 
-// ── API Endpoint (for mobile app) ──────────────
+// ── API Endpoint (for mobile app & PWA) ──────────────
 if (str_starts_with($uri, '/api/')) {
-    header('Access-Control-Allow-Origin: *');
-    header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-API-KEY');
+    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+    if (!empty($origin)) {
+        header("Access-Control-Allow-Origin: $origin");
+        header('Access-Control-Allow-Credentials: true');
+    } else {
+        header('Access-Control-Allow-Origin: *');
+    }
+    header('Access-Control-Allow-Methods: GET, POST, OPTIONS, HEAD');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-API-KEY, Cache-Control');
     header('Content-Type: application/json; charset=utf-8');
 
     if ($method === 'OPTIONS') {

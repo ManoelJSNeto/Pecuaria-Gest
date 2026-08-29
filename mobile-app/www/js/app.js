@@ -397,7 +397,6 @@ async function triggerAutoSync() {
         'Content-Type': 'application/json',
         'X-API-KEY': 'pecuaria-mobile-key'
       },
-      credentials: 'include',
       body: JSON.stringify(payload)
     });
 
@@ -456,8 +455,10 @@ async function executeSync(authData, shouldSave = false) {
   try {
     const res = await fetch(`${serverUrl}/api/sync`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': 'pecuaria-mobile-key'
+      },
       body: JSON.stringify(payload)
     });
 
