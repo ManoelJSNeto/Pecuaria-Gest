@@ -359,19 +359,17 @@ async function triggerAutoSync() {
   if (items.length === 0) return;
 
   const savedAuthStr = localStorage.getItem(STORAGE_AUTH_KEY);
-  if (!savedAuthStr) return;
-
-  let authData = null;
-  try {
-    authData = JSON.parse(savedAuthStr);
-    if (!authData.email || !authData.senha) return;
-  } catch (e) {
-    return;
+  let authData = {};
+  if (savedAuthStr) {
+    try {
+      authData = JSON.parse(savedAuthStr) || {};
+    } catch (e) {}
   }
 
   isSyncing = true;
   const payload = {
     dispositivo: 'App Nativo Android (Auto-Sync Automático)',
+    api_key: 'pecuaria-mobile-key',
     auth_email: authData.email || '',
     auth_senha: authData.senha || '',
     animais_novos: [],
@@ -395,7 +393,10 @@ async function triggerAutoSync() {
   try {
     const res = await fetch(`${serverUrl}/api/sync`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': 'pecuaria-mobile-key'
+      },
       credentials: 'include',
       body: JSON.stringify(payload)
     });
@@ -405,8 +406,10 @@ async function triggerAutoSync() {
       removeItemsFromQueue(itemIds);
       if (navigator.vibrate) navigator.vibrate([30, 20, 30]);
       showToast(`Auto-Sync: ${data.processados?.pesagens || 0} pesagens, ${data.processados?.saude || 0} manejos e ${data.processados?.animais_novos || 0} bezerros sincronizados automaticamente!`, 'success');
+      checkServerConnectivity();
     } else if (res.status === 401) {
       localStorage.removeItem(STORAGE_AUTH_KEY);
+      openAuthSyncModal();
     }
   } catch (e) {
     console.warn('Falha no Auto-Sync:', e);
@@ -429,6 +432,7 @@ async function executeSync(authData, shouldSave = false) {
 
   const payload = {
     dispositivo: 'App Nativo Android (Sincronização Manual)',
+    api_key: 'pecuaria-mobile-key',
     auth_email: authData.email || '',
     auth_senha: authData.senha || '',
     animais_novos: [],
