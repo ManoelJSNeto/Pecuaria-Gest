@@ -62,9 +62,9 @@ function addToQueue(tipo, data, fotoBase64 = null) {
     saveAnimalToCache(data);
   }
 
-  // Tenta sincronizar automaticamente se já estiver online
-  if (isServerOnline && isAutoSyncEnabled()) {
-    setTimeout(triggerAutoSync, 800);
+  // Dispara Auto-Sync imediatamente se habilitado
+  if (isAutoSyncEnabled()) {
+    setTimeout(triggerAutoSync, 500);
   }
 }
 
@@ -672,11 +672,21 @@ document.addEventListener('DOMContentLoaded', () => {
   // Checa conexão em segundo plano
   setTimeout(() => {
     checkServerConnectivity();
-  }, 1000);
-  setInterval(checkServerConnectivity, 15000);
+  }, 800);
+  setInterval(checkServerConnectivity, 10000);
+
+  // Monitor contínuo de Auto-Sync a cada 5 segundos se houver registros na fila
+  setInterval(() => {
+    const pending = getLocalQueue();
+    if (pending.length > 0 && isAutoSyncEnabled()) {
+      triggerAutoSync();
+    }
+  }, 5000);
 
   // Reconexão imediata ao voltar à rede
   window.addEventListener('online', () => {
-    checkServerConnectivity();
+    checkServerConnectivity().then(online => {
+      if (online) triggerAutoSync();
+    });
   });
 });
