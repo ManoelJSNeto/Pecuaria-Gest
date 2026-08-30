@@ -55,8 +55,9 @@ define('DB_PATH', getenv('DB_PATH') ?: (DATA_PATH . '/pecuaria.db'));
 // Chaves de Segurança e Sessão
 define('SESSION_SECRET', ($_ENV['SESSION_SECRET'] ?? (getenv('SESSION_SECRET') ?: 'pecuaria_secret_key_change_in_prod')));
 define('API_KEY', ($_ENV['API_KEY'] ?? (getenv('API_KEY') ?: 'pecuaria-mobile-key')));
-define('BENCHMARK_MODE', (($_ENV['BENCHMARK_MODE'] ?? getenv('BENCHMARK_MODE')) === 'true'));
-define('BENCHMARK_SECRET', ($_ENV['BENCHMARK_SECRET'] ?? (getenv('BENCHMARK_SECRET') ?: '')));
+$rawBmMode = $_ENV['BENCHMARK_MODE'] ?? (getenv('BENCHMARK_MODE') ?: ($_SERVER['BENCHMARK_MODE'] ?? false));
+define('BENCHMARK_MODE', filter_var($rawBmMode, FILTER_VALIDATE_BOOLEAN));
+define('BENCHMARK_SECRET', (string)($_ENV['BENCHMARK_SECRET'] ?? (getenv('BENCHMARK_SECRET') ?: ($_SERVER['BENCHMARK_SECRET'] ?? ''))));
 
 // Credenciais do Administrador Padrão (utilizado na inicialização do banco)
 define('DEFAULT_ADMIN_EMAIL', getenv('DEFAULT_ADMIN_EMAIL') ?: 'admin@fazenda.com');
