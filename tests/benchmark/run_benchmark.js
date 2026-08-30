@@ -46,6 +46,8 @@ const errorsList = [];
 
 async function simulateWorker(workerId) {
   for (let r = 1; r <= TOTAL_ROUNDS; r++) {
+    let targetBrinco = 'BR0001';
+
     // 1. GET /api/animais
     const t0 = performance.now();
     try {
@@ -64,8 +66,15 @@ async function simulateWorker(workerId) {
         timestamp: new Date().toISOString()
       });
 
-      if (resGet.ok) successCount++;
-      else {
+      if (resGet.ok) {
+        successCount++;
+        try {
+          const list = await resGet.json();
+          if (Array.isArray(list) && list.length > 0 && list[0].brinco) {
+            targetBrinco = list[Math.floor(Math.random() * list.length)].brinco;
+          }
+        } catch (e) {}
+      } else {
         errorCount++;
         errorsList.push(`GET /api/animais retornou status ${resGet.status}`);
       }
@@ -75,13 +84,14 @@ async function simulateWorker(workerId) {
     }
 
     // 2. POST /api/sync
+    const uniqueCalfBrinco = `BK-${Date.now()}-${workerId}-${r}-${Math.floor(Math.random() * 10000)}`;
     const payload = {
       dispositivo: `Benchmark Worker #${workerId}`,
       auth_email: 'admin@fazenda.com',
       auth_senha: 'admin123',
       animais_novos: [
         {
-          brinco: `BK-${Date.now().toString().slice(-4)}-${workerId}-${r}`,
+          brinco: uniqueCalfBrinco,
           sexo: 'M',
           raca: 'Nelore',
           data_nascimento: '2026-08-29',
@@ -90,7 +100,7 @@ async function simulateWorker(workerId) {
       ],
       pesagens: [
         {
-          brinco: 'BR0001',
+          brinco: targetBrinco,
           peso: parseFloat((350 + Math.random() * 150).toFixed(1)),
           data: '2026-08-29',
           observacao: `Benchmark carga W#${workerId}`
@@ -98,7 +108,7 @@ async function simulateWorker(workerId) {
       ],
       saude: [
         {
-          brinco: 'BR0001',
+          brinco: targetBrinco,
           tipo: 'Vacinação',
           descricao: 'Aftosa Benchmark',
           medicamento: 'Biovet Aftosa',

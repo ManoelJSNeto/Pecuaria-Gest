@@ -116,7 +116,15 @@ if (str_starts_with($uri, '/api/')) {
             try {
                 $stmt = $db->prepare("INSERT INTO animais (brinco,sexo,raca,data_nascimento,nome,origem,status) VALUES (?,?,?,?,?,?,'ativo')");
                 $stmt->execute([$an['brinco']??null,$an['sexo']??'M',$an['raca']??null,$an['data_nascimento']??null,$an['nome']??null,'mobile']);
-                $aid = $db->lastInsertId();
+                $aid = null;
+                try {
+                    $aid = $db->lastInsertId();
+                } catch (Exception $ex) {}
+                if (!$aid && !empty($an['brinco'])) {
+                    $aidStmt = $db->prepare("SELECT id FROM animais WHERE brinco = ? LIMIT 1");
+                    $aidStmt->execute([$an['brinco']]);
+                    $aid = $aidStmt->fetchColumn() ?: null;
+                }
                 if ($aid) {
                     $processados['animais_novos']++;
                     if (!empty($an['foto_base64'])) {
