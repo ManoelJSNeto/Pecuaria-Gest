@@ -3,66 +3,78 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PecuáriaGest — Dashboard Científico de Benchmark Oficial (TCC)</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Dashboard Comparativo Oficial de Benchmark (TCC) — PecuáriaGest</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
-    body { background-color: #f0f4f1; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #212529; }
-    .header-box { background: linear-gradient(135deg, #1a4d2e 0%, #2d7a4e 100%); color: white; border-radius: 16px; padding: 30px; box-shadow: 0 10px 25px rgba(26,77,46,0.15); }
-    .card-metric { border-radius: 14px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.04); transition: transform 0.2s; }
+    :root {
+      --primary: #1a4d2e;
+      --primary-light: #e8f5e9;
+      --secondary: #4f6f52;
+      --accent: #d97706;
+      --bg: #f8faf9;
+    }
+    body { background-color: var(--bg); font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #1e293b; }
+    .hero-header { background: linear-gradient(135deg, #1a4d2e 0%, #0d2818 100%); color: white; padding: 2.5rem 0; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+    .card-metric { border-radius: 12px; border: none; box-shadow: 0 2px 12px rgba(0,0,0,0.06); transition: transform 0.2s; }
     .card-metric:hover { transform: translateY(-3px); }
-    .chart-card { border-radius: 14px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.04); background: white; padding: 25px; }
+    .chart-card { background: white; border-radius: 14px; padding: 1.5rem; box-shadow: 0 2px 14px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
+    .badge-aws { background-color: #ff9900; color: #111; font-weight: 600; }
+    .badge-local { background-color: #2563eb; color: #fff; font-weight: 600; }
   </style>
 </head>
-<body class="py-4">
-  <div class="container-fluid" style="max-width: 1200px;">
-    
-    <!-- Cabeçalho Principal -->
-    <div class="header-box mb-4">
-      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+<body>
+
+  <header class="hero-header mb-4">
+    <div class="container">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
         <div>
-          <div class="d-flex align-items-center gap-2 mb-1">
-            <span class="fs-4">🐂</span>
-            <h3 class="fw-bold mb-0">PecuáriaGest — Estudo Científico de Desempenho (N=3)</h3>
-          </div>
-          <p class="mb-0 opacity-75">TCC: Análise Comparativa Simétrica e Auditada — Servidor On-Premise (SQLite WAL) vs Nuvem AWS (EC2 t3.micro + RDS PostgreSQL)</p>
+          <span class="badge bg-warning text-dark px-3 py-2 rounded-pill mb-2 fw-bold">
+            <i class="bi bi-mortarboard-fill me-1"></i> Resultados Oficiais TCC — Simétrico N=3 com DB Reset
+          </span>
+          <h1 class="h2 fw-bold mb-1">PecuáriaGest: Benchmark On-Premise vs AWS Cloud</h1>
+          <p class="mb-0 text-white-50">Avaliação Comparativa de Desempenho, Vazão e Latência sob Carga Concorrente</p>
         </div>
-        <div class="d-flex gap-2">
-          <span class="badge bg-light text-dark px-3 py-2 fs-6"><i class="bi bi-hdd-network me-1 text-primary"></i> Local (SQLite WAL)</span>
-          <span class="badge bg-warning text-dark px-3 py-2 fs-6 fw-bold"><i class="bi bi-cloud-check-fill me-1 text-dark"></i> Nuvem (AWS t3.micro)</span>
+        <div class="text-end">
+          <span class="badge bg-light text-dark px-3 py-2 fs-6 shadow-sm">
+            <i class="bi bi-clock-history me-1"></i> 30/08/2026
+          </span>
         </div>
       </div>
     </div>
+  </header>
 
-    <!-- Cards de Destaque / KPIs Principais -->
+  <main class="container pb-5">
+
+    <!-- KPI Summary Cards -->
     <div class="row g-3 mb-4">
       <div class="col-md-3">
         <div class="card card-metric p-3 bg-white">
-          <span class="text-muted small fw-bold"><i class="bi bi-speedometer2 text-success me-1"></i> GANHO DE VAZÃO (20 USERS)</span>
-          <h2 class="fw-bold text-success my-1">+1.696% <small class="fs-6 text-muted">mais rápido</small></h2>
-          <small class="text-muted">Local: 2.09 req/s ➔ AWS: 35.45 req/s</small>
+          <span class="text-muted small fw-bold"><i class="bi bi-check-circle-fill text-success me-1"></i> TAXA DE SUCESSO HTTP</span>
+          <h2 class="fw-bold text-success my-1">100.0%</h2>
+          <small class="text-muted">0.00% de erros HTTP reais</small>
         </div>
       </div>
       <div class="col-md-3">
         <div class="card card-metric p-3 bg-white">
-          <span class="text-muted small fw-bold"><i class="bi bi-stopwatch text-primary me-1"></i> REDUÇÃO DE LATÊNCIA (20 USERS)</span>
-          <h2 class="fw-bold text-primary my-1">-95.3% <small class="fs-6 text-muted">tempo de resposta</small></h2>
-          <small class="text-muted">Local: 5.695 ms ➔ AWS: 269.5 ms</small>
+          <span class="text-muted small fw-bold"><i class="bi bi-database-check text-primary me-1"></i> AUDITORIA DE DADOS</span>
+          <h2 class="fw-bold text-primary my-1">100.0%</h2>
+          <small class="text-muted">Todos os registros persistidos</small>
         </div>
       </div>
       <div class="col-md-3">
         <div class="card card-metric p-3 bg-white">
-          <span class="text-muted small fw-bold"><i class="bi bi-shield-check text-warning me-1"></i> CONFIABILIDADE DE DADOS</span>
-          <h2 class="fw-bold text-warning my-1">100% <small class="fs-6 text-muted">gravados</small></h2>
-          <small class="text-muted">Zero registros ignorados nas sincronizações</small>
+          <span class="text-muted small fw-bold"><i class="bi bi-arrow-repeat text-warning me-1"></i> RESET AUTOMÁTICO</span>
+          <h2 class="fw-bold text-dark my-1">18 / 18</h2>
+          <small class="text-muted">DB limpo antes de cada run</small>
         </div>
       </div>
       <div class="col-md-3">
         <div class="card card-metric p-3 bg-white">
           <span class="text-muted small fw-bold"><i class="bi bi-layers-fill text-info me-1"></i> METROLOGIA CIENTÍFICA</span>
           <h2 class="fw-bold text-dark my-1">18 <small class="fs-6 text-muted">execuções</small></h2>
-          <small class="text-muted">N=3 repetições simétricas por nível</small>
+          <small class="text-muted">N=3 repetições simétricas</small>
         </div>
       </div>
     </div>
@@ -79,7 +91,7 @@
       <div class="col-lg-6">
         <div class="chart-card h-100">
           <h5 class="fw-bold mb-1"><i class="bi bi-hourglass-split text-primary me-2"></i>Latência Média de Resposta (ms)</h5>
-          <small class="text-muted d-block mb-3">Tempo para o vaqueiro receber a confirmação gravada (quanto menor, melhor)</small>
+          <small class="text-muted d-block mb-3">Tempo para confirmação da sincronização de campo (quanto menor, melhor)</small>
           <canvas id="chartLatency" style="max-height: 280px;"></canvas>
         </div>
       </div>
@@ -87,7 +99,7 @@
 
     <!-- Tabela Comparativa Detalhada para o TCC -->
     <div class="chart-card mb-4">
-      <h5 class="fw-bold mb-3"><i class="bi bi-table text-dark me-2"></i>Tabela Consolidada Oficial do TCC (Médias e Desvio-Padrão N=3)</h5>
+      <h5 class="fw-bold mb-3"><i class="bi bi-table text-dark me-2"></i>Tabela Consolidada Oficial do TCC (Médias e Desvio-Padrão N=3 com DB Reset)</h5>
       <div class="table-responsive">
         <table class="table table-hover table-bordered align-middle mb-0">
           <thead class="table-light">
@@ -98,153 +110,162 @@
               <th class="text-center">Vazão Efetiva Média (req/s)</th>
               <th class="text-center">Desvio Padrão Vazão</th>
               <th class="text-center">Latência Média (ms)</th>
+              <th class="text-center">Desvio Padrão Latência</th>
               <th class="text-center">Mediana (p50)</th>
               <th class="text-center">Percentil 95 (p95)</th>
+              <th class="text-center">Taxa de Erro</th>
             </tr>
           </thead>
           <tbody>
             <tr class="table-info bg-opacity-10">
-              <td><strong>🏠 Local (On-Premise)</strong><br><small class="text-muted">SQLite WAL Mode</small></td>
+              <td><strong>🏠 Local (On-Premise)</strong><br><small class="text-muted">SQLite WAL Mode (Sem latência de rede)</small></td>
               <td><span class="badge bg-secondary">20 Usuários</span></td>
               <td class="text-center">3</td>
-              <td class="text-center fw-bold">2.09 req/s</td>
-              <td class="text-center text-muted">±0.07</td>
-              <td class="text-center">5.695,9 ms</td>
-              <td class="text-center">5.676,4 ms</td>
-              <td class="text-center">9.214,1 ms</td>
+              <td class="text-center fw-bold text-primary">101.55 req/s</td>
+              <td class="text-center text-muted">±2.64</td>
+              <td class="text-center fw-bold">188.6 ms</td>
+              <td class="text-center text-muted">±5.0</td>
+              <td class="text-center">189.2 ms</td>
+              <td class="text-center">253.5 ms</td>
+              <td class="text-center text-success fw-bold">0.00%</td>
             </tr>
             <tr class="table-warning bg-opacity-10">
               <td><strong>☁️ Nuvem AWS</strong><br><small class="text-muted">EC2 t3.micro + RDS PostgreSQL</small></td>
               <td><span class="badge bg-primary">20 Usuários</span></td>
               <td class="text-center">3</td>
-              <td class="text-center text-success fw-bold">35.45 req/s 🚀</td>
-              <td class="text-center text-muted">±5.77</td>
-              <td class="text-center fw-bold text-success">269,5 ms ⚡</td>
-              <td class="text-center">244,9 ms</td>
-              <td class="text-center">514,3 ms</td>
+              <td class="text-center fw-bold">28.26 req/s</td>
+              <td class="text-center text-muted">±0.78</td>
+              <td class="text-center fw-bold">692.1 ms</td>
+              <td class="text-center text-muted">±17.6</td>
+              <td class="text-center">681.7 ms</td>
+              <td class="text-center">860.8 ms</td>
+              <td class="text-center text-success fw-bold">0.00%</td>
             </tr>
             <tr class="table-info bg-opacity-10">
               <td><strong>🏠 Local (On-Premise)</strong><br><small class="text-muted">SQLite WAL Mode</small></td>
               <td><span class="badge bg-secondary">50 Usuários</span></td>
               <td class="text-center">3</td>
-              <td class="text-center fw-bold">2.07 req/s</td>
-              <td class="text-center text-muted">±0.11</td>
-              <td class="text-center">12.294,6 ms</td>
-              <td class="text-center">11.933,2 ms</td>
-              <td class="text-center">21.692,7 ms</td>
+              <td class="text-center fw-bold text-primary">72.36 req/s</td>
+              <td class="text-center text-muted">±14.86</td>
+              <td class="text-center fw-bold">665.7 ms</td>
+              <td class="text-center text-muted">±128.2</td>
+              <td class="text-center">698.4 ms</td>
+              <td class="text-center">990.9 ms</td>
+              <td class="text-center text-success fw-bold">0.00%</td>
             </tr>
             <tr class="table-warning bg-opacity-10">
               <td><strong>☁️ Nuvem AWS</strong><br><small class="text-muted">EC2 t3.micro + RDS PostgreSQL</small></td>
               <td><span class="badge bg-warning text-dark">50 Usuários</span></td>
               <td class="text-center">3</td>
-              <td class="text-center text-success fw-bold">13.77 req/s 🚀</td>
-              <td class="text-center text-muted">±6.20</td>
-              <td class="text-center fw-bold text-success">1.797,4 ms ⚡</td>
-              <td class="text-center">1.781,6 ms</td>
-              <td class="text-center">2.976,7 ms</td>
+              <td class="text-center fw-bold">27.66 req/s</td>
+              <td class="text-center text-muted">±0.31</td>
+              <td class="text-center fw-bold">1741.6 ms</td>
+              <td class="text-center text-muted">±23.5</td>
+              <td class="text-center">1776.0 ms</td>
+              <td class="text-center">2044.6 ms</td>
+              <td class="text-center text-success fw-bold">0.00%</td>
             </tr>
             <tr class="table-info bg-opacity-10">
               <td><strong>🏠 Local (On-Premise)</strong><br><small class="text-muted">SQLite WAL Mode</small></td>
               <td><span class="badge bg-secondary">100 Usuários</span></td>
               <td class="text-center">3</td>
-              <td class="text-center fw-bold">1.93 req/s</td>
-              <td class="text-center text-muted">±0.16</td>
-              <td class="text-center">27.105,3 ms</td>
-              <td class="text-center">27.493,8 ms</td>
-              <td class="text-center">41.938,9 ms</td>
+              <td class="text-center fw-bold text-primary">49.62 req/s</td>
+              <td class="text-center text-muted">±2.69</td>
+              <td class="text-center fw-bold">1925.5 ms</td>
+              <td class="text-center text-muted">±112.3</td>
+              <td class="text-center">2023.4 ms</td>
+              <td class="text-center">3042.7 ms</td>
+              <td class="text-center text-success fw-bold">0.00%</td>
             </tr>
             <tr class="table-warning bg-opacity-10">
               <td><strong>☁️ Nuvem AWS</strong><br><small class="text-muted">EC2 t3.micro + RDS PostgreSQL</small></td>
               <td><span class="badge bg-danger">100 Usuários</span></td>
               <td class="text-center">3</td>
-              <td class="text-center text-success fw-bold">3.32 req/s 🚀</td>
-              <td class="text-center text-muted">±1.60</td>
-              <td class="text-center fw-bold text-success">16.264,2 ms ⚡</td>
-              <td class="text-center">16.229,2 ms</td>
-              <td class="text-center">30.422,1 ms</td>
+              <td class="text-center fw-bold">25.70 req/s</td>
+              <td class="text-center text-muted">±0.92</td>
+              <td class="text-center fw-bold">3726.3 ms</td>
+              <td class="text-center text-muted">±144.8</td>
+              <td class="text-center">3745.3 ms</td>
+              <td class="text-center">5181.2 ms</td>
+              <td class="text-center text-success fw-bold">0.00%</td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- Análise Técnica para o TCC -->
-    <div class="chart-card">
-      <h5 class="fw-bold mb-3"><i class="bi bi-mortarboard-fill text-primary me-2"></i>Fundamentação Acadêmica e Conclusões da Pesquisa</h5>
-      <div class="row g-3">
-        <div class="col-md-4">
-          <div class="p-3 bg-light rounded-3 h-100 border">
-            <h6 class="fw-bold text-success"><i class="bi bi-lightning-charge-fill me-1"></i>1. Concorrência MVCC vs File-Lock</h6>
-            <p class="small text-muted mb-0">O PostgreSQL no Amazon RDS utiliza Multi-Version Concurrency Control, entregando 35.45 req/s sob 20 usuários com 269ms de latência, enquanto o SQLite saturou em ~2.0 req/s devido a filas de bloqueio de arquivo em disco.</p>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="p-3 bg-light rounded-3 h-100 border">
-            <h6 class="fw-bold text-primary"><i class="bi bi-cpu-fill me-1"></i>2. Comportamento da t3.micro</h6>
-            <p class="small text-muted mb-0">Sob 100 conexões pesadas, a instância EC2 t3.micro (1 GB RAM) processou 100% dos dados gravados sem falhas de transação, validando a capacidade de expansão horizontal via Auto Scaling.</p>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="p-3 bg-light rounded-3 h-100 border">
-            <h6 class="fw-bold text-warning"><i class="bi bi-currency-dollar me-1"></i>3. Viabilidade Econômica Rural</h6>
-            <p class="small text-muted mb-0">Elimina custos de servidores físicos na sede da fazenda (vulneráveis a raios e quedas de energia), operando 100% com custo zero no Free Tier da AWS no primeiro ano.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
+  </main>
 
   <script>
-    // Gráfico 1: Throughput
-    new Chart(document.getElementById('chartThroughput').getContext('2d'), {
+    // Gráfico de Throughput
+    new Chart(document.getElementById('chartThroughput'), {
       type: 'bar',
       data: {
         labels: ['20 Usuários', '50 Usuários', '100 Usuários'],
         datasets: [
           {
-            label: '🏠 Local (SQLite WAL)',
-            data: [2.09, 2.07, 1.93],
-            backgroundColor: '#6c757d',
+            label: 'Local (SQLite WAL)',
+            data: [101.55, 72.36, 49.62],
+            backgroundColor: 'rgba(37, 99, 235, 0.85)',
+            borderColor: '#2563eb',
+            borderWidth: 1,
             borderRadius: 6
           },
           {
-            label: '☁️ Nuvem AWS (t3.micro + RDS)',
-            data: [35.45, 13.77, 3.32],
-            backgroundColor: '#2d7a4e',
+            label: 'AWS Cloud (t3.micro + RDS)',
+            data: [28.26, 27.66, 25.70],
+            backgroundColor: 'rgba(255, 153, 0, 0.85)',
+            borderColor: '#ff9900',
+            borderWidth: 1,
             borderRadius: 6
           }
         ]
       },
       options: {
         responsive: true,
-        scales: { y: { beginAtZero: true, title: { display: true, text: 'Vazão Efetiva (req/s)' } } }
+        plugins: {
+          legend: { position: 'top' },
+          tooltip: { callbacks: { label: (c) => ` ${c.dataset.label}: ${c.raw} req/s` } }
+        },
+        scales: {
+          y: { beginAtZero: true, title: { display: true, text: 'Vazão Efetiva (req/s)' } }
+        }
       }
     });
 
-    // Gráfico 2: Latência Média
-    new Chart(document.getElementById('chartLatency').getContext('2d'), {
+    // Gráfico de Latência
+    new Chart(document.getElementById('chartLatency'), {
       type: 'bar',
       data: {
         labels: ['20 Usuários', '50 Usuários', '100 Usuários'],
         datasets: [
           {
-            label: '🏠 Local (SQLite WAL)',
-            data: [5695.9, 12294.6, 27105.3],
-            backgroundColor: '#dc3545',
+            label: 'Local (SQLite WAL)',
+            data: [188.6, 665.7, 1925.5],
+            backgroundColor: 'rgba(37, 99, 235, 0.85)',
+            borderColor: '#2563eb',
+            borderWidth: 1,
             borderRadius: 6
           },
           {
-            label: '☁️ Nuvem AWS (t3.micro + RDS)',
-            data: [269.5, 1797.4, 16264.2],
-            backgroundColor: '#0d6efd',
+            label: 'AWS Cloud (t3.micro + RDS)',
+            data: [692.1, 1741.6, 3726.3],
+            backgroundColor: 'rgba(255, 153, 0, 0.85)',
+            borderColor: '#ff9900',
+            borderWidth: 1,
             borderRadius: 6
           }
         ]
       },
       options: {
         responsive: true,
-        scales: { y: { beginAtZero: true, title: { display: true, text: 'Milissegundos (ms)' } } }
+        plugins: {
+          legend: { position: 'top' },
+          tooltip: { callbacks: { label: (c) => ` ${c.dataset.label}: ${c.raw} ms` } }
+        },
+        scales: {
+          y: { beginAtZero: true, title: { display: true, text: 'Latência Média (ms)' } }
+        }
       }
     });
   </script>

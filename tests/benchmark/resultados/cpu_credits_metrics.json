@@ -1,0 +1,122 @@
+[
+  {
+    "timestamp": "2026-08-30T22:18:01.688Z",
+    "stage": "before",
+    "env": "aws",
+    "users": 50,
+    "run": 1,
+    "metrics": {
+      "ec2_cpu_credit_balance_note": "AWS CLI credentials not bound in local shell; snapshot timestamped for console correlation."
+    }
+  },
+  {
+    "timestamp": "2026-08-30T22:18:25.213Z",
+    "stage": "after",
+    "env": "aws",
+    "users": 50,
+    "run": 1,
+    "metrics": {
+      "ec2_cpu_credit_balance_note": "AWS CLI credentials not bound in local shell; snapshot timestamped for console correlation."
+    }
+  },
+  {
+    "timestamp": "2026-08-30T22:18:30.371Z",
+    "stage": "before",
+    "env": "aws",
+    "users": 50,
+    "run": 2,
+    "metrics": {
+      "ec2_cpu_credit_balance_note": "AWS CLI credentials not bound in local shell; snapshot timestamped for console correlation."
+    }
+  },
+  {
+    "timestamp": "2026-08-30T22:18:52.577Z",
+    "stage": "after",
+    "env": "aws",
+    "users": 50,
+    "run": 2,
+    "metrics": {
+      "ec2_cpu_credit_balance_note": "AWS CLI credentials not bound in local shell; snapshot timestamped for console correlation."
+    }
+  },
+  {
+    "timestamp": "2026-08-30T22:18:57.874Z",
+    "stage": "before",
+    "env": "aws",
+    "users": 50,
+    "run": 3,
+    "metrics": {
+      "ec2_cpu_credit_balance_note": "AWS CLI credentials not bound in local shell; snapshot timestamped for console correlation."
+    }
+  },
+  {
+    "timestamp": "2026-08-30T22:19:20.803Z",
+    "stage": "after",
+    "env": "aws",
+    "users": 50,
+    "run": 3,
+    "metrics": {
+      "ec2_cpu_credit_balance_note": "AWS CLI credentials not bound in local shell; snapshot timestamped for console correlation."
+    }
+  },
+  {
+    "timestamp": "2026-08-30T22:19:25.928Z",
+    "stage": "before",
+    "env": "aws",
+    "users": 100,
+    "run": 1,
+    "metrics": {
+      "ec2_cpu_credit_balance_note": "AWS CLI credentials not bound in local shell; snapshot timestamped for console correlation."
+    }
+  },
+  {
+    "timestamp": "2026-08-30T22:20:10.302Z",
+    "stage": "after",
+    "env": "aws",
+    "users": 100,
+    "run": 1,
+    "metrics": {
+      "ec2_cpu_credit_balance_note": "AWS CLI credentials not bound in local shell; snapshot timestamped for console correlation."
+    }
+  },
+  {
+    "timestamp": "2026-08-30T22:20:15.616Z",
+    "stage": "before",
+    "env": "aws",
+    "users": 100,
+    "run": 2,
+    "metrics": {
+      "ec2_cpu_credit_balance_note": "AWS CLI credentials not bound in local shell; snapshot timestamped for console correlation."
+    }
+  },
+  {
+    "timestamp": "2026-08-30T22:20:57.645Z",
+    "stage": "after",
+    "env": "aws",
+    "users": 100,
+    "run": 2,
+    "metrics": {
+      "ec2_cpu_credit_balance_note": "AWS CLI credentials not bound in local shell; snapshot timestamped for console correlation."
+    }
+  },
+  {
+    "timestamp": "2026-08-30T22:21:02.943Z",
+    "stage": "before",
+    "env": "aws",
+    "users": 100,
+    "run": 3,
+    "metrics": {
+      "ec2_cpu_credit_balance_note": "AWS CLI credentials not bound in local shell; snapshot timestamped for console correlation."
+    }
+  },
+  {
+    "timestamp": "2026-08-30T22:21:44.987Z",
+    "stage": "after",
+    "env": "aws",
+    "users": 100,
+    "run": 3,
+    "metrics": {
+      "ec2_cpu_credit_balance_note": "AWS CLI credentials not bound in local shell; snapshot timestamped for console correlation."
+    }
+  }
+]

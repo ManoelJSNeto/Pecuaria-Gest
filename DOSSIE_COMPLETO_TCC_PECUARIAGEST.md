@@ -84,22 +84,23 @@ O **PecuáriaGest** foi construído sob uma **arquitetura híbrida de três cama
 
 ## 3. Pilar 1 — Benchmark Científico de Carga (Local vs Nuvem AWS)
 
-Para comprovar a robustez e escalabilidade do sistema sob cenários de pico (múltiplos operadores sincronizando coletas simultaneamente ao final do dia), foi executada uma bateria de testes de estresse com o **Apache JMeter** e motor de alta precisão em **Node.js (`performance.now()`)**.
+Para comprovar a robustez e escalabilidade do sistema sob cenários de pico (múltiplos operadores sincronizando coletas simultaneamente ao final do dia), foi executada uma bateria simétrica oficial de testes de carga com motor de alta precisão em **Node.js (`performance.now()`)** e **Apache JMeter**, com **reset de banco de dados antes de cada repetição (N=3)** e auditoria estrita de integridade de dados gravados.
 
-### 📊 Tabela Consolidada de Métricas Reais Coletadas
+### 📊 Tabela Consolidada de Métricas Oficiais do TCC (N=3 com DB Reset)
 
-| Cenário de Teste | Ambiente de Execução | Conexões Simultâneas | N (Runs) | Vazão Efetiva Média (Throughput) | Latência Média 200 OK | Mediana (p50) | Percentil 95 (p95) |
-|---|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **20 Usuários** | 🏠 **Local (SQLite WAL)** | 20 trabalhadores | 3 | **2.09 req/s** (±0.07) | **5.695,9 ms** (±336.7) | 5.676,4 ms | 9.214,1 ms |
-| **20 Usuários** | ☁️ **Nuvem AWS (t3.micro + RDS)** | 20 trabalhadores | 3 | **35.45 req/s** (±5.77) 🚀 | **269,5 ms** (±25.5) ⚡ | **244,9 ms** | **514,3 ms** |
-| **50 Usuários** | 🏠 **Local (SQLite WAL)** | 50 trabalhadores | 3 | **2.07 req/s** (±0.11) | **12.294,6 ms** (±138.1) | 11.933,2 ms | 21.692,7 ms |
-| **50 Usuários** | ☁️ **Nuvem AWS (t3.micro + RDS)** | 50 trabalhadores | 3 | **13.77 req/s** (±6.20) 🚀 | **1.797,4 ms** (±771.6) ⚡ | **1.781,6 ms** | **2.976,7 ms** |
-| **100 Usuários** | 🏠 **Local (SQLite WAL)** | 100 trabalhadores | 3 | **1.93 req/s** (±0.16) | **27.105,3 ms** (±2640.8) | 27.493,8 ms | 41.938,9 ms |
-| **100 Usuários** | ☁️ **Nuvem AWS (t3.micro + RDS)** | 100 trabalhadores | 3 | **3.32 req/s** (±1.60) 🚀 | **16.264,2 ms** (±7406.0) ⚡ | **16.229,2 ms** | **30.422,1 ms** |
+| Cenário de Teste | Ambiente de Execução | Conexões Simultâneas | N (Runs) | Vazão Efetiva Média (Throughput) | Desvio Padrão Vazão | Latência Média 200 OK | Desvio Padrão Latência | Mediana (p50) | Percentil 95 (p95) | Taxa Real de Erro | Auditoria de Gravação |
+|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **20 Usuários** | 🏠 **Local (SQLite WAL)** | 20 workers | 3 | **101.55 req/s** | ±2.64 | **188.6 ms** | ±5.0 | 189.2 ms | 253.5 ms | **0.00%** | **100.0%** |
+| **20 Usuários** | ☁️ **Nuvem AWS (t3.micro + RDS)** | 20 workers | 3 | **28.26 req/s** | ±0.78 | **692.1 ms** | ±17.6 | 681.7 ms | 860.8 ms | **0.00%** | **100.0%** |
+| **50 Usuários** | 🏠 **Local (SQLite WAL)** | 50 workers | 3 | **72.36 req/s** | ±14.86 | **665.7 ms** | ±128.2 | 698.4 ms | 990.9 ms | **0.00%** | **100.0%** |
+| **50 Usuários** | ☁️ **Nuvem AWS (t3.micro + RDS)** | 50 workers | 3 | **27.66 req/s** | ±0.31 | **1741.6 ms** | ±23.5 | 1776.0 ms | 2044.6 ms | **0.00%** | **100.0%** |
+| **100 Usuários** | 🏠 **Local (SQLite WAL)** | 100 workers | 3 | **49.62 req/s** | ±2.69 | **1925.5 ms** | ±112.3 | 2023.4 ms | 3042.7 ms | **0.00%** | **100.0%** |
+| **100 Usuários** | ☁️ **Nuvem AWS (t3.micro + RDS)** | 100 workers | 3 | **25.70 req/s** | ±0.92 | **3726.3 ms** | ±144.8 | 3745.3 ms | 5181.2 ms | **0.00%** | **100.0%** |
 
 ### 🔬 Análise Científica dos Resultados:
-1. **Ganho de Vazão (Throughput) de +910%:** A infraestrutura em nuvem absorveu uma taxa contínua de **50 req/segundo**, processando lotes de dados em **4,36 segundos** (versus 23,81 segundos no servidor local).
-2. **Concorrência MVCC vs File Locking:** O banco SQLite sofreu com a contenção de gravações simultâneas no mesmo arquivo em disco, elevando a latência para acima de 3 segundos. Já o PostgreSQL no Amazon RDS tratou as transações com paralelismo nativo (*Multi-Version Concurrency Control*), mantendo a mediana de resposta em **384 ms**.
+1. **Confiabilidade e Taxa de Erro 0.00%:** Em todas as 18 execuções (totalizando 10.200 requisições simuladas entre os dois ambientes), 100% das requisições obtiveram resposta HTTP 200 OK com confirmação íntegra de gravação no banco de dados.
+2. **Reprodutibilidade Científica com DB Reset:** A implementação do reset de banco antes de cada execução eliminou o acúmulo de dados entre runs, resultando em desvios-padrão extremamente baixos (ex.: ±0.31 req/s na AWS 50 users e ±0.78 req/s na AWS 20 users).
+3. **Efeito do RTT e Perfil de CPU na AWS:** No servidor local, a comunicação via loopback/NVMe obteve latências menores em baixa concorrência. Na AWS, a instância `t3.micro` manteve estabilidade sustentada em torno de ~26 a 28 req/s sob concorrência de 20 a 100 usuários, sustentando a integridade transacional com o PostgreSQL no RDS.
 
 ---
 
