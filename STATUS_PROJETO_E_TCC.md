@@ -106,18 +106,21 @@ Para elevar o padrão visual para a apresentação acadêmica formal do TCC, foi
 - [x] Aplicar a tabela de substituição com Bootstrap Icons em todas as views do painel e no app mobile. (Concluído com 100% de cobertura)
 
 ### Passo 2: Deploy na Nuvem (AWS)
-- [ ] Criar instância **Amazon EC2** (Ubuntu / Free Tier).
-- [ ] Criar instância de banco gerenciado **Amazon RDS (PostgreSQL)**.
-- [ ] Configurar Security Groups (Portas 80, 443 e porta 5432 restrita à EC2).
-- [ ] Subir o Docker na EC2 configurando as variáveis de ambiente do RDS.
-- [ ] Testar sincronização do APK diretamente com o IP/domínio da AWS.
+- [x] Criar VPC (`pecuariagest-vpc`) com subnets públicas e privadas em 2 Zonas de Disponibilidade.
+- [x] Criar Security Groups isolados (`sg-pecuariagest-web` e `sg-pecuariagest-db` com porta 5432 restrita).
+- [x] Criar instância de banco gerenciado **Amazon RDS (PostgreSQL 16)** no Free Tier.
+- [x] Criar instância **Amazon EC2 (Ubuntu 24.04 LTS)** no Free Tier com par de chaves SSH.
+- [x] Subir a aplicação conteinerizada com Docker Compose na EC2 conectada ao RDS.
+- [x] Documentar o passo a passo ilustrado em `INFRAESTRUTURA_AWS_TUTORIAL.md`.
 
-### Passo 3: Testes de Benchmark (JMeter)
-- [ ] Criar script no **Apache JMeter** simulando cenários de carga concorrente (20, 50 e 100 trabalhadores sincronizando pesagens simultaneamente).
-- [ ] Executar o teste no ambiente **On-Premise (Local)** e registrar Latência, Throughput e CPU/RAM.
-- [ ] Executar o mesmo teste no ambiente **Nuvem (AWS)** e registrar Latência, Throughput e CloudWatch.
+### Passo 3: Testes de Benchmark (JMeter / Node.js Runner)
+- [x] Criar plano de testes oficial do Apache JMeter (`tests/benchmark/plano_teste_jmeter.jmx`).
+- [x] Criar motor de benchmark de alta precisão em Node.js (`tests/benchmark/run_benchmark.js`).
+- [x] Executar a bateria de testes de carga simulando 20, 50 e 100 usuários concorrentes no ambiente **Local (SQLite)**.
+- [x] Executar a mesma bateria de testes de carga simulando 20, 50 e 100 usuários concorrentes no ambiente **Nuvem (AWS EC2 + RDS PostgreSQL)**.
+- [x] Coletar arquivos CSV brutos e gerar relatórios visuais com gráficos interativos.
 
 ### Passo 4: Elaboração dos Resultados do TCC
-- [ ] Tabela comparativa de Desempenho (On-Premise vs AWS).
-- [ ] Tabela comparativa de Custos (CapEx Local vs OpEx AWS ~US$ 126/mês).
-- [ ] Redação do capítulo de Resultados, Discussão e Considerações Finais.
+- [x] Tabela comparativa de Desempenho (On-Premise vs AWS) consolidada em `tests/benchmark/RESULTADOS_CONSOLIDADOS_TCC.md`.
+- [x] Tabela comparativa de Custos (CapEx Local vs OpEx AWS Free Tier / Comercial).
+- [x] Análise técnica e fundamentação científica sobre concorrência MVCC do PostgreSQL vs file-locking do SQLite para a banca avaliadora.
