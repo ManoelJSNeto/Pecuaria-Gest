@@ -53,17 +53,17 @@ let auditSuccessCount = 0;
 const errorsList = [];
 
 async function resetDatabase() {
-  process.stdout.write('🧹 Resetando banco de dados para o estado seed padrão inicial...');
+  process.stdout.write('🧹 Resetando banco de dados para o estado seed padrão inicial (30 animais)...');
   try {
     const res = await fetch(`${TARGET_URL}/api/benchmark/reset`, {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
-        'X-API-KEY': API_KEY
+        'X-BENCHMARK-SECRET': 'pecuaria-benchmark-secret-2026'
       }
     });
     if (res.ok) {
-      console.log(' OK! (Banco zerado com 30 animais base) ✅');
+      console.log(' OK! (30 animais base recriados) ✅');
     } else {
       console.log(` ⚠️ Falha ao resetar banco (HTTP ${res.status})`);
     }

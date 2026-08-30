@@ -15,6 +15,8 @@ services:
       - SESSION_SECRET=${SESSION_SECRET:-pecuaria_secret_2026}
       - DEFAULT_ADMIN_EMAIL=${DEFAULT_ADMIN_EMAIL:-admin@fazenda.com}
       - DEFAULT_ADMIN_PASS=${DEFAULT_ADMIN_PASS:-admin123}
+      - BENCHMARK_MODE=${BENCHMARK_MODE:-true}
+      - BENCHMARK_SECRET=${BENCHMARK_SECRET:-pecuaria-benchmark-secret-2026}
     volumes:
       # Persistência de dados SQLite e uploads
       - ./storage:/var/www/html/storage

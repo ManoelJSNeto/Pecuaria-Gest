@@ -77,14 +77,18 @@ if (str_starts_with($uri, '/api/')) {
 
     $db = getDb();
 
-    // Endpoint de Reset do Banco de Dados para Benchmark Científico
+    // Endpoint de Reset do Banco de Dados para Benchmark Científico (Blindado)
     if ($uri === '/api/benchmark/reset' && $method === 'POST') {
-        $apiKey = $_SERVER['HTTP_X_API_KEY'] ?? '';
-        if ($apiKey !== API_KEY && !isLoggedIn()) {
-            http_response_code(401);
-            echo json_encode(['error' => 'Não autorizado']);
+        $benchmarkMode = (getenv('BENCHMARK_MODE') === 'true' || ($_ENV['BENCHMARK_MODE'] ?? '') === 'true' || (defined('BENCHMARK_MODE') && BENCHMARK_MODE === 'true'));
+        $benchmarkSecret = getenv('BENCHMARK_SECRET') ?: ($_ENV['BENCHMARK_SECRET'] ?? 'pecuaria-benchmark-secret-2026');
+        $providedSecret = $_SERVER['HTTP_X_BENCHMARK_SECRET'] ?? '';
+
+        if (!$benchmarkMode || empty($providedSecret) || $providedSecret !== $benchmarkSecret) {
+            http_response_code(403);
+            echo json_encode(['error' => 'Acesso negado. Rota de benchmark desativada ou chave de reset inválida.']);
             exit;
         }
+
         $isPg = (DB_DRIVER === 'pgsql');
         if ($isPg) {
             $db->exec("TRUNCATE TABLE pesagens, saude, fotos_animais, alertas, reproducao, animais RESTART IDENTITY CASCADE;");
@@ -92,7 +96,8 @@ if (str_starts_with($uri, '/api/')) {
             $db->exec("DELETE FROM pesagens; DELETE FROM saude; DELETE FROM fotos_animais; DELETE FROM alertas; DELETE FROM reproducao; DELETE FROM animais; DELETE FROM sqlite_sequence WHERE name IN ('pesagens','saude','fotos_animais','alertas','reproducao','animais');");
         }
         initDb($db);
-        echo json_encode(['status' => 'ok', 'message' => 'Banco resetado para o estado seed padrão com sucesso!']);
+        $totalAnimais = (int)$db->query("SELECT COUNT(*) FROM animais")->fetchColumn();
+        echo json_encode(['status' => 'ok', 'message' => 'Banco resetado com sucesso!', 'animais_seed' => $totalAnimais]);
         exit;
     }
 
