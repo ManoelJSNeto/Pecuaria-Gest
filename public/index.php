@@ -79,11 +79,9 @@ if (str_starts_with($uri, '/api/')) {
 
     // Endpoint de Reset do Banco de Dados para Benchmark Científico (Blindado)
     if ($uri === '/api/benchmark/reset' && $method === 'POST') {
-        $benchmarkMode = (getenv('BENCHMARK_MODE') === 'true' || ($_ENV['BENCHMARK_MODE'] ?? '') === 'true' || (defined('BENCHMARK_MODE') && BENCHMARK_MODE === 'true'));
-        $benchmarkSecret = getenv('BENCHMARK_SECRET') ?: ($_ENV['BENCHMARK_SECRET'] ?? 'pecuaria-benchmark-secret-2026');
         $providedSecret = $_SERVER['HTTP_X_BENCHMARK_SECRET'] ?? '';
 
-        if (!$benchmarkMode || empty($providedSecret) || $providedSecret !== $benchmarkSecret) {
+        if (!BENCHMARK_MODE || empty($providedSecret) || $providedSecret !== BENCHMARK_SECRET) {
             http_response_code(403);
             echo json_encode(['error' => 'Acesso negado. Rota de benchmark desativada ou chave de reset inválida.']);
             exit;

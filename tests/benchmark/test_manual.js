@@ -43,7 +43,8 @@ async function testEndpointFullVerification(name, url) {
         'X-API-KEY': API_KEY
       }
     });
-    const animais = await resGet.json();
+    const json = await resGet.json();
+    const animais = json.animais || json;
     totalSeed = Array.isArray(animais) ? animais.length : 0;
     console.log(`   • HTTP Status: ${resGet.status} ${resGet.ok ? '✅ OK' : '❌ ERRO'}`);
     console.log(`   • Total de Animais no Banco: ${totalSeed} (Esperado: 30) ${totalSeed === 30 ? '✅ EXATO' : '⚠️ DIVERGENTE'}`);

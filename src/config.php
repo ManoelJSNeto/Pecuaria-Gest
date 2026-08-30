@@ -23,6 +23,8 @@ define('DB_PATH', getenv('DB_PATH') ?: (DATA_PATH . '/pecuaria.db'));
 // Chaves de Segurança e Sessão
 define('SESSION_SECRET', getenv('SESSION_SECRET') ?: 'pecuaria_secret_key_change_in_prod');
 define('API_KEY', getenv('API_KEY') ?: 'pecuaria-mobile-key');
+define('BENCHMARK_MODE', (getenv('BENCHMARK_MODE') === 'true' || (getenv('APP_ENV') !== 'production')));
+define('BENCHMARK_SECRET', getenv('BENCHMARK_SECRET') ?: 'pecuaria-benchmark-secret-2026');
 
 // Credenciais do Administrador Padrão (utilizado na inicialização do banco)
 define('DEFAULT_ADMIN_EMAIL', getenv('DEFAULT_ADMIN_EMAIL') ?: 'admin@fazenda.com');
