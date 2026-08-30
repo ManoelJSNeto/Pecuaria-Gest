@@ -211,8 +211,12 @@ function sendNotificationEmail(string $destinatario, string $assunto, string $ht
 }
 
 function notifyOwnerOnSyncEmail(array $processados, string $dispositivo): void {
-    $enabled = getSysConfig('notif_email_enabled', '1');
+    if (defined('BENCHMARK_MODE') && BENCHMARK_MODE) return;
+    $enabled = getSysConfig('notif_email_enabled', '0');
     if ($enabled !== '1') return;
+
+    $host = getSysConfig('notif_smtp_host', '');
+    if (empty($host)) return;
 
     $destinatario = getSysConfig('notif_email_destinatario', DEFAULT_ADMIN_EMAIL);
     if (empty($destinatario)) return;

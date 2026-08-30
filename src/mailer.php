@@ -35,18 +35,8 @@ class PGLiteMailer {
 
     public function send(string $fromEmail, string $fromName, string $toEmail, string $subject, string $htmlBody): bool {
         if (empty($this->host)) {
-            // Fallback para mail() nativo do PHP se SMTP não estiver configurado
-            $headers  = "MIME-Version: 1.0\r\n";
-            $headers .= "Content-type: text/html; charset=UTF-8\r\n";
-            $headers .= "From: {$fromName} <{$fromEmail}>\r\n";
-            $headers .= "Reply-To: {$fromEmail}\r\n";
-            $headers .= "X-Mailer: PecuariaGest-Native\r\n";
-
-            $sent = @mail($toEmail, $subject, $htmlBody, $headers);
-            if (!$sent) {
-                $this->lastError = "Host SMTP não configurado e a função nativa mail() do PHP falhou (comum no Windows sem servidor local na porta 25). Configure o servidor SMTP em Configurações.";
-            }
-            return $sent;
+            $this->lastError = 'Servidor SMTP não configurado.';
+            return false;
         }
 
         $connectHost = $this->host;
