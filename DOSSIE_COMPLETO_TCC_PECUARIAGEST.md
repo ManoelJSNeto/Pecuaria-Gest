@@ -88,12 +88,14 @@ Para comprovar a robustez e escalabilidade do sistema sob cenários de pico (mú
 
 ### 📊 Tabela Consolidada de Métricas Reais Coletadas
 
-| Cenário de Teste | Ambiente de Execução | Conexões Simultâneas | Total Reqs | Duração Total | Vazão (Throughput) | Latência Média | Mediana (p50) | Percentil 95 (p95) |
-|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Carga Leve** | 🏠 **Local (SQLite WAL)** | 20 trabalhadores | 120 | 23.81 s | **5.04 req/s** | 3.161 ms | 3.326 ms | 7.217 ms |
-| **Carga Leve** | ☁️ **Nuvem AWS (RDS PgSQL)** | 20 trabalhadores | 200 | 4.36 s | **45.84 req/s** 🚀 | **398 ms** ⚡ | **384 ms** | **698 ms** |
-| **Carga Média** | ☁️ **Nuvem AWS (RDS PgSQL)** | 50 trabalhadores | 500 | 9.63 s | **51.91 req/s** 🚀 | **877 ms** | **855 ms** | **1.568 ms** |
-| **Carga Alta** | ☁️ **Nuvem AWS (RDS PgSQL)** | 100 trabalhadores | 1.000 | 19.97 s | **50.07 req/s** 🚀 | **1.828 ms** | **1.819 ms** | **3.078 ms** |
+| Cenário de Teste | Ambiente de Execução | Conexões Simultâneas | N (Runs) | Vazão Efetiva Média (Throughput) | Latência Média 200 OK | Mediana (p50) | Percentil 95 (p95) |
+|---|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| **20 Usuários** | 🏠 **Local (SQLite WAL)** | 20 trabalhadores | 3 | **2.09 req/s** (±0.07) | **5.695,9 ms** (±336.7) | 5.676,4 ms | 9.214,1 ms |
+| **20 Usuários** | ☁️ **Nuvem AWS (t3.micro + RDS)** | 20 trabalhadores | 3 | **35.45 req/s** (±5.77) 🚀 | **269,5 ms** (±25.5) ⚡ | **244,9 ms** | **514,3 ms** |
+| **50 Usuários** | 🏠 **Local (SQLite WAL)** | 50 trabalhadores | 3 | **2.07 req/s** (±0.11) | **12.294,6 ms** (±138.1) | 11.933,2 ms | 21.692,7 ms |
+| **50 Usuários** | ☁️ **Nuvem AWS (t3.micro + RDS)** | 50 trabalhadores | 3 | **13.77 req/s** (±6.20) 🚀 | **1.797,4 ms** (±771.6) ⚡ | **1.781,6 ms** | **2.976,7 ms** |
+| **100 Usuários** | 🏠 **Local (SQLite WAL)** | 100 trabalhadores | 3 | **1.93 req/s** (±0.16) | **27.105,3 ms** (±2640.8) | 27.493,8 ms | 41.938,9 ms |
+| **100 Usuários** | ☁️ **Nuvem AWS (t3.micro + RDS)** | 100 trabalhadores | 3 | **3.32 req/s** (±1.60) 🚀 | **16.264,2 ms** (±7406.0) ⚡ | **16.229,2 ms** | **30.422,1 ms** |
 
 ### 🔬 Análise Científica dos Resultados:
 1. **Ganho de Vazão (Throughput) de +910%:** A infraestrutura em nuvem absorveu uma taxa contínua de **50 req/segundo**, processando lotes de dados em **4,36 segundos** (versus 23,81 segundos no servidor local).
