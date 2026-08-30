@@ -111,8 +111,9 @@ if (str_starts_with($uri, '/api/')) {
         $processados = ['pesagens' => 0, 'saude' => 0, 'animais_novos' => 0, 'fotos' => 0];
         $erros = [];
 
-        // Process new animals
-        foreach ($body['animais_novos'] ?? [] as $an) {
+        // Process new animals (suporta chave 'animais' conforme API.md e 'animais_novos')
+        $listaAnimaisNovos = $body['animais'] ?? ($body['animais_novos'] ?? []);
+        foreach ($listaAnimaisNovos as $an) {
             try {
                 $stmt = $db->prepare("INSERT INTO animais (brinco,sexo,raca,data_nascimento,nome,origem,status) VALUES (?,?,?,?,?,?,'ativo')");
                 $stmt->execute([$an['brinco']??null,$an['sexo']??'M',$an['raca']??null,$an['data_nascimento']??null,$an['nome']??null,'mobile']);
@@ -140,12 +141,15 @@ if (str_starts_with($uri, '/api/')) {
             } catch (Exception $e) { $erros[] = 'animal:'.$e->getMessage(); }
         }
 
-        // Process weight records
+        // Process weight records (suporta animal_id direto e busca por brinco)
         foreach ($body['pesagens'] ?? [] as $p) {
             try {
-                $aidStmt = $db->prepare("SELECT id FROM animais WHERE brinco=?");
-                $aidStmt->execute([$p['brinco'] ?? '']);
-                $aid = $aidStmt->fetchColumn() ?: null;
+                $aid = $p['animal_id'] ?? null;
+                if (!$aid && !empty($p['brinco'])) {
+                    $aidStmt = $db->prepare("SELECT id FROM animais WHERE brinco=?");
+                    $aidStmt->execute([$p['brinco']]);
+                    $aid = $aidStmt->fetchColumn() ?: null;
+                }
                 if ($aid) {
                     $stmt = $db->prepare("INSERT INTO pesagens (animal_id,peso,data,observacao,origem) VALUES (?,?,?,?,'mobile')");
                     $stmt->execute([$aid,$p['peso']??0,$p['data']??date('Y-m-d'),$p['observacao']??null]);
@@ -163,12 +167,15 @@ if (str_starts_with($uri, '/api/')) {
             } catch (Exception $e) { $erros[] = 'pesagem:'.$e->getMessage(); }
         }
 
-        // Process health events
+        // Process health events (suporta animal_id direto e busca por brinco)
         foreach ($body['saude'] ?? [] as $s) {
             try {
-                $aidStmt = $db->prepare("SELECT id FROM animais WHERE brinco=?");
-                $aidStmt->execute([$s['brinco'] ?? '']);
-                $aid = $aidStmt->fetchColumn() ?: null;
+                $aid = $s['animal_id'] ?? null;
+                if (!$aid && !empty($s['brinco'])) {
+                    $aidStmt = $db->prepare("SELECT id FROM animais WHERE brinco=?");
+                    $aidStmt->execute([$s['brinco']]);
+                    $aid = $aidStmt->fetchColumn() ?: null;
+                }
                 if ($aid) {
                     $stmt = $db->prepare("INSERT INTO saude (animal_id,tipo,descricao,data,medicamento,dose,observacao,origem) VALUES (?,?,?,?,?,?,?,'mobile')");
                     $stmt->execute([$aid,$s['tipo']??'Outro',$s['descricao']??'',$s['data']??date('Y-m-d'),$s['medicamento']??null,$s['dose']??null,$s['observacao']??null]);

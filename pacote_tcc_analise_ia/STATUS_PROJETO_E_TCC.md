@@ -1,0 +1,126 @@
+# 📊 PecuáriaGest — Status do Projeto & Roteiro do TCC
+
+> **Data da Última Atualização:** 28/08/2026  
+> **Status Geral do Sistema:** Painel Web 100% Funcional e estável; App Mobile Nativo Android (APK via Capacitor) totalmente implementado, testado e validado em campo com funcionamento offline fluido, Auto-Sync e notificações automáticas por e-mail e painel para o proprietário.
+
+---
+
+> [!IMPORTANT]
+> ### 📱 DECISÃO ARQUITETURAL & ACADÊMICA: Descontinuação do PWA e Adoção do App Nativo Android (Capacitor)
+> **Estudo de Caso & Fundamentação Teórica para o Artigo / Apresentação do TCC:**
+>
+> 1. **Motivos Técnicos da Descontinuação do PWA (Progressive Web App):**
+>    * **Ciclo de Atualização Oculto do WebAPK (Android/Chrome):** Ao instalar um PWA no Android, o sistema compila um WebAPK que só busca atualizações a cada 24 horas em background. Isso causava retenção de código antigo em desenvolvimento e inconsistência de versão.
+>    * **Travamento de Foco e Touch no Cold Start Offline:** Ao abrir o atalho PWA sem rede (Modo Avião), a thread principal do navegador bloqueava o foco em campos de entrada (`inputs`) e disparos de toque, gerando sensação de interface congelada.
+>    * **Conflito de Escopo e Sequestro de Rotas:** O Service Worker interceptava rotas de navegação desktop e gerava redundâncias no servidor.
+>
+> 2. **Adoção da Tecnologia Híbrida Nativa — Apache/Ionic Capacitor 8:**
+>    * **Assets 100% Embutidos no Binário (`.apk`):** Os arquivos HTML5, CSS3, Bootstrap, fontes e scripts JavaScript residem diretamente no armazenamento local do aplicativo (`android_asset/public/`), iniciando em 0 milissegundos sem depender de cache de navegador ou Service Worker.
+>    * **Toque Fluido & Acesso a Recursos Nativos:** Foco imediato nos inputs, digitação livre, vibração tátil (`navigator.vibrate`), suporte nativo à câmera e persistência local confiável.
+>    * **Suporte Completo a HTTP e HTTPS:** Configurado com `network_security_config.xml` e `allowMixedContent: true`, permitindo conexão com IPs locais Wi-Fi (`http://192.168.x.x:8080`) e domínios seguros na nuvem (`https://`).
+>    * **Esteira CI/CD Automatizada no GitHub Actions:** O workflow [`.github/workflows/build-apk.yml`](.github/workflows/build-apk.yml) compila o arquivo `app-debug.apk` na nuvem a cada `git push` com Java 21 e Android SDK.
+
+---
+
+## 📌 1. Visão Geral do Projeto
+
+O **PecuáriaGest** é um sistema completo de gestão agropecuária e manejo de rebanho com arquitetura distribuída:
+* **Módulo de Campo:** Aplicativo Android nativo (`.apk`) para operadores e vaqueiros coletarem dados no pasto 100% offline.
+* **Painel Central de Gestão:** Aplicação Web modular em PHP 8.2 para proprietários, gerentes e veterinários monitorarem métricas consolidadas, genealogia, reprodução e relatórios.
+
+O sistema é o objeto de estudo de caso comparativo do TCC entre dois ambientes:
+- **Ambiente On-Premise:** Servidor local Dockerizado com banco de dados SQLite / PostgreSQL.
+- **Ambiente Nuvem (AWS):** Servidor rodando em **Amazon EC2** conectado ao banco gerenciado **Amazon RDS (PostgreSQL)**.
+
+---
+
+## ✅ 2. O Que Já Foi Implementado & Validado
+
+### A. Painel Web de Gestão (Proprietário / Gerente)
+- [x] **Dashboard:** Métricas consolidadas (Total de Rebanho, Animais Ativos, Doentes, Prenhas, Pastagens Ativas, Alertas Pendentes) e gráficos Chart.js de evolução de peso e distribuição de raças.
+- [x] **CRUD Completo de Animais:** Cadastro, visualização detalhada com árvore genealógica, filtros por pastagem e busca textual rápida.
+- [x] **CRUD de Pesagens:** Registro, edição, histórico cronológico e cálculo automático de ganho/perda de peso entre medições.
+- [x] **CRUD de Saúde & Manejo:** Registro de vacinações, tratamentos, exames, vermifugações, dosagens, custos e controle de próximas datas.
+- [x] **CRUD de Reprodução:** Registro e controle de coberturas, inseminações artificiais, diagnósticos de gestação e partos.
+- [x] **CRUD de Pastagens:** Controle de áreas (hectares), capacidade de suporte, status de ocupação e listagem dos animais por lote.
+- [x] **Central de Alertas:** Notificações automáticas com botão para *"Marcar todos como lidos"*.
+- [x] **Exportação de Relatórios:** Download de dados em formato CSV para Animais, Pesagens, Saúde, Reprodução e Pastagens.
+- [x] **Segurança e Sessão:** Autenticação de usuários com hash seguro (`bcrypt`), proteção contra CSRF em todos os formulários e logout seguro.
+
+### B. Linha do Tempo Fotográfica & Regras Visuais Especiais
+- [x] **Galeria & Linha do Tempo Visual (`fotos_animais`):** Registro de fotos vinculadas a eventos de nascimento, pesagem, saúde, óbito ou fotos de perfil.
+- [x] **Memória de Bezerro / Filhote:** Detecção automática de animais com idade $\le 12$ meses com selo *"🌱 Bezerro / Filhote"*. A primeira foto de filhote é preservada no cartão *"Memória de Filhote"* mesmo após o animal se tornar adulto.
+- [x] **Censura Automática (Óbito / Conteúdo Sensível):** Fotos de animais mortos ou marcadas como sensíveis recebem desfoque visual forte por padrão (`filter: blur(18px)`) com aviso *"⚠️ Conteúdo Sensível — Clique para ver"* e revelação interativa com um clique.
+
+### C. Módulo Mobile Nativo Offline (APK Android / Capacitor)
+- [x] **App Nativo Android Estruturado (`mobile-app/`):** Projeto Capacitor 8 configurado com Gradle e Android SDK.
+- [x] **Interface em Abas Táteis Diretas:** Telas dedicadas para Pesagem, Bezerro, Saúde e Fila de Sincronização, com navegação fluida em JavaScript puro.
+- [x] **Motor Offline & Memória Local (`mobile-app/www/js/app.js`):** Armazenamento local de registros pendentes e cache de brincos de animais para autocompletar sem internet.
+- [x] **Auto-Sync Inteligente em Segundo Plano:** O app detecta a reconexão à rede Wi-Fi/4G e descarrega automaticamente as pendências com vibração tátil de confirmação.
+- [x] **Compressão Inteligente de Fotos no Cliente:** Redução automática de imagens de alta resolução para Base64 leve (~200KB) via Canvas API antes de enfileirar.
+- [x] **Conectividade & Configuração Flexível de Servidor:** Modal de ajuste de IP (ex: `http://192.168.x.x:8080` ou URL da AWS) com detecção ativa de status **🟢 Online / 🔴 Offline**.
+- [x] **Sincronização Autenticada com Transação Atômica (`/api/sync`):** Envio em lote com validação de credenciais de usuário cadastrado e liberação de CORS.
+- [x] **Compilação Automática CI/CD (`.github/workflows/build-apk.yml`):** Geração do arquivo `app-debug.apk` no GitHub Actions a cada push.
+
+### D. Módulo de Notificações & Configurações do Sistema (`/configuracoes`)
+- [x] **Geração Automática de Alertas no Painel Web:** Disparo automático de notificações no sininho 🔔 com contadores de pesagens, novos bezerros e manejos recebidos.
+- [x] **Disparo de E-mails Automáticos em HTML:** Envio de relatório formatado para a caixa de entrada do proprietário/gerente a cada lote sincronizado.
+- [x] **Painel de Configurações do Sistema (`/configuracoes`):** Interface para o proprietário ativar/desativar e-mails, definir destinatário, e-mail remetente e botão de teste de disparo imediato.
+- [x] **Tabela de Configurações Persistente (`configuracoes`):** Armazenamento dinâmico de preferências no banco de dados.
+
+### E. Gestão de Equipe & Permissões Granulares (`/usuarios`)
+- [x] **Matriz de Permissões Granulares (RBAC/ABAC):** Controle individual por módulo (Animais, Pesagens, Saúde, Pastagens, Reprodução, Relatórios, Alertas, App Mobile e Notificações).
+- [x] **Motor de Verificação `can()` e `requirePermission()`:** Validação de privilégios em rotas e botões com bloqueio automático e mensagens flash informativas.
+- [x] **Menu Lateral Dinâmico:** Ocultação automática de módulos e relatórios aos quais o colaborador não possui acesso.
+- [x] **Presets Rápidos de Permissão:** Botões de 1 clique para configurar perfis de *Veterinário*, *Campo/Vaqueiro* e *Apenas Leitura*.
+- [x] **Gestão de Status de Conta:** Ativação/desativação imediata de acesso sem exclusão de histórico.
+
+### F. Infraestrutura & Banco de Dados
+- [x] **Suporte a Banco Dual (SQLite + PostgreSQL):** Configuração em `src/config.php` e `src/db.php` que alterna automaticamente entre SQLite (local) e PostgreSQL (AWS RDS).
+- [x] **Ambiente Docker Otimizado (`Dockerfile` + `docker-compose.yml`):** Imagem Debian Slim com PHP 8.2 FPM, Nginx, `php-pgsql` e `php-sqlite3`, com espelhamento de volumes (`./public` e `./src`) para desenvolvimento em tempo real.
+
+---
+
+## 🎨 3. Planejamento de Substituição dos Emojis por Ícones Vetoriais
+
+Para elevar o padrão visual para a apresentação acadêmica formal do TCC, foi feito o levantamento dos emojis e a correspondência com a biblioteca **Bootstrap Icons** (já integrada localmente ao projeto):
+
+| Emoji Atual | Localização | Ícone Vetorial Recomendado | Justificativa |
+|:---:|---|---|---|
+| 🐄 / 🐂 | Logo, sidebar, login, avatar de animais | `<i class="bi bi-tag-fill"></i>` ou SVG do Rebanho | Padronização e sobriedade institucional |
+| ⚖️ | Pesagens, balança, abas | `<i class="bi bi-rulers"></i>` ou `<i class="bi bi-speedometer2"></i>` | Identificação técnica de pesagem/métrica |
+| ⚕️ | Saúde, manejo, vacinas | `<i class="bi bi-heart-pulse-fill"></i>` | Símbolo universal de saúde animal |
+| 🐣 / 🌱 | Nascimento, bezerro, memória de filhote | `<i class="bi bi-stars"></i>` ou `<i class="bi bi-flower1"></i>` | Representação elegante de início de ciclo |
+| ⚠️ | Óbito, censura de foto, alertas | `<i class="bi bi-exclamation-triangle-fill"></i>` | Padrão visual de atenção/conteúdo sensível |
+| 📱 | Modo Campo, header Mobile | `<i class="bi bi-phone-fill"></i>` | Ícone vetorial limpo |
+| 📦 / 🕐 | Sincronizações, pacotes recebidos | `<i class="bi bi-box-seam-fill"></i>`, `<i class="bi bi-clock-history"></i>` | Identificação de logs de dados |
+| 💰 / 🧬 / 🌿 | Custos, reprodução, pastagens | `<i class="bi bi-cash-stack"></i>`, `<i class="bi bi-diagram-3-fill"></i>`, `<i class="bi bi-tree-fill"></i>` | Coerência visual no módulo de relatórios |
+| ♂ / ♀ | Macho e Fêmea | `<i class="bi bi-gender-male"></i>`, `<i class="bi bi-gender-female"></i>` | Símbolos taxonômicos formais |
+| ✅ / ❌ / 🟢 / 🔴 | Toasts e indicadores de conexão | `<i class="bi bi-check-circle-fill"></i>`, `<i class="bi bi-x-circle-fill"></i>` | Feedback moderno e dinâmico |
+
+---
+
+## 🎯 4. Roteiro dos Próximos Passos para o TCC
+
+### Passo 1: Substituição dos Emojis por Ícones Vetoriais
+- [x] Aplicar a tabela de substituição com Bootstrap Icons em todas as views do painel e no app mobile. (Concluído com 100% de cobertura)
+
+### Passo 2: Deploy na Nuvem (AWS)
+- [x] Criar VPC (`pecuariagest-vpc`) com subnets públicas e privadas em 2 Zonas de Disponibilidade.
+- [x] Criar Security Groups isolados (`sg-pecuariagest-web` e `sg-pecuariagest-db` com porta 5432 restrita).
+- [x] Criar instância de banco gerenciado **Amazon RDS (PostgreSQL 16)** no Free Tier.
+- [x] Criar instância **Amazon EC2 (Ubuntu 24.04 LTS)** no Free Tier com par de chaves SSH.
+- [x] Subir a aplicação conteinerizada com Docker Compose na EC2 conectada ao RDS.
+- [x] Documentar o passo a passo ilustrado em `INFRAESTRUTURA_AWS_TUTORIAL.md`.
+
+### Passo 3: Testes de Benchmark (JMeter / Node.js Runner)
+- [x] Criar plano de testes oficial do Apache JMeter (`tests/benchmark/plano_teste_jmeter.jmx`).
+- [x] Criar motor de benchmark de alta precisão em Node.js (`tests/benchmark/run_benchmark.js`).
+- [x] Executar a bateria de testes de carga simulando 20, 50 e 100 usuários concorrentes no ambiente **Local (SQLite)**.
+- [x] Executar a mesma bateria de testes de carga simulando 20, 50 e 100 usuários concorrentes no ambiente **Nuvem (AWS EC2 + RDS PostgreSQL)**.
+- [x] Coletar arquivos CSV brutos e gerar relatórios visuais com gráficos interativos.
+
+### Passo 4: Elaboração dos Resultados do TCC
+- [x] Tabela comparativa de Desempenho (On-Premise vs AWS) consolidada em `tests/benchmark/RESULTADOS_CONSOLIDADOS_TCC.md`.
+- [x] Tabela comparativa de Custos (CapEx Local vs OpEx AWS Free Tier / Comercial).
+- [x] Análise técnica e fundamentação científica sobre concorrência MVCC do PostgreSQL vs file-locking do SQLite para a banca avaliadora.
