@@ -24,8 +24,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Configura o PHP-FPM para ouvir na porta TCP local 127.0.0.1:9000
-RUN sed -i 's|listen = .*|listen = 127.0.0.1:9000|' /etc/php/*/fpm/pool.d/www.conf
+# Configura o PHP-FPM para ouvir na porta TCP local 127.0.0.1:9000 e manter variáveis de ambiente
+RUN sed -i 's|listen = .*|listen = 127.0.0.1:9000|' /etc/php/*/fpm/pool.d/www.conf && \
+    sed -i 's|;clear_env = no|clear_env = no|' /etc/php/*/fpm/pool.d/www.conf && \
+    echo "clear_env = no" >> /etc/php/*/fpm/pool.d/www.conf
 
 WORKDIR /var/www/html
 

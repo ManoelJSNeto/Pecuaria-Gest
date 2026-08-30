@@ -23,3 +23,4 @@ services:
       # Espelhamento para desenvolvimento (alterações em tempo real sem rebuild)
       - ./public:/var/www/html/public
       - ./src:/var/www/html/src
+      - ./.env:/var/www/html/.env

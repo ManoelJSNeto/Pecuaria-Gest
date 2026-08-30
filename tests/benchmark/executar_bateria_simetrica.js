@@ -10,7 +10,7 @@ const path = require('path');
 const fs = require('fs');
 const { recordCpuSnapshot } = require('./monitor_cpu');
 
-const AWS_URL = 'http://32.197.185.161:8080';
+const AWS_URL = 'http://100.55.16.39:8080';
 const LOCAL_URL = 'http://localhost:8080';
 const SCRIPT_PATH = path.join(__dirname, 'run_benchmark.js');
 const RESULTS_DIR = path.join(__dirname, 'resultados');

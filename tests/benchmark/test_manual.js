@@ -1,5 +1,5 @@
 const API_KEY = 'pecuaria-mobile-key';
-const BENCHMARK_SECRET = 'pecuaria-benchmark-secret-2026';
+const BENCHMARK_SECRET = process.env.BENCHMARK_SECRET || 'pecuaria-benchmark-secret-2026';
 
 async function testEndpointFullVerification(name, url) {
   console.log(`\n============================================================`);
@@ -137,7 +137,7 @@ async function testEndpointFullVerification(name, url) {
 
 async function runAll() {
   await testEndpointFullVerification('Servidor Local (On-Premise)', 'http://localhost:8080');
-  await testEndpointFullVerification('Servidor Nuvem AWS (EC2 t3.micro)', 'http://32.197.185.161:8080');
+  await testEndpointFullVerification('Servidor Nuvem AWS (EC2 t3.micro)', 'http://100.55.16.39:8080');
 }
 
 runAll();
