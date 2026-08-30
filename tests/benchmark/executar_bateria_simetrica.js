@@ -1,7 +1,7 @@
 /**
  * ============================================================
- * PecuáriaGest — Orquestrador da Bateria Simétrica Oficial (TCC)
- * 18 Execuções: Local (20, 50, 100 x 3) + AWS t3.micro (20, 50, 100 x 3)
+ * PecuáriaGest — Orquestrador Oficial de Benchmark (TCC)
+ * 18 Execuções Simétricas com RESET de Banco de Dados Antes de Cada Run
  * ============================================================
  */
 
@@ -12,14 +12,25 @@ const fs = require('fs');
 const AWS_URL = 'http://32.197.185.161:8080';
 const LOCAL_URL = 'http://localhost:8080';
 const SCRIPT_PATH = path.join(__dirname, 'run_benchmark.js');
+const RESULTS_DIR = path.join(__dirname, 'resultados');
+
+// Limpa resultados antigos para garantir dados 100% limpos
+console.log('🧹 Limpando CSVs de execuções anteriores...');
+if (fs.existsSync(RESULTS_DIR)) {
+  fs.readdirSync(RESULTS_DIR).forEach(file => {
+    if (file.endsWith('.csv')) {
+      fs.unlinkSync(path.join(RESULTS_DIR, file));
+    }
+  });
+}
 
 const scenarios = [
-  // 1. AMBIENTE LOCAL (SQLite WAL)
+  // 1. AMBIENTE LOCAL (SQLite WAL) com Reset de Banco
   { env: 'local', url: LOCAL_URL, users: 20, runs: [1, 2, 3] },
   { env: 'local', url: LOCAL_URL, users: 50, runs: [1, 2, 3] },
   { env: 'local', url: LOCAL_URL, users: 100, runs: [1, 2, 3] },
 
-  // 2. AMBIENTE NUVEM AWS (EC2 t3.micro + RDS PostgreSQL)
+  // 2. AMBIENTE NUVEM AWS (EC2 t3.micro + RDS PostgreSQL) com Reset de Banco
   { env: 'aws', url: AWS_URL, users: 20, runs: [1, 2, 3] },
   { env: 'aws', url: AWS_URL, users: 50, runs: [1, 2, 3] },
   { env: 'aws', url: AWS_URL, users: 100, runs: [1, 2, 3] }
@@ -31,10 +42,10 @@ async function sleep(ms) {
 
 async function runFullBattery() {
   console.log('\n============================================================');
-  console.log('🚀 INICIANDO BATERIA SIMÉTRICA CIENTÍFICA OFICIAL (TCC)');
+  console.log('🚀 INICIANDO BATERIA SIMÉTRICA CIENTÍFICA OFICIAL (RESET ATIVO)');
   console.log('============================================================');
   console.log(`📅 Início: ${new Date().toISOString()}`);
-  console.log(`📊 Total de Configurações: 6 cenários x 3 repetições = 18 execuções`);
+  console.log(`📊 18 Execuções Simétricas (3 Runs por nível de carga com DB Reset)`);
   console.log('============================================================\n');
 
   let currentExecution = 1;
@@ -46,7 +57,7 @@ async function runFullBattery() {
       console.log(`▶️ [${currentExecution}/${totalExecutions}] Executando: ${sc.env.toUpperCase()} — ${sc.users} Usuários (Run #${runNum})`);
       console.log(`------------------------------------------------------------`);
 
-      const cmd = `node "${SCRIPT_PATH}" --url "${sc.url}" --concurrency ${sc.users} --rounds 5 --env "${sc.env}" --run "${runNum}" --scenario "${sc.users} Users ${sc.env.toUpperCase()} Run ${runNum}" --apikey "pecuaria-mobile-key"`;
+      const cmd = `node "${SCRIPT_PATH}" --url "${sc.url}" --concurrency ${sc.users} --rounds 5 --env "${sc.env}" --run "${runNum}" --scenario "${sc.users} Users ${sc.env.toUpperCase()} Run ${runNum}" --apikey "pecuaria-mobile-key" --reset`;
 
       try {
         execSync(cmd, { stdio: 'inherit' });
@@ -55,13 +66,13 @@ async function runFullBattery() {
       }
 
       currentExecution++;
-      console.log('⏳ Aguardando 3 segundos para estabilização de I/O...');
-      await sleep(3000);
+      console.log('⏳ Pausa de 4 segundos para estabilização de I/O...');
+      await sleep(4000);
     }
   }
 
   console.log('\n============================================================');
-  console.log('🏆 BATERIA COMPLETA DE 18 EXECUÇÕES CONCLUÍDA COM SUCESSO!');
+  console.log('🏆 BATERIA DE 18 EXECUÇÕES CONCLUÍDA COM SUCESSO!');
   console.log(`📅 Fim: ${new Date().toISOString()}`);
   console.log('============================================================\n');
 }

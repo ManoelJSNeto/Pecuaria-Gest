@@ -77,6 +77,25 @@ if (str_starts_with($uri, '/api/')) {
 
     $db = getDb();
 
+    // Endpoint de Reset do Banco de Dados para Benchmark Científico
+    if ($uri === '/api/benchmark/reset' && $method === 'POST') {
+        $apiKey = $_SERVER['HTTP_X_API_KEY'] ?? '';
+        if ($apiKey !== API_KEY && !isLoggedIn()) {
+            http_response_code(401);
+            echo json_encode(['error' => 'Não autorizado']);
+            exit;
+        }
+        $isPg = (DB_DRIVER === 'pgsql');
+        if ($isPg) {
+            $db->exec("TRUNCATE TABLE pesagens, saude, fotos_animais, alertas, reproducao, animais RESTART IDENTITY CASCADE;");
+        } else {
+            $db->exec("DELETE FROM pesagens; DELETE FROM saude; DELETE FROM fotos_animais; DELETE FROM alertas; DELETE FROM reproducao; DELETE FROM animais; DELETE FROM sqlite_sequence WHERE name IN ('pesagens','saude','fotos_animais','alertas','reproducao','animais');");
+        }
+        initDb($db);
+        echo json_encode(['status' => 'ok', 'message' => 'Banco resetado para o estado seed padrão com sucesso!']);
+        exit;
+    }
+
     // Sincronização de dados de campo (Exige autenticação)
     if ($uri === '/api/sync' && $method === 'POST') {
         $body = json_decode(file_get_contents('php://input'), true) ?? [];

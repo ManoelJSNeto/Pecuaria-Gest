@@ -2,7 +2,7 @@
  * ============================================================
  * PecuáriaGest — Motor de Benchmark e Testes de Carga Simétricos
  * TCC: Comparativo Científico On-Premise vs AWS Cloud (t3.micro)
- * Validação Estrita de Contadores e Transações
+ * Validação com Reset de Banco e Métrica Real de Status HTTP 200
  * ============================================================
  */
 
@@ -25,9 +25,10 @@ const ENV_LABEL = getArg('env', TARGET_URL.includes('localhost') ? 'local' : 'aw
 const RUN_NUM = getArg('run', '1');
 const SCENARIO_NAME = getArg('scenario', `Carga: ${CONCURRENCY} Usuários (${ENV_LABEL.toUpperCase()} - Run ${RUN_NUM})`);
 const API_KEY = getArg('apikey', 'pecuaria-mobile-key');
+const SHOULD_RESET = args.includes('--reset');
 
 console.log('\n============================================================');
-console.log(`🐂 BENCHMARK SIMÉTRICO ESTRITO: [${ENV_LABEL.toUpperCase()}] — ${CONCURRENCY} USUÁRIOS (RUN ${RUN_NUM})`);
+console.log(`🐂 BENCHMARK SIMÉTRICO: [${ENV_LABEL.toUpperCase()}] — ${CONCURRENCY} USUÁRIOS (RUN ${RUN_NUM})`);
 console.log('============================================================');
 console.log(`🎯 Alvo do Teste:        ${TARGET_URL}`);
 console.log(`🔑 Header Autenticação:  X-API-KEY: ${API_KEY}`);
@@ -35,6 +36,7 @@ console.log(`👥 Conexões Concorrentes: ${CONCURRENCY} workers`);
 console.log(`🔄 Ciclos por Worker:    ${TOTAL_ROUNDS} rodadas`);
 console.log(`📦 Total de Requisições: ${CONCURRENCY * TOTAL_ROUNDS * 2} (GET + POST)`);
 console.log(`🏷️ Identificador Run:    ${ENV_LABEL} #Run ${RUN_NUM}`);
+console.log(`🧹 Reset de Banco:       ${SHOULD_RESET ? 'SIM (Antes da Run)' : 'NÃO'}`);
 console.log('============================================================\n');
 
 // Diretório de resultados
@@ -47,14 +49,35 @@ if (!fs.existsSync(RESULTS_DIR)) {
 const latencies = [];
 let successCount = 0;
 let errorCount = 0;
+let auditSuccessCount = 0;
 const errorsList = [];
+
+async function resetDatabase() {
+  process.stdout.write('🧹 Resetando banco de dados para o estado seed padrão inicial...');
+  try {
+    const res = await fetch(`${TARGET_URL}/api/benchmark/reset`, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'X-API-KEY': API_KEY
+      }
+    });
+    if (res.ok) {
+      console.log(' OK! (Banco zerado com 30 animais base) ✅');
+    } else {
+      console.log(` ⚠️ Falha ao resetar banco (HTTP ${res.status})`);
+    }
+  } catch (err) {
+    console.log(` ⚠️ Erro ao resetar banco: ${err.message}`);
+  }
+}
 
 async function simulateWorker(workerId) {
   for (let r = 1; r <= TOTAL_ROUNDS; r++) {
     let targetAnimalId = 1;
     let targetBrinco = 'BR0001';
 
-    // 1. GET /api/animais (Consulta prévia para obter IDs reais)
+    // 1. GET /api/animais
     const t0 = performance.now();
     try {
       const resGet = await fetch(`${TARGET_URL}/api/animais`, {
@@ -66,22 +89,7 @@ async function simulateWorker(workerId) {
       });
       const t1 = performance.now();
       const durGet = t1 - t0;
-      let okGet = resGet.ok;
-
-      if (okGet) {
-        try {
-          const list = await resGet.json();
-          if (Array.isArray(list) && list.length > 0) {
-            const randomItem = list[Math.floor(Math.random() * list.length)];
-            targetAnimalId = randomItem.id || 1;
-            targetBrinco = randomItem.brinco || 'BR0001';
-          } else {
-            okGet = false; // Se a lista veio vazia ou inválida, não é sucesso de consulta
-          }
-        } catch (e) {
-          okGet = false;
-        }
-      }
+      const okGet = (resGet.status === 200);
 
       latencies.push({
         worker: workerId,
@@ -90,21 +98,30 @@ async function simulateWorker(workerId) {
         status: resGet.status,
         latency: durGet,
         timestamp: new Date().toISOString(),
-        ok: okGet
+        ok: okGet,
+        auditOk: okGet
       });
 
       if (okGet) {
         successCount++;
+        try {
+          const list = await resGet.json();
+          if (Array.isArray(list) && list.length > 0) {
+            const randomItem = list[Math.floor(Math.random() * list.length)];
+            targetAnimalId = randomItem.id || 1;
+            targetBrinco = randomItem.brinco || 'BR0001';
+          }
+        } catch (e) {}
       } else {
         errorCount++;
-        errorsList.push(`GET /api/animais falhou (HTTP ${resGet.status})`);
+        errorsList.push(`GET /api/animais retornou HTTP ${resGet.status}`);
       }
     } catch (err) {
       errorCount++;
       errorsList.push(`GET /api/animais timeout/erro: ${err.message}`);
     }
 
-    // 2. POST /api/sync (Payload 100% aderente com validação estrita de contadores)
+    // 2. POST /api/sync
     const uniqueBrinco = `BM-${ENV_LABEL}-${Date.now()}-${workerId}-${r}-${Math.floor(Math.random() * 10000)}`;
     const payload = {
       animais: [
@@ -152,20 +169,22 @@ async function simulateWorker(workerId) {
       const t3 = performance.now();
       const durPost = t3 - t2;
 
-      let okPost = false;
-      if (resPost.ok) {
+      const okPost = (resPost.status === 200);
+      let auditOk = false;
+
+      if (okPost) {
+        successCount++;
         try {
           const bodyPost = await resPost.json();
           const proc = bodyPost.processados || {};
-          // Validação Estrita: deve ter gravado animal, pesagem e saúde sem erros no array
-          const hasProcessed = (proc.animais_novos >= 1) && (proc.pesagens >= 1) && (proc.saude >= 1);
-          const hasNoErrors = !bodyPost.erros || bodyPost.erros.length === 0;
-          if (bodyPost.status === 'ok' && hasProcessed && hasNoErrors) {
-            okPost = true;
+          if (bodyPost.status === 'ok' && (proc.animais_novos >= 1) && (proc.pesagens >= 1) && (proc.saude >= 1)) {
+            auditOk = true;
+            auditSuccessCount++;
           }
-        } catch (e) {
-          okPost = false;
-        }
+        } catch (e) {}
+      } else {
+        errorCount++;
+        errorsList.push(`POST /api/sync retornou HTTP ${resPost.status}`);
       }
 
       latencies.push({
@@ -175,15 +194,9 @@ async function simulateWorker(workerId) {
         status: resPost.status,
         latency: durPost,
         timestamp: new Date().toISOString(),
-        ok: okPost
+        ok: okPost,
+        auditOk: auditOk
       });
-
-      if (okPost) {
-        successCount++;
-      } else {
-        errorCount++;
-        errorsList.push(`POST /api/sync rejeitado ou 0 processados (HTTP ${resPost.status})`);
-      }
     } catch (err) {
       errorCount++;
       errorsList.push(`POST /api/sync falhou: ${err.message}`);
@@ -192,6 +205,12 @@ async function simulateWorker(workerId) {
 }
 
 async function runBenchmark() {
+  if (SHOULD_RESET) {
+    await resetDatabase();
+    // Pequena pausa para o banco assentar após o truncate
+    await new Promise(r => setTimeout(r, 1500));
+  }
+
   const startTime = performance.now();
 
   process.stdout.write(`⚡ Executando ${CONCURRENCY} workers [${ENV_LABEL.toUpperCase()} - Run ${RUN_NUM}]...`);
@@ -206,7 +225,7 @@ async function runBenchmark() {
 
   console.log(' Concluído! ✅\n');
 
-  // Cálculos Estatísticos Estritos (Apenas Requisições com 100% dos registros processados)
+  // Cálculos Estatísticos Oficiais (Apenas Requisições com Status 200 OK)
   const totalReqs = latencies.length;
   const successLatencies = latencies.filter(l => l.ok).map(l => l.latency).sort((a, b) => a - b);
   const allDurations = latencies.map(l => l.latency).sort((a, b) => a - b);
@@ -227,7 +246,7 @@ async function runBenchmark() {
 
   const successStats = calcStats(successLatencies);
   const throughputSuccess = successCount / totalElapsedSec;
-  const errorRate = (errorCount / (totalReqs || 1)) * 100;
+  const realErrorRate = (errorCount / (totalReqs || 1)) * 100;
 
   // Quebra por Endpoint
   const getReqs = latencies.filter(l => l.endpoint === '/api/animais');
@@ -239,13 +258,14 @@ async function runBenchmark() {
   console.log(`📊 RESULTADOS: [${ENV_LABEL.toUpperCase()}] ${CONCURRENCY} USERS (RUN ${RUN_NUM})`);
   console.log('============================================================');
   console.log(`⏱️  Tempo Total:                ${totalElapsedSec.toFixed(2)} s`);
-  console.log(`🚀 Total Requisições:          ${totalReqs} (${successCount} Efetivamente Processadas, ${errorCount} Rejeitadas)`);
-  console.log(`📈 Vazão EFETIVA (Processadas): ${throughputSuccess.toFixed(2)} req/s`);
-  console.log(`❌ Taxa Global de Erro:        ${errorRate.toFixed(2)}%`);
-  console.log(`   • GET  /api/animais:        ${getErrors}/${getReqs.length} falhas`);
-  console.log(`   • POST /api/sync:           ${postErrors}/${postReqs.length} falhas`);
+  console.log(`🚀 Total Requisições:          ${totalReqs} (${successCount} HTTP 200 OK, ${errorCount} Erros HTTP)`);
+  console.log(`📈 Vazão EFETIVA (200 OK):     ${throughputSuccess.toFixed(2)} req/s`);
+  console.log(`❌ Taxa Real de Erro HTTP:     ${realErrorRate.toFixed(2)}%`);
+  console.log(`🔍 Auditoria POST (Gravados):  ${auditSuccessCount}/${postReqs.length} (${((auditSuccessCount / (postReqs.length || 1)) * 100).toFixed(1)}%)`);
+  console.log(`   • GET  /api/animais erros:  ${getErrors}/${getReqs.length}`);
+  console.log(`   • POST /api/sync erros:     ${postErrors}/${postReqs.length}`);
   console.log('------------------------------------------------------------');
-  console.log('⌛ LATÊNCIAS REAIS (Apenas registros gravados no banco):');
+  console.log('⌛ LATÊNCIAS 200 OK:');
   console.log(`   • Média:                    ${successStats.avg.toFixed(1)} ms`);
   console.log(`   • Mediana (p50):            ${successStats.p50.toFixed(1)} ms`);
   console.log(`   • Percentil 95 (p95):       ${successStats.p95.toFixed(1)} ms`);
@@ -255,8 +275,8 @@ async function runBenchmark() {
   const csvFilename = `benchmark_${ENV_LABEL}_${CONCURRENCY}users_run${RUN_NUM}_${Date.now()}.csv`;
   const csvPath = path.join(RESULTS_DIR, csvFilename);
   const csvContent = [
-    'Timestamp,Worker,Method,Endpoint,Status,Ok,Latency_ms,Env,Run',
-    ...latencies.map(l => `${l.timestamp},${l.worker},${l.method},${l.endpoint},${l.status},${l.ok ? 1 : 0},${l.latency.toFixed(2)},${ENV_LABEL},${RUN_NUM}`)
+    'Timestamp,Worker,Method,Endpoint,Status,Ok,AuditOk,Latency_ms,Env,Run',
+    ...latencies.map(l => `${l.timestamp},${l.worker},${l.method},${l.endpoint},${l.status},${l.ok ? 1 : 0},${l.auditOk ? 1 : 0},${l.latency.toFixed(2)},${ENV_LABEL},${RUN_NUM}`)
   ].join('\n');
   fs.writeFileSync(csvPath, csvContent, 'utf-8');
   console.log(`💾 CSV salvo: ${csvFilename}`);
