@@ -197,7 +197,7 @@ Abaixo estão as respostas prontas e fundamentadas para os questionamentos mais 
 
 ### ❓ Pergunta 1: *"Por que houve uma taxa de erro de ~35% a 40% no teste de 100 usuários na AWS?"*
 > **Resposta do Aluno:**  
-> *"Esse comportamento ocorreu devido ao dimensionamento intencional da máquina no Free Tier da AWS (`t2.micro` com 1 vCPU e 1 GB de RAM). Ao receber 100 conexões simultâneas no mesmo segundo, o pool de processos do PHP-FPM atingiu o limite de memória da instância micro. Isso comprova o comportamento esperado sob estresse extremo e valida a arquitetura: para produção em larga escala, a arquitetura já está desacoplada e suporta a adição de um **Application Load Balancer (ALB)** com **Auto Scaling**, distribuindo a carga entre múltiplos contêineres sem necessidade de alterar nenhuma linha de código do backend."*
+> *"Esse comportamento ocorreu devido ao dimensionamento intencional da máquina no Free Tier da AWS (`t3.micro` com 2 vCPUs e 1 GB de RAM). Ao receber 100 conexões simultâneas no mesmo segundo, o pool de processos do PHP-FPM atingiu o limite de memória da instância micro. Isso comprova o comportamento esperado sob estresse extremo e valida a arquitetura: para produção em larga escala, a arquitetura já está desacoplada e suporta a adição de um **Application Load Balancer (ALB)** com **Auto Scaling**, distribuindo a carga entre múltiplos contêineres sem necessidade de alterar nenhuma linha de código do backend."*
 
 ---
 

@@ -1,7 +1,8 @@
 /**
  * ============================================================
- * PecuáriaGest — Motor de Benchmark e Testes de Carga
- * TCC: Comparativo de Desempenho On-Premise vs AWS Cloud
+ * PecuáriaGest — Motor de Benchmark e Testes de Carga Simétricos
+ * TCC: Comparativo Científico On-Premise vs AWS Cloud (t3.micro)
+ * Validação Estrita de Contadores e Transações
  * ============================================================
  */
 
@@ -19,17 +20,21 @@ function getArg(name, defaultValue) {
 
 const TARGET_URL = getArg('url', 'http://localhost:8080').replace(/\/$/, '');
 const CONCURRENCY = parseInt(getArg('concurrency', '20'), 10);
-const TOTAL_ROUNDS = parseInt(getArg('rounds', '5'), 10); // Cada worker faz N rodadas
-const SCENARIO_NAME = getArg('scenario', `Carga: ${CONCURRENCY} Usuários Simultâneos`);
+const TOTAL_ROUNDS = parseInt(getArg('rounds', '5'), 10);
+const ENV_LABEL = getArg('env', TARGET_URL.includes('localhost') ? 'local' : 'aws');
+const RUN_NUM = getArg('run', '1');
+const SCENARIO_NAME = getArg('scenario', `Carga: ${CONCURRENCY} Usuários (${ENV_LABEL.toUpperCase()} - Run ${RUN_NUM})`);
+const API_KEY = getArg('apikey', 'pecuaria-mobile-key');
 
 console.log('\n============================================================');
-console.log('🐂 PECUÁRIAGEST — EXECUTOR DE TESTES DE CARGA & BENCHMARK');
+console.log(`🐂 BENCHMARK SIMÉTRICO ESTRITO: [${ENV_LABEL.toUpperCase()}] — ${CONCURRENCY} USUÁRIOS (RUN ${RUN_NUM})`);
 console.log('============================================================');
-console.log(`🎯 Alvo do Teste:       ${TARGET_URL}`);
-console.log(`👥 Usuários Virtuais:   ${CONCURRENCY} conexões concorrentes`);
-console.log(`🔄 Ciclos por Usuário:  ${TOTAL_ROUNDS} requisições/cada`);
+console.log(`🎯 Alvo do Teste:        ${TARGET_URL}`);
+console.log(`🔑 Header Autenticação:  X-API-KEY: ${API_KEY}`);
+console.log(`👥 Conexões Concorrentes: ${CONCURRENCY} workers`);
+console.log(`🔄 Ciclos por Worker:    ${TOTAL_ROUNDS} rodadas`);
 console.log(`📦 Total de Requisições: ${CONCURRENCY * TOTAL_ROUNDS * 2} (GET + POST)`);
-console.log(`📋 Cenário:             ${SCENARIO_NAME}`);
+console.log(`🏷️ Identificador Run:    ${ENV_LABEL} #Run ${RUN_NUM}`);
 console.log('============================================================\n');
 
 // Diretório de resultados
@@ -46,71 +51,87 @@ const errorsList = [];
 
 async function simulateWorker(workerId) {
   for (let r = 1; r <= TOTAL_ROUNDS; r++) {
+    let targetAnimalId = 1;
     let targetBrinco = 'BR0001';
 
-    // 1. GET /api/animais
+    // 1. GET /api/animais (Consulta prévia para obter IDs reais)
     const t0 = performance.now();
     try {
       const resGet = await fetch(`${TARGET_URL}/api/animais`, {
         method: 'GET',
-        headers: { 'Accept': 'application/json' }
+        headers: {
+          'Accept': 'application/json',
+          'X-API-KEY': API_KEY
+        }
       });
       const t1 = performance.now();
       const durGet = t1 - t0;
+      let okGet = resGet.ok;
+
+      if (okGet) {
+        try {
+          const list = await resGet.json();
+          if (Array.isArray(list) && list.length > 0) {
+            const randomItem = list[Math.floor(Math.random() * list.length)];
+            targetAnimalId = randomItem.id || 1;
+            targetBrinco = randomItem.brinco || 'BR0001';
+          } else {
+            okGet = false; // Se a lista veio vazia ou inválida, não é sucesso de consulta
+          }
+        } catch (e) {
+          okGet = false;
+        }
+      }
+
       latencies.push({
         worker: workerId,
         endpoint: '/api/animais',
         method: 'GET',
         status: resGet.status,
         latency: durGet,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        ok: okGet
       });
 
-      if (resGet.ok) {
+      if (okGet) {
         successCount++;
-        try {
-          const list = await resGet.json();
-          if (Array.isArray(list) && list.length > 0 && list[0].brinco) {
-            targetBrinco = list[Math.floor(Math.random() * list.length)].brinco;
-          }
-        } catch (e) {}
       } else {
         errorCount++;
-        errorsList.push(`GET /api/animais retornou status ${resGet.status}`);
+        errorsList.push(`GET /api/animais falhou (HTTP ${resGet.status})`);
       }
     } catch (err) {
       errorCount++;
-      errorsList.push(`GET /api/animais falhou: ${err.message}`);
+      errorsList.push(`GET /api/animais timeout/erro: ${err.message}`);
     }
 
-    // 2. POST /api/sync
-    const uniqueCalfBrinco = `BK-${Date.now()}-${workerId}-${r}-${Math.floor(Math.random() * 10000)}`;
+    // 2. POST /api/sync (Payload 100% aderente com validação estrita de contadores)
+    const uniqueBrinco = `BM-${ENV_LABEL}-${Date.now()}-${workerId}-${r}-${Math.floor(Math.random() * 10000)}`;
     const payload = {
-      dispositivo: `Benchmark Worker #${workerId}`,
-      auth_email: 'admin@fazenda.com',
-      auth_senha: 'admin123',
-      animais_novos: [
+      animais: [
         {
-          brinco: uniqueCalfBrinco,
-          sexo: 'M',
+          brinco: uniqueBrinco,
+          nome: `Bezerro W${workerId}`,
+          sexo: r % 2 === 0 ? 'M' : 'F',
           raca: 'Nelore',
-          data_nascimento: '2026-08-29',
-          nome: `Bezerro Teste W${workerId}`
+          data_nascimento: '2026-08-30',
+          peso_inicial: parseFloat((180 + Math.random() * 40).toFixed(1)),
+          status: 'ativo',
+          origem: 'Nascimento'
         }
       ],
       pesagens: [
         {
-          brinco: targetBrinco,
+          animal_id: targetAnimalId,
           peso: parseFloat((350 + Math.random() * 150).toFixed(1)),
-          data: '2026-08-29',
-          observacao: `Benchmark carga W#${workerId}`
+          data: '2026-08-30',
+          observacao: `Pesagem de carga W#${workerId}`
         }
       ],
       saude: [
         {
-          brinco: targetBrinco,
+          animal_id: targetAnimalId,
           tipo: 'Vacinação',
-          descricao: 'Aftosa Benchmark',
+          descricao: 'Vacina Aftosa Benchmark',
           medicamento: 'Biovet Aftosa',
           dose: '5ml'
         }
@@ -121,24 +142,47 @@ async function simulateWorker(workerId) {
     try {
       const resPost = await fetch(`${TARGET_URL}/api/sync`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-API-KEY': API_KEY
+        },
         body: JSON.stringify(payload)
       });
       const t3 = performance.now();
       const durPost = t3 - t2;
+
+      let okPost = false;
+      if (resPost.ok) {
+        try {
+          const bodyPost = await resPost.json();
+          const proc = bodyPost.processados || {};
+          // Validação Estrita: deve ter gravado animal, pesagem e saúde sem erros no array
+          const hasProcessed = (proc.animais_novos >= 1) && (proc.pesagens >= 1) && (proc.saude >= 1);
+          const hasNoErrors = !bodyPost.erros || bodyPost.erros.length === 0;
+          if (bodyPost.status === 'ok' && hasProcessed && hasNoErrors) {
+            okPost = true;
+          }
+        } catch (e) {
+          okPost = false;
+        }
+      }
+
       latencies.push({
         worker: workerId,
         endpoint: '/api/sync',
         method: 'POST',
         status: resPost.status,
         latency: durPost,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        ok: okPost
       });
 
-      if (resPost.ok) successCount++;
-      else {
+      if (okPost) {
+        successCount++;
+      } else {
         errorCount++;
-        errorsList.push(`POST /api/sync retornou status ${resPost.status}`);
+        errorsList.push(`POST /api/sync rejeitado ou 0 processados (HTTP ${resPost.status})`);
       }
     } catch (err) {
       errorCount++;
@@ -150,7 +194,7 @@ async function simulateWorker(workerId) {
 async function runBenchmark() {
   const startTime = performance.now();
 
-  process.stdout.write('⚡ Disparando carga concorrente...');
+  process.stdout.write(`⚡ Executando ${CONCURRENCY} workers [${ENV_LABEL.toUpperCase()} - Run ${RUN_NUM}]...`);
   const workers = [];
   for (let w = 1; w <= CONCURRENCY; w++) {
     workers.push(simulateWorker(w));
@@ -162,188 +206,60 @@ async function runBenchmark() {
 
   console.log(' Concluído! ✅\n');
 
-  // Cálculos Estatísticos
-  const allDurations = latencies.map(l => l.latency).sort((a, b) => a - b);
+  // Cálculos Estatísticos Estritos (Apenas Requisições com 100% dos registros processados)
   const totalReqs = latencies.length;
-  const minLatency = allDurations[0] || 0;
-  const maxLatency = allDurations[allDurations.length - 1] || 0;
-  const avgLatency = allDurations.reduce((a, b) => a + b, 0) / (totalReqs || 1);
-  const p50 = allDurations[Math.floor(totalReqs * 0.50)] || 0;
-  const p90 = allDurations[Math.floor(totalReqs * 0.90)] || 0;
-  const p95 = allDurations[Math.floor(totalReqs * 0.95)] || 0;
-  const p99 = allDurations[Math.floor(totalReqs * 0.99)] || 0;
-  const throughput = totalReqs / totalElapsedSec;
+  const successLatencies = latencies.filter(l => l.ok).map(l => l.latency).sort((a, b) => a - b);
+  const allDurations = latencies.map(l => l.latency).sort((a, b) => a - b);
+
+  function calcStats(arr) {
+    if (!arr || arr.length === 0) return { min: 0, max: 0, avg: 0, p50: 0, p90: 0, p95: 0, p99: 0 };
+    const n = arr.length;
+    return {
+      min: arr[0],
+      max: arr[n - 1],
+      avg: arr.reduce((a, b) => a + b, 0) / n,
+      p50: arr[Math.floor(n * 0.50)] || 0,
+      p90: arr[Math.floor(n * 0.90)] || 0,
+      p95: arr[Math.floor(n * 0.95)] || 0,
+      p99: arr[Math.floor(n * 0.99)] || 0
+    };
+  }
+
+  const successStats = calcStats(successLatencies);
+  const throughputSuccess = successCount / totalElapsedSec;
   const errorRate = (errorCount / (totalReqs || 1)) * 100;
 
-  // Exibição dos Resultados no Terminal
+  // Quebra por Endpoint
+  const getReqs = latencies.filter(l => l.endpoint === '/api/animais');
+  const postReqs = latencies.filter(l => l.endpoint === '/api/sync');
+  const getErrors = getReqs.filter(l => !l.ok).length;
+  const postErrors = postReqs.filter(l => !l.ok).length;
+
   console.log('============================================================');
-  console.log('📊 RESULTADOS CONSOLIDADOS DO BENCHMARK');
+  console.log(`📊 RESULTADOS: [${ENV_LABEL.toUpperCase()}] ${CONCURRENCY} USERS (RUN ${RUN_NUM})`);
   console.log('============================================================');
-  console.log(`⏱️  Tempo Total do Teste:       ${totalElapsedSec.toFixed(2)} segundos`);
-  console.log(`🚀 Total de Requisições:       ${totalReqs} (${successCount} OK, ${errorCount} Falhas)`);
-  console.log(`📈 Vazão Média (Throughput):    ${throughput.toFixed(2)} req/segundo`);
-  console.log(`❌ Taxa de Erro:               ${errorRate.toFixed(2)}%`);
+  console.log(`⏱️  Tempo Total:                ${totalElapsedSec.toFixed(2)} s`);
+  console.log(`🚀 Total Requisições:          ${totalReqs} (${successCount} Efetivamente Processadas, ${errorCount} Rejeitadas)`);
+  console.log(`📈 Vazão EFETIVA (Processadas): ${throughputSuccess.toFixed(2)} req/s`);
+  console.log(`❌ Taxa Global de Erro:        ${errorRate.toFixed(2)}%`);
+  console.log(`   • GET  /api/animais:        ${getErrors}/${getReqs.length} falhas`);
+  console.log(`   • POST /api/sync:           ${postErrors}/${postReqs.length} falhas`);
   console.log('------------------------------------------------------------');
-  console.log('⌛ LATÊNCIAS DE RESPOSTA (Tempo gasto pelo Servidor):');
-  console.log(`   • Mínima:                   ${minLatency.toFixed(1)} ms`);
-  console.log(`   • Média:                    ${avgLatency.toFixed(1)} ms`);
-  console.log(`   • Mediana (p50):            ${p50.toFixed(1)} ms`);
-  console.log(`   • Percentil 90 (p90):       ${p90.toFixed(1)} ms`);
-  console.log(`   • Percentil 95 (p95):       ${p95.toFixed(1)} ms`);
-  console.log(`   • Máxima (p99):             ${maxLatency.toFixed(1)} ms`);
+  console.log('⌛ LATÊNCIAS REAIS (Apenas registros gravados no banco):');
+  console.log(`   • Média:                    ${successStats.avg.toFixed(1)} ms`);
+  console.log(`   • Mediana (p50):            ${successStats.p50.toFixed(1)} ms`);
+  console.log(`   • Percentil 95 (p95):       ${successStats.p95.toFixed(1)} ms`);
   console.log('============================================================\n');
 
-  // Gravação do Arquivo CSV
-  const csvFilename = `benchmark_${Date.now()}_${CONCURRENCY}users.csv`;
+  // Gravação do Arquivo CSV Padronizado
+  const csvFilename = `benchmark_${ENV_LABEL}_${CONCURRENCY}users_run${RUN_NUM}_${Date.now()}.csv`;
   const csvPath = path.join(RESULTS_DIR, csvFilename);
   const csvContent = [
-    'Timestamp,Worker,Method,Endpoint,Status,Latency_ms',
-    ...latencies.map(l => `${l.timestamp},${l.worker},${l.method},${l.endpoint},${l.status},${l.latency.toFixed(2)}`)
+    'Timestamp,Worker,Method,Endpoint,Status,Ok,Latency_ms,Env,Run',
+    ...latencies.map(l => `${l.timestamp},${l.worker},${l.method},${l.endpoint},${l.status},${l.ok ? 1 : 0},${l.latency.toFixed(2)},${ENV_LABEL},${RUN_NUM}`)
   ].join('\n');
   fs.writeFileSync(csvPath, csvContent, 'utf-8');
-  console.log(`💾 Dados brutos salvos em: ${csvPath}`);
-
-  // Geração do Relatório HTML Interativo
-  const htmlFilename = 'relatorio_benchmark.html';
-  const htmlPath = path.join(RESULTS_DIR, htmlFilename);
-  const htmlContent = generateHtmlReport({
-    scenario: SCENARIO_NAME,
-    targetUrl: TARGET_URL,
-    concurrency: CONCURRENCY,
-    totalReqs,
-    successCount,
-    errorCount,
-    errorRate,
-    totalElapsedSec,
-    throughput,
-    minLatency,
-    avgLatency,
-    p50,
-    p90,
-    p95,
-    p99,
-    maxLatency,
-    latencies
-  });
-  fs.writeFileSync(htmlPath, htmlContent, 'utf-8');
-  console.log(`🌐 Dashboard Visual gerado em: ${htmlPath}\n`);
-}
-
-function generateHtmlReport(data) {
-  const chartLabels = data.latencies.map((_, i) => `#${i + 1}`);
-  const chartValues = data.latencies.map(l => l.latency.toFixed(1));
-
-  return `<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>PecuáriaGest — Relatório de Benchmark</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body { background-color: #f4f6f4; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    .header-box { background: linear-gradient(135deg, #1a4d2e 0%, #2d7a4e 100%); color: white; border-radius: 12px; padding: 25px; }
-    .card-metric { border-radius: 10px; border: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-  </style>
-</head>
-<body class="p-4">
-  <div class="container-fluid" style="max-width: 1100px;">
-    
-    <!-- Cabeçalho -->
-    <div class="header-box mb-4 shadow-sm">
-      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <div>
-          <h3 class="fw-bold mb-1">🐂 PecuáriaGest — Relatório Científico de Desempenho</h3>
-          <p class="mb-0 opacity-75">TCC: Análise Comparativa de Carga e Sincronização Mobile</p>
-        </div>
-        <span class="badge bg-light text-dark fs-6 px-3 py-2 fw-bold">Ambiente: ${data.targetUrl.includes('localhost') ? '🏠 Local (On-Premise)' : '☁️ Nuvem (AWS)'}</span>
-      </div>
-    </div>
-
-    <!-- Cards com Métricas-Chave -->
-    <div class="row g-3 mb-4">
-      <div class="col-md-3">
-        <div class="card card-metric p-3 bg-white">
-          <span class="text-muted small fw-bold">VAZÃO (THROUGHPUT)</span>
-          <h2 class="fw-bold text-success my-1">${data.throughput.toFixed(1)} <small class="fs-6 text-muted">req/s</small></h2>
-          <small class="text-muted">Total: ${data.totalReqs} requisições</small>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card card-metric p-3 bg-white">
-          <span class="text-muted small fw-bold">LATÊNCIA MÉDIA</span>
-          <h2 class="fw-bold text-primary my-1">${data.avgLatency.toFixed(1)} <small class="fs-6 text-muted">ms</small></h2>
-          <small class="text-muted">Mediana (p50): ${data.p50.toFixed(1)} ms</small>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card card-metric p-3 bg-white">
-          <span class="text-muted small fw-bold">PERCENTIL 95 (p95)</span>
-          <h2 class="fw-bold text-warning my-1">${data.p95.toFixed(1)} <small class="fs-6 text-muted">ms</small></h2>
-          <small class="text-muted">95% das reqs abaixo deste tempo</small>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card card-metric p-3 bg-white">
-          <span class="text-muted small fw-bold">TAXA DE ERRO</span>
-          <h2 class="fw-bold text-${data.errorRate === 0 ? 'success' : 'danger'} my-1">${data.errorRate.toFixed(1)}%</h2>
-          <small class="text-muted">${data.successCount} OK / ${data.errorCount} Falhas</small>
-        </div>
-      </div>
-    </div>
-
-    <!-- Gráfico de Latência -->
-    <div class="card border-0 shadow-sm p-4 mb-4 bg-white rounded-3">
-      <h5 class="fw-bold mb-3">📈 Curva de Tempo de Resposta por Requisição (ms)</h5>
-      <canvas id="latencyChart" style="max-height: 320px;"></canvas>
-    </div>
-
-    <!-- Tabela Detalhada para o Artigo do TCC -->
-    <div class="card border-0 shadow-sm p-4 bg-white rounded-3">
-      <h5 class="fw-bold mb-3">📋 Tabela Consolidada de Dados para o TCC</h5>
-      <table class="table table-bordered align-middle">
-        <thead class="table-light">
-          <tr><th>Parâmetro</th><th>Valor Registrado</th><th>Significado Acadêmico</th></tr>
-        </thead>
-        <tbody>
-          <tr><td><strong>Cenário de Teste</strong></td><td>${data.scenario}</td><td>Nível de estresse simultâneo</td></tr>
-          <tr><td><strong>Usuários Concorrentes</strong></td><td>${data.concurrency} conexões ativas</td><td>Vaqueiros sincronizando no mesmo segundo</td></tr>
-          <tr><td><strong>Vazão do Servidor</strong></td><td>${data.throughput.toFixed(2)} requisições/s</td><td>Capacidade de vazão do backend PHP</td></tr>
-          <tr><td><strong>Tempo Mínimo / Máximo</strong></td><td>${data.minLatency.toFixed(1)} ms / ${data.maxLatency.toFixed(1)} ms</td><td>Variação nos picos de I/O de banco</td></tr>
-          <tr><td><strong>Percentil 90 (p90)</strong></td><td>${data.p90.toFixed(1)} ms</td><td>Padrão SLA de qualidade de serviço</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-  </div>
-
-  <script>
-    const ctx = document.getElementById('latencyChart').getContext('2d');
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ${JSON.stringify(chartLabels.slice(0, 100))},
-        datasets: [{
-          label: 'Latência da Requisição (ms)',
-          data: ${JSON.stringify(chartValues.slice(0, 100))},
-          borderColor: '#1a4d2e',
-          backgroundColor: 'rgba(26, 77, 46, 0.1)',
-          fill: true,
-          tension: 0.3
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { title: { display: true, text: 'Milissegundos (ms)' } },
-          x: { title: { display: true, text: 'Amostras de Requisições' } }
-        }
-      }
-    });
-  </script>
-</body>
-</html>`;
+  console.log(`💾 CSV salvo: ${csvFilename}`);
 }
 
 runBenchmark();

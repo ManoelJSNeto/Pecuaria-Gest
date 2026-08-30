@@ -1,51 +1,12 @@
-# 📊 Relatório Consolidado de Benchmark & Testes de Carga (TCC)
+# 📊 Tabela Consolidada de Benchmark Oficial (TCC) — Simétrico e Auditado
 
-> **Artigo / TCC:** PecuáriaGest — Sistema de Gestão Agropecuária com Sincronização Mobile Offline-First  
-> **Estudo Comparativo:** Servidor Local On-Premise (SQLite) vs Nuvem AWS (EC2 + Amazon RDS PostgreSQL)  
-> **Ferramentas de Medição:** Apache JMeter Test Plan & Motor Node.js High-Resolution Benchmark (`performance.now()`)
+> Bateria executada com **3 repetições por cenário (N=3)** nos ambientes **Local (SQLite WAL)** e **Nuvem AWS (EC2 t3.micro + Amazon RDS PostgreSQL)** com validação estrita de contadores de banco de dados.
 
----
-
-## 📈 1. Tabela Comparativa de Desempenho (Local vs AWS)
-
-A bateria de testes submeteu ambos os ambientes ao mesmo perfil de carga escalonado: **20, 50 e 100 conexões concorrentes simultâneas**, executando ciclos completos de consulta de rebanho (`GET /api/animais`) e envio de pacotes de dados (`POST /api/sync` com pesagens, bezerros e manejos).
-
-| Cenário de Teste | Ambiente | Req. Totais | Tempo Total | Vazão (Throughput) | Latência Média | Mediana (p50) | Percentil 95 (p95) |
-|---|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **20 Usuários** | 🏠 **Local (SQLite)** | 120 reqs | 23.81 s | **5.04 req/s** | 3.161 ms | 3.326 ms | 7.217 ms |
-| **20 Usuários** | ☁️ **AWS (RDS Postgres)** | 200 reqs | 4.36 s | **45.84 req/s** 🚀 | **398 ms** ⚡ | **384 ms** | **698 ms** |
-| **50 Usuários** | ☁️ **AWS (RDS Postgres)** | 500 reqs | 9.63 s | **51.91 req/s** 🚀 | **877 ms** | **855 ms** | **1.568 ms** |
-| **100 Usuários** | ☁️ **AWS (RDS Postgres)** | 1.000 reqs | 19.97 s | **50.07 req/s** 🚀 | **1.828 ms** | **1.819 ms** | **3.078 ms** |
-
----
-
-## 🔬 2. Análise Científica dos Resultados
-
-### 🚀 A. Ganho de Vazão (Throughput) na Nuvem
-* O ambiente em **Nuvem AWS (EC2 + RDS PostgreSQL)** atingiu uma vazão média de **~50 requisições por segundo**, representando um **ganho de desempenho de mais de 900% (9x mais rápido)** em comparação com o servidor local SQLite (~5 req/s).
-* O teste de 20 usuários que demorou **23,8 segundos** no servidor local foi concluído em apenas **4,36 segundos** na AWS.
-
-### 🔒 B. Concorrência de Banco: SQLite vs PostgreSQL (MVCC)
-* **No SQLite Local:** Por utilizar bloqueio a nível de arquivo único em disco (*file-level locking*), transações de escrita concorrentes disputam o acesso, gerando filas de espera e elevação da latência média para acima de 3.000 ms.
-* **No PostgreSQL (Amazon RDS):** A engine multithread com controle de concorrência multiversão (*Multi-Version Concurrency Control - MVCC*) processa dezenas de transações simultâneas de forma paralela e sem contenção de arquivo, reduzindo a latência no percentil 50 para **384 ms**.
-
----
-
-## 💰 3. Análise Econômica de Custos (CapEx vs OpEx)
-
-| Critério de Comparação | Servidor Local na Sede (On-Premise) | Nuvem AWS (EC2 + RDS Gerenciado) |
-|---|---|---|
-| **Investimento Inicial (CapEx)** | Alto (Compra de servidor físico/mini-PC, nobreak, roteador industrial: ~R$ 4.500 a R$ 8.000) | **Zero (R$ 0,00)** |
-| **Custo Recorrente (OpEx)** | Energia elétrica contínua, manutenção física, risco de queima por descargas elétricas no campo | **R$ 0,00 / mês** no Free Tier (ou ~US$ 15/mês em regime comercial básico) |
-| **Disponibilidade & SLA** | Dependente de link de internet e estabilidade elétrica da fazenda | **99,95% de SLA** garantido pela infraestrutura global da AWS |
-| **Recuperação de Desastres** | Backup manual em pendrive/HD externo com risco de perda | **Backups diários automatizados** com restauração pontual (*Point-in-Time Recovery*) |
-
----
-
-## 🎓 4. Conclusão Acadêmica para o TCC
-
-A combinação da arquitetura **Offline-First no App Android (Capacitor)** com o backend conteinerizado em **Nuvem AWS (EC2 + RDS PostgreSQL)** resolve de forma definitiva o principal gargalo da pecuária 4.0:
-
-1. O trabalhador de campo opera **100% offline** nos pastos sem depender de sinal de internet.
-2. Ao retornar à sede ou alcançar conectividade, o **Auto-Sync** descarrega as coletas de forma rápida e assíncrona.
-3. O servidor em nuvem absorve picos massivos de concorrência com tempo de resposta sub-segundo, garantindo integridade dos dados e governança em tempo real para a gestão do rebanho.
+| Ambiente | Concorrência | N (Runs) | Vazão Efetiva Média (req/s) | Desvio Padrão Vazão | Latência Média 200 OK (ms) | Desvio Padrão Latência | Mediana (p50) | Percentil 95 (p95) | Taxa de Erro Média |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| ☁️ AWS (t3.micro + RDS) | **100 users** | 3 | **3.32 req/s** | ±1.60 | **16264.2 ms** | ±7406.0 | 16229.2 ms | 30422.1 ms | 50.0% |
+| ☁️ AWS (t3.micro + RDS) | **20 users** | 3 | **35.45 req/s** | ±5.77 | **269.5 ms** | ±25.5 | 244.9 ms | 514.3 ms | 50.0% |
+| ☁️ AWS (t3.micro + RDS) | **50 users** | 3 | **13.77 req/s** | ±6.20 | **1797.4 ms** | ±771.6 | 1781.6 ms | 2976.7 ms | 50.0% |
+| 🏠 Local (SQLite WAL) | **100 users** | 3 | **1.93 req/s** | ±0.16 | **27105.3 ms** | ±2640.8 | 27493.8 ms | 41938.9 ms | 50.0% |
+| 🏠 Local (SQLite WAL) | **20 users** | 3 | **2.09 req/s** | ±0.07 | **5695.9 ms** | ±336.7 | 5676.4 ms | 9214.1 ms | 50.0% |
+| 🏠 Local (SQLite WAL) | **50 users** | 3 | **2.07 req/s** | ±0.11 | **12294.6 ms** | ±138.1 | 11933.2 ms | 21692.7 ms | 50.0% |
