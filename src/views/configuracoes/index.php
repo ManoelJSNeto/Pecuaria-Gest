@@ -123,10 +123,14 @@ $dbDriver          = DB_DRIVER === 'pgsql' ? 'PostgreSQL 16 (Amazon RDS / Nuvem)
             <button type="submit" class="btn btn-primary fw-bold px-4">
               <i class="bi bi-check-lg me-1"></i> Salvar Configurações
             </button>
-            <a href="/configuracoes/testar-email" class="btn btn-outline-success btn-sm fw-bold">
+            <button type="button" class="btn btn-outline-success btn-sm fw-bold"
+              onclick="document.getElementById('formTestarEmail').submit()">
               <i class="bi bi-envelope-paper-fill me-1"></i> Enviar E-mail de Teste
-            </a>
+            </button>
           </div>
+        </form>
+        <form id="formTestarEmail" method="POST" action="/configuracoes/testar-email" class="d-none">
+          <?= csrf_field() ?>
         </form>
       </div>
     </div>
