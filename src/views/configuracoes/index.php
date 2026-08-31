@@ -11,7 +11,7 @@ $smtpSecure        = getSysConfig('notif_smtp_secure', 'tls');
 $totalAnimais      = $db->query("SELECT COUNT(*) FROM animais WHERE status != 'morto' AND status != 'vendido'")->fetchColumn();
 $totalPesagens     = $db->query("SELECT COUNT(*) FROM pesagens")->fetchColumn();
 $totalSincs        = $db->query("SELECT COUNT(*) FROM sincronizacoes")->fetchColumn();
-$dbDriver          = DB_DRIVER === 'pgsql' ? 'PostgreSQL 16 (Amazon RDS / Nuvem)' : 'SQLite 3 (Armazenamento Local)';
+$dbDriver          = 'PostgreSQL 16 (Dedicado / Docker)';
 ?>
 
 <div class="row g-4">

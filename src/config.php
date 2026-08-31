@@ -11,14 +11,12 @@ define('STORAGE_PATH', $storageDir);
 define('DATA_PATH', $storageDir . '/data');
 define('UPLOADS_PATH', $storageDir . '/uploads');
 
-// Banco de Dados (Suporte Dual: SQLite e PostgreSQL / AWS RDS)
-define('DB_DRIVER', getenv('DB_DRIVER') ?: (getenv('DB_CONNECTION') ?: 'sqlite')); // 'sqlite' ou 'pgsql'
+// Banco de Dados (PostgreSQL)
 define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
 define('DB_PORT', getenv('DB_PORT') ?: '5432');
 define('DB_DATABASE', getenv('DB_DATABASE') ?: getenv('DB_NAME') ?: 'pecuaria');
 define('DB_USERNAME', getenv('DB_USERNAME') ?: getenv('DB_USER') ?: 'postgres');
 define('DB_PASSWORD', getenv('DB_PASSWORD') ?: getenv('DB_PASS') ?: '');
-define('DB_PATH', getenv('DB_PATH') ?: (DATA_PATH . '/pecuaria.db'));
 
 // Chaves de Segurança e Sessão
 define('SESSION_SECRET', getenv('SESSION_SECRET') ?: 'pecuaria_secret_key_change_in_prod');

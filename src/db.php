@@ -2,15 +2,8 @@
 function getDb(): PDO {
     static $db = null;
     if ($db === null) {
-        if (DB_DRIVER === 'pgsql') {
-            $dsn = "pgsql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_DATABASE;
-            $db = new PDO($dsn, DB_USERNAME, DB_PASSWORD);
-        } else {
-            $db = new PDO('sqlite:' . DB_PATH);
-            $db->exec('PRAGMA foreign_keys = ON;');
-            $db->exec('PRAGMA busy_timeout = 5000;');
-            $db->exec('PRAGMA journal_mode = WAL;');
-        }
+        $dsn = "pgsql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_DATABASE;
+        $db = new PDO($dsn, DB_USERNAME, DB_PASSWORD);
         $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         initDb($db);
@@ -19,13 +12,9 @@ function getDb(): PDO {
 }
 
 function initDb(PDO $db): void {
-    $isPg = (DB_DRIVER === 'pgsql');
-    $pk   = $isPg ? 'SERIAL PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
-    $now  = 'CURRENT_TIMESTAMP';
-
     $db->exec("
         CREATE TABLE IF NOT EXISTS usuarios (
-            id $pk,
+            id SERIAL PRIMARY KEY,
             nome TEXT NOT NULL,
             email TEXT UNIQUE NOT NULL,
             senha TEXT NOT NULL,
@@ -34,21 +23,21 @@ function initDb(PDO $db): void {
             permissoes TEXT DEFAULT '{}',
             ativo INTEGER DEFAULT 1,
             ultimo_acesso TEXT,
-            created_at TIMESTAMP DEFAULT $now
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
         CREATE TABLE IF NOT EXISTS pastagens (
-            id $pk,
+            id SERIAL PRIMARY KEY,
             nome TEXT NOT NULL,
             area_ha REAL,
             capacidade INTEGER,
             status TEXT DEFAULT 'ativa',
             observacao TEXT,
-            created_at TIMESTAMP DEFAULT $now
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
         CREATE TABLE IF NOT EXISTS animais (
-            id $pk,
+            id SERIAL PRIMARY KEY,
             brinco TEXT UNIQUE NOT NULL,
             nome TEXT,
             sexo TEXT NOT NULL DEFAULT 'M',
@@ -62,22 +51,22 @@ function initDb(PDO $db): void {
             pai_brinco TEXT,
             observacao TEXT,
             foto_url TEXT,
-            created_at TIMESTAMP DEFAULT $now,
-            updated_at TIMESTAMP DEFAULT $now
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
         CREATE TABLE IF NOT EXISTS pesagens (
-            id $pk,
+            id SERIAL PRIMARY KEY,
             animal_id INTEGER NOT NULL REFERENCES animais(id) ON DELETE CASCADE,
             peso REAL NOT NULL,
             data TEXT NOT NULL,
             observacao TEXT,
             origem TEXT DEFAULT 'web',
-            created_at TIMESTAMP DEFAULT $now
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
         CREATE TABLE IF NOT EXISTS saude (
-            id $pk,
+            id SERIAL PRIMARY KEY,
             animal_id INTEGER NOT NULL REFERENCES animais(id) ON DELETE CASCADE,
             tipo TEXT NOT NULL,
             descricao TEXT NOT NULL,
@@ -89,41 +78,41 @@ function initDb(PDO $db): void {
             custo REAL,
             observacao TEXT,
             origem TEXT DEFAULT 'web',
-            created_at TIMESTAMP DEFAULT $now
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
         CREATE TABLE IF NOT EXISTS reproducao (
-            id $pk,
+            id SERIAL PRIMARY KEY,
             animal_id INTEGER NOT NULL REFERENCES animais(id) ON DELETE CASCADE,
             tipo TEXT NOT NULL,
             data TEXT NOT NULL,
             resultado TEXT,
             touro_brinco TEXT,
             observacao TEXT,
-            created_at TIMESTAMP DEFAULT $now
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
         CREATE TABLE IF NOT EXISTS alertas (
-            id $pk,
+            id SERIAL PRIMARY KEY,
             animal_id INTEGER REFERENCES animais(id) ON DELETE CASCADE,
             tipo TEXT NOT NULL,
             mensagem TEXT NOT NULL,
             lido INTEGER DEFAULT 0,
-            created_at TIMESTAMP DEFAULT $now
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
         CREATE TABLE IF NOT EXISTS sincronizacoes (
-            id $pk,
+            id SERIAL PRIMARY KEY,
             dispositivo TEXT,
             ip TEXT,
             dados_recebidos INTEGER DEFAULT 0,
             status TEXT DEFAULT 'ok',
             detalhes TEXT,
-            created_at TIMESTAMP DEFAULT $now
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
         CREATE TABLE IF NOT EXISTS fotos_animais (
-            id $pk,
+            id SERIAL PRIMARY KEY,
             animal_id INTEGER NOT NULL REFERENCES animais(id) ON DELETE CASCADE,
             foto_url TEXT NOT NULL,
             tipo_evento TEXT DEFAULT 'perfil',
@@ -131,13 +120,13 @@ function initDb(PDO $db): void {
             is_sensivel INTEGER DEFAULT 0,
             data TEXT NOT NULL,
             observacao TEXT,
-            created_at TIMESTAMP DEFAULT $now
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
         CREATE TABLE IF NOT EXISTS configuracoes (
             chave TEXT PRIMARY KEY,
             valor TEXT,
-            created_at TIMESTAMP DEFAULT $now
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     ");
 

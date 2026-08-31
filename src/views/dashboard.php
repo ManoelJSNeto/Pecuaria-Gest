@@ -21,9 +21,9 @@ $recentPesagens = $db->query("SELECT pe.*, a.brinco, a.nome as animal_nome FROM 
 $alertas        = $db->query("SELECT al.*, a.brinco, a.nome as animal_nome FROM alertas al LEFT JOIN animais a ON al.animal_id=a.id WHERE al.lido=0 ORDER BY al.created_at DESC LIMIT 5")->fetchAll();
 $racas          = $db->query("SELECT raca, COUNT(*) as total FROM animais GROUP BY raca ORDER BY total DESC LIMIT 6")->fetchAll();
 
-$pesoTrend      = $db->query("SELECT strftime('%Y-%m', data) as mes, ROUND(AVG(peso),1) as media FROM pesagens WHERE data >= date('now', '-6 months') GROUP BY mes ORDER BY mes")->fetchAll();
+$pesoTrend      = $db->query("SELECT TO_CHAR(data::date, 'YYYY-MM') as mes, ROUND(AVG(peso::numeric),1) as media FROM pesagens WHERE data::date >= (CURRENT_DATE - INTERVAL '6 months') GROUP BY mes ORDER BY mes")->fetchAll();
 if (empty($pesoTrend)) {
-    $pesoTrend  = $db->query("SELECT mes, media FROM (SELECT strftime('%Y-%m', data) as mes, ROUND(AVG(peso),1) as media FROM pesagens GROUP BY mes ORDER BY mes DESC LIMIT 6) sub ORDER BY mes ASC")->fetchAll();
+    $pesoTrend  = $db->query("SELECT mes, media FROM (SELECT TO_CHAR(data::date, 'YYYY-MM') as mes, ROUND(AVG(peso::numeric),1) as media FROM pesagens GROUP BY mes ORDER BY mes DESC LIMIT 6) sub ORDER BY mes ASC")->fetchAll();
 }
 ?>
 <div class="row g-3 mb-4">

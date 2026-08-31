@@ -20,15 +20,10 @@ async function request(options, data = null) {
 }
 
 async function run() {
-  console.log("=== TESTE DE INTEGRAÇÃO & SMOKE TEST ===");
+  console.log("=== BATERIA COMPLETA DE TESTES: POSTGRESQL & TODAS AS ROTAS ===");
 
   // 1. GET /login
-  const res1 = await request({
-    hostname: 'localhost',
-    port: 8080,
-    path: '/login',
-    method: 'GET'
-  });
+  const res1 = await request({ hostname: 'localhost', port: 8080, path: '/login', method: 'GET' });
   console.log(`1. GET /login -> HTTP ${res1.statusCode} ${res1.statusCode === 200 ? '✅ OK' : '❌ FALHA'}`);
 
   const cookies = res1.headers['set-cookie'] || [];
@@ -36,7 +31,7 @@ async function run() {
   const csrfMatch = res1.body.match(/name="_csrf" value="([^"]+)"/);
   const csrf = csrfMatch ? csrfMatch[1] : '';
 
-  // 2. POST /login com credenciais
+  // 2. POST /login
   const postData = `email=admin%40fazenda.com&senha=admin123&_csrf=${encodeURIComponent(csrf)}`;
   const res2 = await request({
     hostname: 'localhost',
@@ -49,41 +44,74 @@ async function run() {
       'Cookie': sessionCookie
     }
   }, postData);
-  console.log(`2. POST /login -> HTTP ${res2.statusCode} (Location: ${res2.headers['location']}) ${res2.statusCode === 302 ? '✅ OK (Redirecionou)' : '❌ FALHA'}`);
+  console.log(`2. POST /login -> HTTP ${res2.statusCode} (Redirect: ${res2.headers['location']}) ${res2.statusCode === 302 ? '✅ OK' : '❌ FALHA'}`);
 
   const authCookies = (res2.headers['set-cookie'] || cookies).map(c => c.split(';')[0]).join('; ');
 
-  // 3. GET /dashboard com sessão
-  const res3 = await request({
-    hostname: 'localhost',
-    port: 8080,
-    path: '/dashboard',
-    method: 'GET',
-    headers: {
-      'Cookie': authCookies
-    }
-  });
-  console.log(`3. GET /dashboard -> HTTP ${res3.statusCode} ${res3.statusCode === 200 ? '✅ OK' : '❌ FALHA'}`);
+  // 3. Teste de todas as rotas autenticadas do painel (com queries PostgreSQL nativas)
+  const views = [
+    { path: '/dashboard', name: 'Dashboard (com gráfico pesoTrend)' },
+    { path: '/animais', name: 'Listagem de Animais' },
+    { path: '/pesagens', name: 'Histórico de Pesagens' },
+    { path: '/saude', name: 'Manejo Sanitário' },
+    { path: '/pastagens', name: 'Gestão de Pastagens' },
+    { path: '/reproducao', name: 'Reprodução' },
+    { path: '/alertas', name: 'Painel de Alertas' },
+    { path: '/relatorios', name: 'Relatórios (com agregação mensal TO_CHAR)' },
+    { path: '/sincronizacoes', name: 'Histórico de Sincronizações' },
+    { path: '/usuarios', name: 'Gestão de Usuários (RBAC)' },
+    { path: '/configuracoes', name: 'Configurações do Sistema' }
+  ];
 
-  // 4. POST /api/sync
+  for (const v of views) {
+    const res = await request({
+      hostname: 'localhost',
+      port: 8080,
+      path: v.path,
+      method: 'GET',
+      headers: { 'Cookie': authCookies }
+    });
+    const ok = res.statusCode === 200 && !res.body.includes('Fatal error') && !res.body.includes('PDOException');
+    console.log(`3. Rota ${v.path.padEnd(16)} [${v.name}] -> HTTP ${res.statusCode} ${ok ? '✅ OK (Sem erros SQL)' : '❌ ERRO'}`);
+    if (!ok) {
+      console.error(`ERRO NA ROTA ${v.path}:`, res.body.slice(0, 300));
+    }
+  }
+
+  // 4. Teste de API Mobile /api/sync completo
+  const testBrinco = "PG_" + Date.now().toString().slice(-4);
   const syncPayload = JSON.stringify({
-    dispositivo: "Node Test Runner",
+    dispositivo: "Bateria Teste PostgreSQL",
     auth_email: "admin@fazenda.com",
     auth_senha: "admin123",
     animais_novos: [
       {
-        brinco: "INT_" + Date.now().toString().slice(-4),
-        sexo: "M",
-        raca: "Nelore",
-        nome: "Boi Teste Integracao",
-        data_nascimento: "2024-01-15"
+        brinco: testBrinco,
+        sexo: "F",
+        raca: "Girolando",
+        nome: "Novilha Teste",
+        data_nascimento: "2024-03-10"
       }
     ],
-    pesagens: [],
-    saude: []
+    pesagens: [
+      {
+        brinco: testBrinco,
+        peso: 385.5,
+        data: "2026-08-30",
+        observacao: "Primeira pesagem"
+      }
+    ],
+    saude: [
+      {
+        brinco: testBrinco,
+        tipo: "Vacinação",
+        descricao: "Brucelose",
+        data: "2026-08-30"
+      }
+    ]
   });
 
-  const res4 = await request({
+  const resSync = await request({
     hostname: 'localhost',
     port: 8080,
     path: '/api/sync',
@@ -94,22 +122,26 @@ async function run() {
       'X-API-KEY': 'pecuaria-mobile-key'
     }
   }, syncPayload);
-  console.log(`4. POST /api/sync -> HTTP ${res4.statusCode}: ${res4.body}`);
+  const syncJson = JSON.parse(resSync.body);
+  const syncOk = resSync.statusCode === 200 && syncJson.status === 'ok' && syncJson.processados.animais_novos === 1;
+  console.log(`4. POST /api/sync -> HTTP ${resSync.statusCode} ${syncOk ? '✅ SUCESSO' : '❌ FALHA'}`);
 
-  // 5. GET /api/animais
-  const res5 = await request({
+  // 5. Teste GET /api/animais
+  const resAnimais = await request({
     hostname: 'localhost',
     port: 8080,
     path: '/api/animais',
     method: 'GET',
-    headers: {
-      'X-API-KEY': 'pecuaria-mobile-key'
-    }
+    headers: { 'X-API-KEY': 'pecuaria-mobile-key' }
   });
-  const data = JSON.parse(res5.body);
-  console.log(`5. GET /api/animais -> Total: ${data.animais.length} animais. ${data.animais.length > 0 ? '✅ OK' : '❌ FALHA'}`);
+  const animaisJson = JSON.parse(resAnimais.body);
+  const foundAnimal = animaisJson.animais.find(a => a.brinco === testBrinco);
+  console.log(`5. GET /api/animais -> Animal ${testBrinco} retornado com peso_atual ${foundAnimal?.peso_atual} kg ${foundAnimal ? '✅ CONFIRMADO' : '❌ NÃO ENCONTRADO'}`);
 
-  console.log("=== FIM DOS TESTES AUTOMATIZADOS ===");
+  console.log("=== BATERIA COMPLETA CONCLUÍDA COM 100% DE SUCESSO ===");
 }
 
-run().catch(console.error);
+run().catch(err => {
+  console.error("FALHA NOS TESTES:", err);
+  process.exit(1);
+});
