@@ -105,8 +105,8 @@
               </div>
             </div>
             <div class="mb-3">
-              <label class="form-label fw-bold small"><i class="bi bi-camera-fill me-1"></i> Foto da Pesagem (Câmera ou Galeria)</label>
-              <input type="file" id="p_foto" class="form-control" accept="image/*" onchange="handleFotoPreview(this, 'preview_p')">
+              <label class="form-label fw-bold small"><i class="bi bi-camera-fill me-1"></i> Foto da Pesagem (Abre Câmera)</label>
+              <input type="file" id="p_foto" class="form-control" accept="image/*" capture="environment" onchange="handleFotoPreview(this, 'preview_p')">
               <div id="preview_p" class="foto-preview-box">
                 <img src="" alt="Preview">
                 <button type="button" class="foto-preview-remove" onclick="removeFotoPreview('p_foto', 'preview_p')"><i class="bi bi-x-lg"></i></button>
@@ -173,8 +173,8 @@
               <input type="date" id="b_data" class="form-control">
             </div>
             <div class="mb-3">
-              <label class="form-label fw-bold small text-success"><i class="bi bi-stars me-1"></i> Foto do Bezerro (Memória de Filhote)</label>
-              <input type="file" id="b_foto" class="form-control" accept="image/*" onchange="handleFotoPreview(this, 'preview_b')">
+              <label class="form-label fw-bold small text-success"><i class="bi bi-camera-fill me-1"></i> Foto do Bezerro (Abre Câmera)</label>
+              <input type="file" id="b_foto" class="form-control" accept="image/*" capture="environment" onchange="handleFotoPreview(this, 'preview_b')">
               <div id="preview_b" class="foto-preview-box">
                 <img src="" alt="Preview">
                 <button type="button" class="foto-preview-remove" onclick="removeFotoPreview('b_foto', 'preview_b')"><i class="bi bi-x-lg"></i></button>
@@ -248,8 +248,8 @@
               </div>
             </div>
             <div class="mb-3">
-              <label class="form-label fw-bold small"><i class="bi bi-camera-fill me-1"></i> Foto do Manejo / Laudo (Opcional)</label>
-              <input type="file" id="s_foto" class="form-control" accept="image/*" onchange="handleFotoPreview(this, 'preview_s')">
+              <label class="form-label fw-bold small"><i class="bi bi-camera-fill me-1"></i> Foto do Manejo / Laudo (Abre Câmera)</label>
+              <input type="file" id="s_foto" class="form-control" accept="image/*" capture="environment" onchange="handleFotoPreview(this, 'preview_s')">
               <div id="preview_s" class="foto-preview-box">
                 <img src="" alt="Preview">
                 <button type="button" class="foto-preview-remove" onclick="removeFotoPreview('s_foto', 'preview_s')"><i class="bi bi-x-lg"></i></button>

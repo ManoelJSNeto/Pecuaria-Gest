@@ -1,5 +1,5 @@
 /* ============================================================
-   PecuáriaGest Campo — CSS Nativo Mobile, Dark Mode & UX Tátil
+   PecuáriaGest Campo — CSS Nativo Mobile, Cores & UX Tátil
    ============================================================ */
 
 :root {
@@ -8,62 +8,49 @@
   --green-light: #4caf78;
   --green-pale: #e8f5ee;
   
-  --bg-app: #f4f6f4;
+  --bg-app: #f1f5f9;
   --bg-card: #ffffff;
   --bg-surface: #ffffff;
-  --text-main: #1e293b;
+  --text-main: #0f172a;
   --text-muted: #64748b;
-  --border-color: #e2e8f0;
+  --border-color: #cbd5e1;
+  --input-bg: #ffffff;
   
   --pesagem-color: #d97706;
-  --pesagem-bg: #fffbeb;
+  --pesagem-bg: #fef3c7;
   --bezerro-color: #16a34a;
-  --bezerro-bg: #f0fdf4;
+  --bezerro-bg: #dcfce7;
   --saude-color: #dc2626;
-  --saude-bg: #fef2f2;
+  --saude-bg: #fee2e2;
   --fila-color: #2563eb;
-  --fila-bg: #eff6ff;
+  --fila-bg: #dbeafe;
 }
 
-/* ── Modo Escuro Automático e por Classe ── */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-app: #0f172a;
-    --bg-card: #1e293b;
-    --bg-surface: #1e293b;
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --border-color: #334155;
-    
-    --pesagem-bg: #451a03;
-    --bezerro-bg: #052e16;
-    --saude-bg: #450a0a;
-    --fila-bg: #172554;
-  }
-}
-
+/* ── Modo Escuro Coeso e Profissional ── */
 body.dark-mode {
-  --bg-app: #0f172a;
-  --bg-card: #1e293b;
-  --bg-surface: #1e293b;
+  --bg-app: #090d16;
+  --bg-card: #151e2e;
+  --bg-surface: #151e2e;
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
-  --border-color: #334155;
+  --border-color: #283548;
+  --input-bg: #0b111e;
   
-  --pesagem-bg: #451a03;
-  --bezerro-bg: #052e16;
-  --saude-bg: #450a0a;
-  --fila-bg: #172554;
+  --pesagem-bg: #381f08;
+  --bezerro-bg: #072a15;
+  --saude-bg: #3a0a0a;
+  --fila-bg: #0f274a;
 }
 
 body {
   background: var(--bg-app);
   color: var(--text-main);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   margin: 0;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 input, textarea, select, button, .touch-input-lg, .campo-nav-btn {
@@ -79,17 +66,17 @@ input, textarea, select, button, .touch-input-lg, .campo-nav-btn {
   display: flex;
   flex-direction: column;
   background: var(--bg-surface);
-  box-shadow: 0 0 20px rgba(0,0,0,0.08);
+  box-shadow: 0 0 24px rgba(0,0,0,0.1);
 }
 
 .mobile-top-header {
-  background: linear-gradient(135deg, #143d24 0%, #1f5c3b 100%);
+  background: linear-gradient(135deg, #123820 0%, #1c5234 100%);
   color: #ffffff;
   padding: 0.85rem 1rem;
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
 .mobile-content {
@@ -105,6 +92,49 @@ input, textarea, select, button, .touch-input-lg, .campo-nav-btn {
 }
 .status-dot.online { background-color: #10b981; box-shadow: 0 0 6px #10b981; }
 .status-dot.offline { background-color: #ef4444; box-shadow: 0 0 6px #ef4444; }
+
+/* ── Cards do Bootstrap no Tema ── */
+.card {
+  background-color: var(--bg-card) !important;
+  color: var(--text-main) !important;
+  border-color: var(--border-color) !important;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+body.dark-mode .card-header.bg-warning.bg-opacity-25 {
+  background: #3d2906 !important;
+}
+body.dark-mode .card-header.bg-warning.bg-opacity-25 .text-dark,
+body.dark-mode .card-header.bg-warning.bg-opacity-25 h6 {
+  color: #fef08a !important;
+}
+
+body.dark-mode .modal-content {
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  border-color: var(--border-color);
+}
+body.dark-mode .modal-footer {
+  border-top-color: var(--border-color);
+}
+
+/* ── Inputs e Controles no Tema ── */
+.form-control, .form-select {
+  background-color: var(--input-bg) !important;
+  color: var(--text-main) !important;
+  border-color: var(--border-color) !important;
+}
+.form-control:focus, .form-select:focus {
+  background-color: var(--input-bg) !important;
+  color: var(--text-main) !important;
+  border-color: #16a34a !important;
+}
+.input-group-text {
+  background-color: var(--bg-app) !important;
+  color: var(--text-muted) !important;
+  border-color: var(--border-color) !important;
+}
 
 /* ── Barra de Abas Táteis ── */
 .campo-nav-bar {
@@ -184,7 +214,7 @@ input, textarea, select, button, .touch-input-lg, .campo-nav-btn {
   padding: 12px 14px !important;
   border-radius: 10px;
   border: 2px solid var(--border-color);
-  background: var(--bg-card);
+  background: var(--input-bg);
   color: var(--text-main);
 }
 .touch-input-lg:focus {
@@ -334,6 +364,7 @@ input, textarea, select, button, .touch-input-lg, .campo-nav-btn {
   font-weight: 600;
   margin-right: 6px;
   margin-bottom: 6px;
+  color: var(--text-main);
 }
 
 /* ── Barra de Progresso de Sync ── */
@@ -358,4 +389,5 @@ input, textarea, select, button, .touch-input-lg, .campo-nav-btn {
   width: 90%;
   text-align: center;
   box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  color: var(--text-main);
 }
