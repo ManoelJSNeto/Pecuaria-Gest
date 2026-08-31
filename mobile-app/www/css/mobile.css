@@ -1,0 +1,361 @@
+/* ============================================================
+   PecuáriaGest Campo — CSS Nativo Mobile, Dark Mode & UX Tátil
+   ============================================================ */
+
+:root {
+  --green-dark: #1a4d2e;
+  --green-mid: #2d7a4e;
+  --green-light: #4caf78;
+  --green-pale: #e8f5ee;
+  
+  --bg-app: #f4f6f4;
+  --bg-card: #ffffff;
+  --bg-surface: #ffffff;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  
+  --pesagem-color: #d97706;
+  --pesagem-bg: #fffbeb;
+  --bezerro-color: #16a34a;
+  --bezerro-bg: #f0fdf4;
+  --saude-color: #dc2626;
+  --saude-bg: #fef2f2;
+  --fila-color: #2563eb;
+  --fila-bg: #eff6ff;
+}
+
+/* ── Modo Escuro Automático e por Classe ── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-app: #0f172a;
+    --bg-card: #1e293b;
+    --bg-surface: #1e293b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --border-color: #334155;
+    
+    --pesagem-bg: #451a03;
+    --bezerro-bg: #052e16;
+    --saude-bg: #450a0a;
+    --fila-bg: #172554;
+  }
+}
+
+body.dark-mode {
+  --bg-app: #0f172a;
+  --bg-card: #1e293b;
+  --bg-surface: #1e293b;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-color: #334155;
+  
+  --pesagem-bg: #451a03;
+  --bezerro-bg: #052e16;
+  --saude-bg: #450a0a;
+  --fila-bg: #172554;
+}
+
+body {
+  background: var(--bg-app);
+  color: var(--text-main);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+input, textarea, select, button, .touch-input-lg, .campo-nav-btn {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  touch-action: manipulation !important;
+}
+
+.mobile-app-wrapper {
+  max-width: 600px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  box-shadow: 0 0 20px rgba(0,0,0,0.08);
+}
+
+.mobile-top-header {
+  background: linear-gradient(135deg, #143d24 0%, #1f5c3b 100%);
+  color: #ffffff;
+  padding: 0.85rem 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+
+.mobile-content {
+  padding: 1rem;
+  flex: 1;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.status-dot.online { background-color: #10b981; box-shadow: 0 0 6px #10b981; }
+.status-dot.offline { background-color: #ef4444; box-shadow: 0 0 6px #ef4444; }
+
+/* ── Barra de Abas Táteis ── */
+.campo-nav-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 1rem;
+}
+
+.campo-nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 4px;
+  border-radius: 12px;
+  border: 2px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  text-align: center;
+}
+.campo-nav-btn .tab-icon {
+  font-size: 1.35rem;
+  margin-bottom: 3px;
+  line-height: 1;
+}
+.campo-nav-btn:active {
+  transform: scale(0.96);
+}
+.campo-nav-btn.active.btn-tab-pesagem {
+  background: #d97706;
+  border-color: #d97706;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(217, 119, 6, 0.25);
+}
+.campo-nav-btn.active.btn-tab-bezerro {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(22, 163, 74, 0.25);
+}
+.campo-nav-btn.active.btn-tab-saude {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(220, 38, 38, 0.25);
+}
+.campo-nav-btn.active.btn-tab-fila {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.25);
+}
+
+.campo-tab-pane {
+  display: none;
+}
+.campo-tab-pane.active {
+  display: block;
+  animation: fadeInPane 0.2s ease;
+}
+
+@keyframes fadeInPane {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Inputs e Botões Táteis ── */
+.touch-input-lg {
+  font-size: 1.18rem !important;
+  font-weight: 600;
+  padding: 12px 14px !important;
+  border-radius: 10px;
+  border: 2px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-main);
+}
+.touch-input-lg:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2);
+}
+
+.touch-btn-submit {
+  padding: 14px 20px;
+  font-size: 1.08rem;
+  font-weight: 800;
+  border-radius: 12px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  transition: transform 0.1s ease;
+}
+.touch-btn-submit:active {
+  transform: scale(0.98);
+}
+
+/* ── Preview de Foto ── */
+.foto-preview-box {
+  display: none;
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  max-height: 180px;
+  margin-top: 8px;
+  border: 2px dashed var(--border-color);
+  background: var(--bg-card);
+  text-align: center;
+}
+.foto-preview-box img {
+  max-height: 175px;
+  width: auto;
+  max-width: 100%;
+  object-fit: cover;
+}
+.foto-preview-remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(0,0,0,0.75);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+}
+
+/* ── Cards da Fila Visual ── */
+.queue-card {
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  margin-bottom: 10px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  transition: transform 0.15s ease;
+}
+.queue-card:hover {
+  transform: translateY(-1px);
+}
+.queue-card.tipo-pesagem { border-left: 5px solid var(--pesagem-color); }
+.queue-card.tipo-animal  { border-left: 5px solid var(--bezerro-color); }
+.queue-card.tipo-saude   { border-left: 5px solid var(--saude-color); }
+
+.queue-thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+}
+.queue-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+.queue-icon-pesagem { background: var(--pesagem-bg); color: var(--pesagem-color); }
+.queue-icon-animal  { background: var(--bezerro-bg); color: var(--bezerro-color); }
+.queue-icon-saude   { background: var(--saude-bg); color: var(--saude-color); }
+
+.queue-info {
+  flex: 1;
+  min-width: 0;
+}
+.queue-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 2px;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.queue-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* ── Histórico Rápido Local ── */
+.recent-history-box {
+  margin-top: 1.25rem;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--bg-card);
+  border: 1px dashed var(--border-color);
+}
+.recent-history-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.recent-item-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-right: 6px;
+  margin-bottom: 6px;
+}
+
+/* ── Barra de Progresso de Sync ── */
+.sync-progress-overlay {
+  display: none;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(2px);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1050;
+  align-items: center;
+  justify-content: center;
+}
+.sync-progress-card {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 360px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+}

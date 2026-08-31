@@ -1,5 +1,5 @@
 // ============================================================
-// PecuáriaGest App Nativo — Motor Offline, Auto-Sync & API
+// PecuáriaGest App Nativo — Motor Offline, Auto-Sync & UX Tátil
 // ============================================================
 
 const STORAGE_QUEUE_KEY = 'pecuaria_native_queue';
@@ -7,16 +7,48 @@ const STORAGE_ANIMALS_KEY = 'pecuaria_native_animals';
 const STORAGE_SERVER_KEY = 'pecuaria_native_server_url';
 const STORAGE_AUTH_KEY = 'pecuaria_native_auth';
 const STORAGE_AUTO_SYNC_KEY = 'pecuaria_native_auto_sync';
+const STORAGE_DARK_MODE_KEY = 'pecuaria_native_dark_mode';
+const STORAGE_RECENT_PESAGENS = 'pecuaria_recent_pesagens';
+const STORAGE_RECENT_BEZERROS = 'pecuaria_recent_bezerros';
+const STORAGE_RECENT_SAUDE    = 'pecuaria_recent_saude';
 
 let isSyncing = false;
+let isServerOnline = false;
 
-// 1. Obter URL do Servidor Central & Auto-Sync Config
+// ── 1. Modo Escuro & Tema ──────────────────────────────────────
+function initDarkMode() {
+  const savedTheme = localStorage.getItem(STORAGE_DARK_MODE_KEY);
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const isDark = savedTheme === 'true' || (savedTheme === null && prefersDark);
+  
+  applyDarkMode(isDark);
+}
+
+function applyDarkMode(isDark) {
+  const icon = document.getElementById('darkModeIcon');
+  if (isDark) {
+    document.body.classList.add('dark-mode');
+    if (icon) icon.className = 'bi bi-sun-fill text-warning';
+  } else {
+    document.body.classList.remove('dark-mode');
+    if (icon) icon.className = 'bi bi-moon-stars-fill';
+  }
+}
+
+function toggleDarkMode() {
+  const isDark = !document.body.classList.contains('dark-mode');
+  localStorage.setItem(STORAGE_DARK_MODE_KEY, isDark ? 'true' : 'false');
+  applyDarkMode(isDark);
+  if (navigator.vibrate) navigator.vibrate(20);
+}
+
+// ── 2. Configurações de Servidor & Auto-Sync ───────────────────
 function getServerUrl() {
-  return localStorage.getItem(STORAGE_SERVER_KEY) || 'http://192.168.3.56:8080';
+  return localStorage.getItem(STORAGE_SERVER_KEY) || 'http://localhost:8080';
 }
 
 function setServerUrl(url) {
-  let cleanUrl = url.trim();
+  let cleanUrl = (url || '').trim();
   if (cleanUrl.endsWith('/')) {
     cleanUrl = cleanUrl.slice(0, -1);
   }
@@ -31,7 +63,66 @@ function setAutoSyncEnabled(enabled) {
   localStorage.setItem(STORAGE_AUTO_SYNC_KEY, enabled ? 'true' : 'false');
 }
 
-// 2. Fila Offline Local
+function setQuickServer(url) {
+  const inputEl = document.getElementById('server_api_url');
+  if (inputEl) {
+    inputEl.value = url;
+    testServerConnectionUI();
+  }
+}
+
+async function testServerConnectionUI() {
+  const inputEl = document.getElementById('server_api_url');
+  const feedbackEl = document.getElementById('testConnectionFeedback');
+  const btnTest = document.getElementById('btnTestarConexao');
+  
+  if (!inputEl || !feedbackEl) return;
+  const testUrl = (inputEl.value || '').trim().replace(/\/$/, '');
+  
+  if (!testUrl) {
+    feedbackEl.style.display = 'block';
+    feedbackEl.className = 'mt-2 small text-danger fw-bold';
+    feedbackEl.innerHTML = '<i class="bi bi-exclamation-circle-fill me-1"></i> Informe uma URL válida para testar.';
+    return;
+  }
+
+  feedbackEl.style.display = 'block';
+  feedbackEl.className = 'mt-2 small text-muted';
+  feedbackEl.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Testando comunicação com o servidor...';
+  if (btnTest) btnTest.disabled = true;
+
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 4000);
+    const res = await fetch(`${testUrl}/api/animais`, {
+      method: 'GET',
+      cache: 'no-store',
+      headers: { 'X-API-KEY': 'pecuaria-mobile-key' },
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+
+    if (res.ok) {
+      const data = await res.json();
+      const count = data.animais ? data.animais.length : (Array.isArray(data) ? data.length : 0);
+      feedbackEl.className = 'mt-2 small text-success fw-bold';
+      feedbackEl.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> Conexão bem-sucedida! (${count} animais disponíveis na central).`;
+      if (count > 0 && data.animais) {
+        setCachedAnimals(data.animais);
+      }
+    } else {
+      feedbackEl.className = 'mt-2 small text-warning fw-bold';
+      feedbackEl.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-1"></i> Servidor respondeu com HTTP ${res.status}.`;
+    }
+  } catch (err) {
+    feedbackEl.className = 'mt-2 small text-danger fw-bold';
+    feedbackEl.innerHTML = '<i class="bi bi-x-circle-fill me-1"></i> Falha na conexão. Verifique se o endereço e a porta estão corretos.';
+  } finally {
+    if (btnTest) btnTest.disabled = false;
+  }
+}
+
+// ── 3. Fila Offline Local ──────────────────────────────────────
 function getLocalQueue() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_QUEUE_KEY) || '[]');
@@ -43,6 +134,7 @@ function getLocalQueue() {
 function saveLocalQueue(items) {
   localStorage.setItem(STORAGE_QUEUE_KEY, JSON.stringify(items));
   updatePendingBadge();
+  renderQueueCards();
 }
 
 function addToQueue(tipo, data, fotoBase64 = null) {
@@ -57,6 +149,9 @@ function addToQueue(tipo, data, fotoBase64 = null) {
   items.push(newItem);
   saveLocalQueue(items);
 
+  // Adiciona ao histórico da sessão
+  addRecentRecord(tipo, data);
+
   // Se for novo animal, atualiza cache local de autocompletar
   if (tipo === 'animal' && data.brinco) {
     saveAnimalToCache(data);
@@ -68,12 +163,20 @@ function addToQueue(tipo, data, fotoBase64 = null) {
   }
 }
 
+function removeSingleItemFromQueue(id) {
+  if (!confirm('Deseja excluir este registro da fila offline?')) return;
+  const items = getLocalQueue().filter(it => it.id !== id);
+  saveLocalQueue(items);
+  if (navigator.vibrate) navigator.vibrate(30);
+  showToast('Registro removido da fila local.', 'info');
+}
+
 function removeItemsFromQueue(ids) {
   const items = getLocalQueue().filter(it => !ids.includes(it.id));
   saveLocalQueue(items);
 }
 
-// 3. Cache Local de Animais para Autocompletar
+// ── 4. Cache Local de Animais para Autocompletar ───────────────
 function getCachedAnimals() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_ANIMALS_KEY) || '[]');
@@ -106,7 +209,7 @@ function renderAnimalsDatalist() {
   ).join('');
 }
 
-// 4. Compressão de Fotos com Canvas
+// ── 5. Compressão de Fotos com Canvas ──────────────────────────
 function compressImage(file, maxWidth = 1000, maxHeight = 1000, quality = 0.7) {
   return new Promise((resolve) => {
     if (!file || !file.type.startsWith('image/')) {
@@ -155,19 +258,17 @@ function compressImage(file, maxWidth = 1000, maxHeight = 1000, quality = 0.7) {
   });
 }
 
-// 5. Verificação de Conectividade com o Servidor
-let isServerOnline = false;
-
+// ── 6. Verificação de Conectividade com o Servidor ─────────────
 function renderStatusBadge(online) {
   const badge = document.getElementById('connectionStatusBadge');
   if (!badge) return;
 
   if (online) {
-    badge.className = 'badge bg-success d-inline-flex align-items-center gap-1 shadow-sm';
-    badge.innerHTML = '<span class="status-dot online"></span> Online (Conectado)';
+    badge.className = 'badge bg-success d-inline-flex align-items-center gap-1 shadow-sm py-1 px-2 text-white';
+    badge.innerHTML = '<span class="status-dot online"></span> Online';
   } else {
-    badge.className = 'badge bg-danger d-inline-flex align-items-center gap-1 shadow-sm';
-    badge.innerHTML = '<span class="status-dot offline"></span> Offline (Modo Campo)';
+    badge.className = 'badge bg-danger d-inline-flex align-items-center gap-1 shadow-sm py-1 px-2 text-white';
+    badge.innerHTML = '<span class="status-dot offline"></span> Offline';
   }
 }
 
@@ -175,11 +276,12 @@ async function checkServerConnectivity() {
   const serverUrl = getServerUrl();
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 4000);
+    const timer = setTimeout(() => controller.abort(), 3500);
 
     const res = await fetch(`${serverUrl}/api/animais`, {
       method: 'GET',
       cache: 'no-store',
+      headers: { 'X-API-KEY': 'pecuaria-mobile-key' },
       signal: controller.signal
     });
     clearTimeout(timer);
@@ -191,7 +293,7 @@ async function checkServerConnectivity() {
         setCachedAnimals(animais);
       }
       if (!isServerOnline) {
-        showToast('Conectado ao servidor da fazenda!', 'success');
+        showToast('Conectado ao servidor central da fazenda!', 'success');
       }
       isServerOnline = true;
       renderStatusBadge(true);
@@ -213,13 +315,12 @@ async function checkServerConnectivity() {
   }
 }
 
-// 6. Atualização de Contagem e Lista da Fila
+// ── 7. Renderização Visual da Fila ─────────────────────────────
 function updatePendingBadge() {
   const items = getLocalQueue();
   const count = items.length;
 
   const countEl = document.getElementById('pendingCount');
-  const countListEl = document.getElementById('pendingItemsList');
   const tabBadgeEl = document.getElementById('tabPendingBadge');
   const btnSync = document.getElementById('btnSyncNow');
 
@@ -232,47 +333,129 @@ function updatePendingBadge() {
       ? `<i class="bi bi-cloud-arrow-up-fill me-1"></i> Sincronizar (${count})`
       : `<i class="bi bi-check2-all me-1"></i> Tudo Sincronizado`;
   }
-
-  if (countListEl) {
-    if (count === 0) {
-      countListEl.innerHTML = '<li class="list-group-item text-muted text-center py-4 small">Nenhum registro pendente no celular.</li>';
-    } else {
-      countListEl.innerHTML = items.map((it) => {
-        let iconHtml = '<i class="bi bi-rulers text-warning"></i>';
-        let title = `Pesagem: ${it.data.brinco || 'Animal'} (${it.data.peso || 0} kg)`;
-        if (it.tipo === 'animal') {
-          iconHtml = '<i class="bi bi-stars text-success"></i>';
-          title = `Novo Animal: ${it.data.brinco || 'Sem brinco'} (${it.data.sexo === 'M' ? 'Macho' : 'Fêmea'})`;
-        } else if (it.tipo === 'saude') {
-          iconHtml = '<i class="bi bi-heart-pulse-fill text-danger"></i>';
-          title = `Saúde: ${it.data.brinco || 'Animal'} - ${it.data.tipo || 'Tratamento'}`;
-        }
-        const hasPhoto = it.foto_base64 ? '<span class="badge bg-secondary ms-1"><i class="bi bi-camera-fill me-1"></i>Foto</span>' : '';
-        return `
-          <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-            <div class="d-flex align-items-center gap-2">
-              <span class="fs-5">${iconHtml}</span>
-              <div>
-                <strong>${title}</strong>
-                ${hasPhoto}
-              </div>
-            </div>
-            <small class="text-muted">${new Date(it.criado_em).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
-          </li>
-        `;
-      }).join('');
-    }
-  }
 }
 
-// 7. Modais e Ações de Sincronização
+function renderQueueCards() {
+  const container = document.getElementById('pendingItemsContainer');
+  if (!container) return;
+
+  const items = getLocalQueue();
+  if (items.length === 0) {
+    container.innerHTML = `
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-check2-circle text-success fs-1 d-block mb-2"></i>
+        <h6 class="fw-bold mb-1">Nenhum registro pendente</h6>
+        <p class="small text-muted mb-0">Todos os dados coletados já foram sincronizados com a central.</p>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  items.forEach((it) => {
+    let iconClass = 'queue-icon-pesagem';
+    let icon = 'bi-rulers';
+    let title = `Pesagem: ${it.data.brinco || 'Animal'} — ${it.data.peso || 0} kg`;
+    let sub = `Data: ${it.data.data || '-'} ${it.data.observacao ? '• ' + it.data.observacao : ''}`;
+
+    if (it.tipo === 'animal') {
+      iconClass = 'queue-icon-animal';
+      icon = 'bi-stars';
+      title = `Novo Bezerro: ${it.data.brinco || 'Sem brinco'}`;
+      sub = `${it.data.sexo === 'M' ? 'Macho' : 'Fêmea'} • Raça: ${it.data.raca || 'Nelore'} • Nasc: ${it.data.data_nascimento || '-'}`;
+    } else if (it.tipo === 'saude') {
+      iconClass = 'queue-icon-saude';
+      icon = 'bi-heart-pulse-fill';
+      title = `Saúde: ${it.data.brinco || 'Animal'} — ${it.data.tipo || 'Tratamento'}`;
+      sub = `${it.data.descricao || ''} ${it.data.medicamento ? '• Med: ' + it.data.medicamento : ''}`;
+    }
+
+    const timeStr = new Date(it.criado_em).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const hasPhoto = it.foto_base64 ? `
+      <img src="${it.foto_base64}" class="queue-thumb" alt="Foto">
+    ` : `
+      <div class="queue-icon-box ${iconClass}">
+        <i class="bi ${icon}"></i>
+      </div>
+    `;
+
+    html += `
+      <div class="queue-card tipo-${it.tipo}">
+        ${hasPhoto}
+        <div class="queue-info">
+          <div class="queue-title">${title}</div>
+          <div class="queue-sub">${sub}</div>
+          <div class="queue-sub mt-1 text-muted" style="font-size:0.72rem;">Salvo às ${timeStr}</div>
+        </div>
+        <button type="button" class="btn btn-outline-danger btn-sm border-0 p-2" onclick="removeSingleItemFromQueue('${it.id}')" title="Excluir da fila">
+          <i class="bi bi-trash-fill fs-5"></i>
+        </button>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+// ── 8. Histórico Local Rápido por Sessão ─────────────────────────
+function addRecentRecord(tipo, data) {
+  let key = STORAGE_RECENT_PESAGENS;
+  let label = `${data.brinco} (${data.peso}kg)`;
+  
+  if (tipo === 'animal') {
+    key = STORAGE_RECENT_BEZERROS;
+    label = `${data.brinco} (${data.sexo === 'M' ? 'M' : 'F'})`;
+  } else if (tipo === 'saude') {
+    key = STORAGE_RECENT_SAUDE;
+    label = `${data.brinco} (${data.tipo})`;
+  }
+
+  try {
+    let list = JSON.parse(localStorage.getItem(key) || '[]');
+    list.unshift({ label, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+    if (list.length > 5) list = list.slice(0, 5);
+    localStorage.setItem(key, JSON.stringify(list));
+    renderRecentHistories();
+  } catch (e) {}
+}
+
+function renderRecentHistories() {
+  renderHistorySection(STORAGE_RECENT_PESAGENS, 'recentPesagensList', 'recentPesagensCount', 'pesagens');
+  renderHistorySection(STORAGE_RECENT_BEZERROS, 'recentBezerrosList', 'recentBezerrosCount', 'bezerros');
+  renderHistorySection(STORAGE_RECENT_SAUDE,    'recentSaudeList',    'recentSaudeCount',    'manejos');
+}
+
+function renderHistorySection(storageKey, listId, countId, singular) {
+  const listEl = document.getElementById(listId);
+  const countEl = document.getElementById(countId);
+  if (!listEl) return;
+
+  try {
+    const list = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    if (countEl) countEl.textContent = list.length;
+    
+    if (list.length === 0) {
+      listEl.innerHTML = `<span class="text-muted">Nenhum registro nesta sessão.</span>`;
+    } else {
+      listEl.innerHTML = list.map(item => `
+        <span class="recent-item-chip">
+          <i class="bi bi-check2 text-success"></i> ${item.label} <small class="text-muted">${item.time}</small>
+        </span>
+      `).join('');
+    }
+  } catch (e) {}
+}
+
+// ── 9. Modais e Ações de Sincronização ─────────────────────────
 function openServerConfigModal() {
   const modalEl = document.getElementById('modalConfigServidor');
   const inputEl = document.getElementById('server_api_url');
   const autoSyncEl = document.getElementById('config_auto_sync');
+  const feedbackEl = document.getElementById('testConnectionFeedback');
   
   if (inputEl) inputEl.value = getServerUrl();
   if (autoSyncEl) autoSyncEl.checked = isAutoSyncEnabled();
+  if (feedbackEl) feedbackEl.style.display = 'none';
 
   if (modalEl && typeof bootstrap !== 'undefined') {
     const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
@@ -311,6 +494,19 @@ function closeAuthSyncModal() {
   if (modalEl && typeof bootstrap !== 'undefined') {
     bootstrap.Modal.getInstance(modalEl)?.hide();
   }
+}
+
+function showSyncProgress(show, title = '', subtitle = '', status = '') {
+  const overlay = document.getElementById('syncProgressOverlay');
+  const titleEl = document.getElementById('syncProgressTitle');
+  const subEl = document.getElementById('syncProgressSubtitle');
+  const statusEl = document.getElementById('syncProgressStatus');
+  
+  if (!overlay) return;
+  overlay.style.display = show ? 'flex' : 'none';
+  if (title && titleEl) titleEl.textContent = title;
+  if (subtitle && subEl) subEl.textContent = subtitle;
+  if (status && statusEl) statusEl.textContent = status;
 }
 
 async function syncOfflineData() {
@@ -404,11 +600,10 @@ async function triggerAutoSync() {
       const data = await res.json();
       removeItemsFromQueue(itemIds);
       if (navigator.vibrate) navigator.vibrate([30, 20, 30]);
-      showToast(`Auto-Sync: ${data.processados?.pesagens || 0} pesagens, ${data.processados?.saude || 0} manejos e ${data.processados?.animais_novos || 0} bezerros sincronizados automaticamente!`, 'success');
+      showToast(`Auto-Sync: ${data.processados?.pesagens || 0} pesagens, ${data.processados?.saude || 0} manejos e ${data.processados?.animais_novos || 0} bezerros sincronizados!`, 'success');
       checkServerConnectivity();
     } else if (res.status === 401) {
       localStorage.removeItem(STORAGE_AUTH_KEY);
-      openAuthSyncModal();
     }
   } catch (e) {
     console.warn('Falha no Auto-Sync:', e);
@@ -423,11 +618,7 @@ async function executeSync(authData, shouldSave = false) {
   if (items.length === 0) return;
 
   isSyncing = true;
-  const btnSync = document.getElementById('btnSyncNow');
-  if (btnSync) {
-    btnSync.disabled = true;
-    btnSync.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sincronizando...';
-  }
+  showSyncProgress(true, `Sincronizando ${items.length} Registros...`, 'Preparando e enviando lote para a central...');
 
   const payload = {
     dispositivo: 'App Nativo Android (Sincronização Manual)',
@@ -453,6 +644,8 @@ async function executeSync(authData, shouldSave = false) {
 
   const serverUrl = getServerUrl();
   try {
+    showSyncProgress(true, 'Gravando no Banco de Dados...', 'Aguardando processamento do servidor central...');
+    
     const res = await fetch(`${serverUrl}/api/sync`, {
       method: 'POST',
       headers: {
@@ -470,7 +663,7 @@ async function executeSync(authData, shouldSave = false) {
     }
 
     if (!res.ok) {
-      throw new Error('Servidor retornou erro HTTP ' + res.status);
+      throw new Error('Servidor retornou status HTTP ' + res.status);
     }
 
     const data = await res.json();
@@ -480,16 +673,18 @@ async function executeSync(authData, shouldSave = false) {
       localStorage.setItem(STORAGE_AUTH_KEY, JSON.stringify(authData));
     }
 
+    if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
     showToast(`Sincronizado com sucesso! ${data.processados?.pesagens || 0} pesagens, ${data.processados?.saude || 0} manejos e ${data.processados?.animais_novos || 0} bezerros gravados na nuvem.`, 'success');
   } catch (err) {
     showToast('Erro na sincronização: ' + err.message, 'danger');
   } finally {
     isSyncing = false;
+    showSyncProgress(false);
     updatePendingBadge();
   }
 }
 
-// 8. Utilitário de Toast com Ícones Vetoriais
+// ── 10. Utilitário de Toast com Ícones Vetoriais ───────────────
 function showToast(message, type = 'info') {
   let container = document.getElementById('toastContainer');
   if (!container) {
@@ -515,10 +710,10 @@ function showToast(message, type = 'info') {
     </div>
   `;
   container.appendChild(toastEl);
-  setTimeout(() => toastEl.remove(), 5000);
+  setTimeout(() => toastEl.remove(), 4500);
 }
 
-// 9. Alternância de Abas e Formulários
+// ── 11. Alternância de Abas e Formulários ───────────────────────
 function switchCampoTab(tabId) {
   document.querySelectorAll('.campo-tab-pane').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.campo-nav-btn').forEach(el => el.classList.remove('active'));
@@ -528,6 +723,11 @@ function switchCampoTab(tabId) {
   
   if (targetPane) targetPane.classList.add('active');
   if (targetBtn) targetBtn.classList.add('active');
+  
+  if (tabId === 'fila') {
+    renderQueueCards();
+  }
+  
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -564,11 +764,11 @@ function toggleObitoSensivel(val) {
   }
 }
 
-// Submissão de Pesagem (Suporte flexível a ponto e vírgula)
+// Submissão de Pesagem
 async function handleAppPesagem(e) {
   e.preventDefault();
   try {
-    const brinco = document.getElementById('p_brinco').value.trim();
+    const brinco = document.getElementById('p_brinco').value.trim().toUpperCase();
     const rawPeso = (document.getElementById('p_peso').value || '').toString().replace(',', '.');
     const peso = parseFloat(rawPeso);
     const data = document.getElementById('p_data').value;
@@ -602,7 +802,7 @@ async function handleAppPesagem(e) {
 async function handleAppBezerro(e) {
   e.preventDefault();
   try {
-    const brinco = document.getElementById('b_brinco').value.trim();
+    const brinco = document.getElementById('b_brinco').value.trim().toUpperCase();
     const sexo = document.getElementById('b_sexo').value;
     const nome = document.getElementById('b_nome').value.trim();
     const raca = document.getElementById('b_raca').value.trim();
@@ -632,7 +832,7 @@ async function handleAppBezerro(e) {
 async function handleAppSaude(e) {
   e.preventDefault();
   try {
-    const brinco = document.getElementById('s_brinco').value.trim();
+    const brinco = document.getElementById('s_brinco').value.trim().toUpperCase();
     const tipo = document.getElementById('s_tipo').value;
     const desc = document.getElementById('s_desc').value.trim();
     const med = document.getElementById('s_med').value.trim();
@@ -657,11 +857,14 @@ async function handleAppSaude(e) {
   }
 }
 
-// Inicialização do App
+// ── 12. Inicialização do App ───────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  initDarkMode();
   renderStatusBadge(false);
   renderAnimalsDatalist();
   updatePendingBadge();
+  renderQueueCards();
+  renderRecentHistories();
 
   // Datas padrão
   const hoje = new Date().toISOString().split('T')[0];
@@ -673,7 +876,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Checa conexão em segundo plano
   setTimeout(() => {
     checkServerConnectivity();
-  }, 800);
+  }, 600);
   setInterval(checkServerConnectivity, 10000);
 
   // Monitor contínuo de Auto-Sync a cada 5 segundos se houver registros na fila

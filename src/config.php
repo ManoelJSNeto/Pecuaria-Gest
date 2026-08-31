@@ -28,8 +28,8 @@ define('DEFAULT_ADMIN_PASS', getenv('DEFAULT_ADMIN_PASS') ?: 'admin123');
 
 // Garante a existência dos diretórios de armazenamento
 if (!is_dir(DATA_PATH)) {
-    @mkdir(DATA_PATH, 0775, true);
+    @mkdir(DATA_PATH, 0777, true);
 }
 if (!is_dir(UPLOADS_PATH)) {
-    @mkdir(UPLOADS_PATH, 0775, true);
+    @mkdir(UPLOADS_PATH, 0777, true);
 }

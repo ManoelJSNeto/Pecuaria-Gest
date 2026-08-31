@@ -8,173 +8,7 @@
   <!-- CSS Nativo Local -->
   <link href="./assets/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
   <link href="./assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
-  
-  <style>
-    :root {
-      --green-dark: #1a4d2e;
-      --green-mid: #2d7a4e;
-      --green-light: #4caf78;
-      --green-pale: #e8f5ee;
-    }
-    body {
-      background: #f4f6f4;
-      font-family: system-ui, -apple-system, sans-serif;
-      color: #2c3e2d;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-    }
-    input, textarea, select, button, .touch-input-lg, .campo-nav-btn {
-      -webkit-user-select: text !important;
-      user-select: text !important;
-      touch-action: manipulation !important;
-    }
-    .mobile-app-wrapper {
-      max-width: 600px;
-      margin: 0 auto;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      background: #ffffff;
-    }
-    .mobile-top-header {
-      background: linear-gradient(135deg, #1a4d2e 0%, #2d7a4e 100%);
-      color: #ffffff;
-      padding: 1rem;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    }
-    .mobile-content {
-      padding: 1rem;
-      flex: 1;
-    }
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      display: inline-block;
-    }
-    .status-dot.online { background-color: #10b981; box-shadow: 0 0 6px #10b981; }
-    .status-dot.offline { background-color: #ef4444; box-shadow: 0 0 6px #ef4444; }
-
-    /* Barra de Abas Táteis */
-    .campo-nav-bar {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      margin-bottom: 1rem;
-    }
-    .campo-nav-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 10px 4px;
-      border-radius: 12px;
-      border: 2px solid #e2e8f0;
-      background: #ffffff;
-      color: #475569;
-      font-weight: 700;
-      font-size: 0.78rem;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-      text-align: center;
-      touch-action: manipulation;
-    }
-    .campo-nav-btn .tab-icon {
-      font-size: 1.35rem;
-      margin-bottom: 3px;
-      line-height: 1;
-    }
-    .campo-nav-btn:active {
-      transform: scale(0.96);
-    }
-    .campo-nav-btn.active.btn-tab-pesagem {
-      background: #d97706;
-      border-color: #d97706;
-      color: #ffffff;
-      box-shadow: 0 3px 10px rgba(217, 119, 6, 0.25);
-    }
-    .campo-nav-btn.active.btn-tab-bezerro {
-      background: #16a34a;
-      border-color: #16a34a;
-      color: #ffffff;
-      box-shadow: 0 3px 10px rgba(22, 163, 74, 0.25);
-    }
-    .campo-nav-btn.active.btn-tab-saude {
-      background: #dc2626;
-      border-color: #dc2626;
-      color: #ffffff;
-      box-shadow: 0 3px 10px rgba(220, 38, 38, 0.25);
-    }
-    .campo-nav-btn.active.btn-tab-fila {
-      background: #2563eb;
-      border-color: #2563eb;
-      color: #ffffff;
-      box-shadow: 0 3px 10px rgba(37, 99, 235, 0.25);
-    }
-    .campo-tab-pane {
-      display: none;
-    }
-    .campo-tab-pane.active {
-      display: block;
-    }
-    .touch-input-lg {
-      font-size: 1.15rem !important;
-      font-weight: 600;
-      padding: 12px 14px !important;
-      border-radius: 10px;
-    }
-    .touch-btn-submit {
-      padding: 14px 20px;
-      font-size: 1.05rem;
-      font-weight: 800;
-      border-radius: 12px;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-      touch-action: manipulation;
-    }
-    .foto-preview-box {
-      display: none;
-      position: relative;
-      border-radius: 10px;
-      overflow: hidden;
-      max-height: 180px;
-      margin-top: 8px;
-      border: 2px dashed #cbd5e1;
-      background: #f8fafc;
-      text-align: center;
-    }
-    .foto-preview-box img {
-      max-height: 175px;
-      width: auto;
-      max-width: 100%;
-      object-fit: cover;
-    }
-    .foto-preview-remove {
-      position: absolute;
-      top: 6px;
-      right: 6px;
-      background: rgba(0,0,0,0.75);
-      color: #fff;
-      border: none;
-      border-radius: 50%;
-      width: 28px;
-      height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.8rem;
-    }
-  </style>
+  <link href="./css/mobile.css" rel="stylesheet">
 </head>
 <body>
 
@@ -191,9 +25,12 @@
         </div>
       </div>
       <div class="d-flex align-items-center gap-2">
-        <div id="connectionStatusBadge" class="badge bg-danger shadow-sm d-inline-flex align-items-center gap-1 text-white">
-          <span class="status-dot offline"></span> Offline (Modo Campo)
+        <div id="connectionStatusBadge" class="badge bg-danger shadow-sm d-inline-flex align-items-center gap-1 text-white py-1 px-2">
+          <span class="status-dot offline"></span> Offline
         </div>
+        <button type="button" class="btn btn-sm btn-outline-light py-1 px-2" onclick="toggleDarkMode()" title="Alternar Tema Claro/Escuro">
+          <i class="bi bi-moon-stars-fill" id="darkModeIcon"></i>
+        </button>
         <button type="button" class="btn btn-sm btn-outline-light py-1 px-2" onclick="openServerConfigModal()" title="Configurar Servidor">
           <i class="bi bi-gear-fill"></i>
         </button>
@@ -231,23 +68,31 @@
     <!-- ABA 1: REGISTRO DE PESAGEM -->
     <!-- ============================================================ -->
     <div class="campo-tab-pane active" id="tabPane_pesagem">
-      <div class="card border-warning border-2 shadow-sm mb-4">
+      <div class="card border-warning border-2 shadow-sm mb-3">
         <div class="card-header bg-warning bg-opacity-25 py-2 px-3 d-flex align-items-center justify-content-between">
           <div class="d-flex align-items-center gap-2">
             <i class="bi bi-rulers fs-5 text-dark"></i>
             <h6 class="mb-0 fw-bold text-dark">Registrar Pesagem</h6>
           </div>
-          <span class="badge bg-warning text-dark fw-bold">Modo Rápido</span>
+          <span class="badge bg-warning text-dark fw-bold">Manejo Rápido</span>
         </div>
         <div class="card-body p-3">
           <form id="formAppPesagem" onsubmit="handleAppPesagem(event)">
             <div class="mb-3">
               <label class="form-label fw-bold small">Brinco do Animal *</label>
-              <input type="text" id="p_brinco" class="form-control touch-input-lg" list="animaisListApp" required placeholder="Digite ou selecione o brinco" autocomplete="off">
+              <div class="input-group">
+                <input type="text" id="p_brinco" class="form-control touch-input-lg text-uppercase" list="animaisListApp" required placeholder="Digite ou selecione o brinco" autocomplete="off" inputmode="text" oninput="this.value = this.value.toUpperCase()">
+                <button type="button" class="btn btn-outline-secondary px-3" onclick="document.getElementById('p_brinco').value=''; document.getElementById('p_brinco').focus();" title="Limpar campo">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
             </div>
             <div class="mb-3">
               <label class="form-label fw-bold small">Peso Atual (kg) *</label>
-              <input type="number" step="0.1" id="p_peso" class="form-control touch-input-lg" required placeholder="0.0" inputmode="decimal">
+              <div class="input-group">
+                <input type="number" step="0.1" id="p_peso" class="form-control touch-input-lg" required placeholder="0.0" inputmode="decimal">
+                <span class="input-group-text fw-bold">kg</span>
+              </div>
             </div>
             <div class="row g-2 mb-3">
               <div class="col-6">
@@ -273,13 +118,24 @@
           </form>
         </div>
       </div>
+
+      <!-- Histórico Rápido Local (Pesagens Recentes nesta sessão) -->
+      <div class="recent-history-box" id="recentPesagensBox">
+        <div class="recent-history-title">
+          <span><i class="bi bi-clock-history me-1"></i> Últimas Pesagens Salvas</span>
+          <span class="badge bg-secondary" id="recentPesagensCount">0</span>
+        </div>
+        <div id="recentPesagensList" class="small text-muted">
+          Nenhuma pesagem gravada nesta sessão.
+        </div>
+      </div>
     </div>
 
     <!-- ============================================================ -->
     <!-- ABA 2: NOVO BEZERRO -->
     <!-- ============================================================ -->
     <div class="campo-tab-pane" id="tabPane_bezerro">
-      <div class="card border-success border-2 shadow-sm mb-4">
+      <div class="card border-success border-2 shadow-sm mb-3">
         <div class="card-header bg-success text-white py-2 px-3 d-flex align-items-center justify-content-between">
           <div class="d-flex align-items-center gap-2">
             <i class="bi bi-stars fs-5 text-white"></i>
@@ -292,7 +148,7 @@
             <div class="row g-2 mb-3">
               <div class="col-7">
                 <label class="form-label fw-bold small">Brinco do Bezerro *</label>
-                <input type="text" id="b_brinco" class="form-control touch-input-lg" required placeholder="Ex: BZ001" autocomplete="off">
+                <input type="text" id="b_brinco" class="form-control touch-input-lg text-uppercase" required placeholder="Ex: BZ001" autocomplete="off" oninput="this.value = this.value.toUpperCase()">
               </div>
               <div class="col-5">
                 <label class="form-label fw-bold small">Sexo *</label>
@@ -304,8 +160,8 @@
             </div>
             <div class="row g-2 mb-3">
               <div class="col-6">
-                <label class="form-label fw-bold small">Nome (Opcional)</label>
-                <input type="text" id="b_nome" class="form-control" placeholder="Apelido/Nome">
+                <label class="form-label fw-bold small">Nome / Apelido</label>
+                <input type="text" id="b_nome" class="form-control" placeholder="Opcional">
               </div>
               <div class="col-6">
                 <label class="form-label fw-bold small">Raça</label>
@@ -330,13 +186,24 @@
           </form>
         </div>
       </div>
+
+      <!-- Histórico Rápido Local (Bezerros Recentes) -->
+      <div class="recent-history-box" id="recentBezerrosBox">
+        <div class="recent-history-title">
+          <span><i class="bi bi-clock-history me-1"></i> Últimos Bezerros Salvos</span>
+          <span class="badge bg-secondary" id="recentBezerrosCount">0</span>
+        </div>
+        <div id="recentBezerrosList" class="small text-muted">
+          Nenhum bezerro gravado nesta sessão.
+        </div>
+      </div>
     </div>
 
     <!-- ============================================================ -->
     <!-- ABA 3: SAÚDE / MANEJO -->
     <!-- ============================================================ -->
     <div class="campo-tab-pane" id="tabPane_saude">
-      <div class="card border-danger border-2 shadow-sm mb-4">
+      <div class="card border-danger border-2 shadow-sm mb-3">
         <div class="card-header bg-danger text-white py-2 px-3 d-flex align-items-center justify-content-between">
           <div class="d-flex align-items-center gap-2">
             <i class="bi bi-heart-pulse-fill fs-5 text-white"></i>
@@ -348,7 +215,12 @@
           <form id="formAppSaude" onsubmit="handleAppSaude(event)">
             <div class="mb-3">
               <label class="form-label fw-bold small">Brinco do Animal *</label>
-              <input type="text" id="s_brinco" class="form-control touch-input-lg" list="animaisListApp" required placeholder="Selecione o brinco" autocomplete="off">
+              <div class="input-group">
+                <input type="text" id="s_brinco" class="form-control touch-input-lg text-uppercase" list="animaisListApp" required placeholder="Selecione ou digite o brinco" autocomplete="off" oninput="this.value = this.value.toUpperCase()">
+                <button type="button" class="btn btn-outline-secondary px-3" onclick="document.getElementById('s_brinco').value=''; document.getElementById('s_brinco').focus();" title="Limpar campo">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
             </div>
             <div class="mb-3">
               <label class="form-label fw-bold small">Tipo de Evento *</label>
@@ -395,6 +267,17 @@
           </form>
         </div>
       </div>
+
+      <!-- Histórico Rápido Local (Saúde Recente) -->
+      <div class="recent-history-box" id="recentSaudeBox">
+        <div class="recent-history-title">
+          <span><i class="bi bi-clock-history me-1"></i> Últimos Registros de Saúde</span>
+          <span class="badge bg-secondary" id="recentSaudeCount">0</span>
+        </div>
+        <div id="recentSaudeList" class="small text-muted">
+          Nenhum evento sanitário gravado nesta sessão.
+        </div>
+      </div>
     </div>
 
     <!-- ============================================================ -->
@@ -405,18 +288,18 @@
         <div class="card-header bg-primary text-white py-2 px-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div class="d-flex align-items-center gap-2">
             <i class="bi bi-box-seam-fill fs-5 text-white"></i>
-            <h6 class="mb-0 fw-bold text-white">Memória Local (<span id="pendingCount">0</span> pendências)</h6>
+            <h6 class="mb-0 fw-bold text-white">Fila Offline (<span id="pendingCount">0</span> pendências)</h6>
           </div>
-          <button type="button" class="btn btn-light fw-bold text-primary btn-sm shadow-sm" id="btnSyncNow" onclick="syncOfflineData()">
-            <i class="bi bi-cloud-arrow-up-fill me-1"></i> Sincronizar
-          </button>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-light fw-bold text-primary btn-sm shadow-sm" id="btnSyncNow" onclick="syncOfflineData()">
+              <i class="bi bi-cloud-arrow-up-fill me-1"></i> Sincronizar Tudo
+            </button>
+          </div>
         </div>
-        <div class="card-body p-0">
-          <ul class="list-group list-group-flush" id="pendingItemsList">
-            <li class="list-group-item text-muted text-center py-4 small">
-              <span class="spinner-border spinner-border-sm me-1"></span> Carregando registros locais...
-            </li>
-          </ul>
+        <div class="card-body p-3">
+          <div id="pendingItemsContainer">
+            <!-- Cards visuais da fila renderizados dinamicamente -->
+          </div>
         </div>
       </div>
     </div>
@@ -424,24 +307,52 @@
   </main>
 </div>
 
-<!-- MODAL: CONFIGURAÇÃO DO SERVIDOR & AUTO-SYNC -->
+<!-- OVERLAY: PROGRESSO DE SINCRONIZAÇÃO EM TEMPO REAL -->
+<div id="syncProgressOverlay" class="sync-progress-overlay">
+  <div class="sync-progress-card">
+    <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+    <h5 class="fw-bold mb-1" id="syncProgressTitle">Sincronizando Dados...</h5>
+    <p class="text-muted small mb-3" id="syncProgressSubtitle">Transmitindo pacote de dados para o servidor central...</p>
+    <div class="progress mb-2" style="height: 10px; border-radius: 5px;">
+      <div id="syncProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 100%"></div>
+    </div>
+    <small class="text-muted" id="syncProgressStatus">Aguarde a confirmação do servidor...</small>
+  </div>
+</div>
+
+<!-- MODAL: CONFIGURAÇÃO DO SERVIDOR & TESTE DE CONEXÃO -->
 <div class="modal fade" id="modalConfigServidor" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header text-white py-2 px-3" style="background: linear-gradient(135deg, #1a4d2e 0%, #2d7a4e 100%);">
-        <h6 class="modal-title fw-bold text-white"><i class="bi bi-gear-fill me-2"></i>Configurações do Aplicativo</h6>
+      <div class="modal-header text-white py-2 px-3" style="background: linear-gradient(135deg, #143d24 0%, #1f5c3b 100%);">
+        <h6 class="modal-title fw-bold text-white"><i class="bi bi-gear-fill me-2"></i>Configurações do Servidor</h6>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form onsubmit="handleSaveServerConfig(event)">
         <div class="modal-body p-3">
           <div class="mb-3">
-            <label class="form-label fw-bold small">URL do Backend Central:</label>
-            <input type="url" id="server_api_url" class="form-control" required placeholder="http://192.168.1.100:8080">
+            <label class="form-label fw-bold small">URL do Servidor Central:</label>
+            <div class="input-group">
+              <input type="url" id="server_api_url" class="form-control" required placeholder="http://192.168.3.56:8080">
+              <button type="button" class="btn btn-outline-primary" id="btnTestarConexao" onclick="testServerConnectionUI()" title="Testar comunicação">
+                <i class="bi bi-broadcast-pin me-1"></i> Testar
+              </button>
+            </div>
+            <div id="testConnectionFeedback" class="mt-2 small" style="display:none;"></div>
             <small class="text-muted d-block mt-1" style="font-size:0.75rem;">
-              IP local da fazenda (ex: <code>http://192.168.3.56:8080</code>) ou URL na nuvem AWS.
+              Exemplos: <code>http://localhost:8080</code> (Local Docker) ou <code>http://192.168.3.56:8080</code> (IP Wi-Fi da Fazenda).
             </small>
           </div>
           
+          <!-- Servidores Rápidos -->
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-muted">Atalhos de Servidor:</label>
+            <div class="d-flex flex-wrap gap-1">
+              <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setQuickServer('http://localhost:8080')">Local (8080)</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setQuickServer('http://192.168.3.56:8080')">Fazenda (Wi-Fi)</button>
+            </div>
+          </div>
+
           <hr class="my-3">
           
           <div class="form-check form-switch">
@@ -450,7 +361,7 @@
               <i class="bi bi-arrow-repeat me-1"></i> Sincronização Automática (Auto-Sync)
             </label>
             <small class="text-muted d-block" style="font-size:0.75rem;">
-              Descarrega os registros pendentes automaticamente assim que o celular detectar a rede da fazenda.
+              Envia os dados salvos automaticamente assim que o celular detectar a rede da fazenda.
             </small>
           </div>
         </div>
@@ -468,13 +379,13 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header bg-primary text-white py-2 px-3">
-        <h6 class="modal-title fw-bold text-white"><i class="bi bi-shield-lock-fill me-2"></i>Sincronizar com a Nuvem</h6>
+        <h6 class="modal-title fw-bold text-white"><i class="bi bi-shield-lock-fill me-2"></i>Sincronizar com a Central</h6>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form id="formAuthSync" onsubmit="handleAuthSync(event)">
         <div class="modal-body p-3">
           <p class="text-muted small mb-3">
-            Para descarregar os dados coletados no servidor central, informe suas credenciais da fazenda:
+            Para descarregar os dados coletados no servidor central, confirme suas credenciais da fazenda:
           </p>
           <div class="mb-2">
             <label class="form-label fw-bold small">E-mail *</label>
