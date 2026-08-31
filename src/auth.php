@@ -23,6 +23,7 @@ function attemptLogin(string $email, string $senha): bool {
     $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($user && password_verify($senha, $user['senha'])) {
+        session_regenerate_id(true);
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user'] = $user;
         $db->prepare("UPDATE usuarios SET ultimo_acesso = CURRENT_TIMESTAMP WHERE id = ?")->execute([$user['id']]);

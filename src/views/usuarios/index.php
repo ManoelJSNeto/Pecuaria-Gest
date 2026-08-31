@@ -97,9 +97,12 @@ $loggedUser = currentUser();
                     </a>
 
                     <?php if (!$isSelf): ?>
-                      <a href="/usuarios/<?= $u['id'] ?>/toggle-status" class="btn btn-outline-<?= $u['ativo'] ? 'warning' : 'success' ?>" title="<?= $u['ativo'] ? 'Desativar acesso' : 'Ativar acesso' ?>">
-                        <i class="bi bi-<?= $u['ativo'] ? 'pause-fill' : 'play-fill' ?>"></i>
-                      </a>
+                      <form method="POST" action="/usuarios/<?= $u['id'] ?>/toggle-status" class="d-inline">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-outline-<?= $u['ativo'] ? 'warning' : 'success' ?>" title="<?= $u['ativo'] ? 'Desativar acesso' : 'Ativar acesso' ?>">
+                          <i class="bi bi-<?= $u['ativo'] ? 'pause-fill' : 'play-fill' ?>"></i>
+                        </button>
+                      </form>
                       
                       <button type="button" class="btn btn-outline-danger" onclick="confirmarExclusaoUsuario(<?= $u['id'] ?>, '<?= e(addslashes($u['nome'])) ?>')" title="Excluir Usuário">
                         <i class="bi bi-trash-fill"></i>

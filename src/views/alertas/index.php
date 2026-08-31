@@ -6,7 +6,12 @@ $naoLidos = array_filter($alertas, fn($al) => !$al['lido']);
   <div class="text-muted small"><?= count($alertas) ?> alertas — <?= count($naoLidos) ?> não lidos</div>
   <div class="d-flex gap-2">
     <?php if (count($naoLidos) > 0): ?>
-      <a href="/alertas/ler-todos" class="btn btn-sm btn-outline-success"><i class="bi bi-check-all me-1"></i> Marcar todos como lidos</a>
+      <form method="POST" action="/alertas/ler-todos" class="d-inline">
+        <?= csrf_field() ?>
+        <button type="submit" class="btn btn-sm btn-outline-success">
+          <i class="bi bi-check-all me-1"></i> Marcar todos como lidos
+        </button>
+      </form>
     <?php endif; ?>
     <a href="/alertas/novo" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i> Criar Alerta</a>
   </div>
@@ -63,7 +68,12 @@ $naoLidos = array_filter($alertas, fn($al) => !$al['lido']);
           <td>
             <div class="d-flex gap-1">
               <?php if (!$al['lido']): ?>
-                <a href="/alertas/<?= $al['id'] ?>/ler" class="btn btn-sm btn-outline-success py-0 px-2" title="Marcar como lido"><i class="bi bi-check-lg"></i></a>
+                <form method="POST" action="/alertas/<?= $al['id'] ?>/ler" class="d-inline">
+                  <?= csrf_field() ?>
+                  <button type="submit" class="btn btn-sm btn-outline-success py-0 px-2" title="Marcar como lido">
+                    <i class="bi bi-check-lg"></i>
+                  </button>
+                </form>
               <?php endif; ?>
               <form method="POST" action="/alertas/<?= $al['id'] ?>/excluir" onsubmit="return confirm('Excluir alerta?')">
                 <?= csrf_field() ?>

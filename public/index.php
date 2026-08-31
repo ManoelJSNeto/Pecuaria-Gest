@@ -410,7 +410,9 @@ if (preg_match('#^/animais/(\d+)(/.*)?$#', $uri, $m)) {
 if (preg_match('#^/fotos/(\d+)/excluir$#', $uri, $m) && $method === 'POST') {
     if (!csrf_verify()) { flash('error','Token inválido.'); redirect('/animais'); }
     $fId = (int)$m[1];
-    $f = $db->query("SELECT animal_id, foto_url FROM fotos_animais WHERE id=$fId")->fetch();
+    $fStmt = $db->prepare("SELECT animal_id, foto_url FROM fotos_animais WHERE id=?");
+    $fStmt->execute([$fId]);
+    $f = $fStmt->fetch();
     if ($f) {
         $db->prepare("DELETE FROM fotos_animais WHERE id=?")->execute([$fId]);
         flash('success','Foto removida do histórico.');
@@ -636,7 +638,8 @@ if ($uri === '/alertas') {
     renderView('alertas/index', 'Alertas', 'alertas');
     exit;
 }
-if ($uri === '/alertas/ler-todos') {
+if ($uri === '/alertas/ler-todos' && $method === 'POST') {
+    if (!csrf_verify()) { flash('error', 'Token inválido.'); redirect('/alertas'); }
     $db->exec("UPDATE alertas SET lido=1 WHERE lido=0");
     flash('success','Todos os alertas foram marcados como lidos.');
     redirect('/alertas');
@@ -654,7 +657,8 @@ if ($uri === '/alertas/salvar' && $method === 'POST') {
     redirect('/alertas');
     exit;
 }
-if (preg_match('#^/alertas/(\d+)/ler$#', $uri, $m)) {
+if (preg_match('#^/alertas/(\d+)/ler$#', $uri, $m) && $method === 'POST') {
+    if (!csrf_verify()) { flash('error', 'Token inválido.'); redirect('/alertas'); }
     $db->prepare("UPDATE alertas SET lido=1 WHERE id=?")->execute([$m[1]]);
     flash('success','Alerta marcado como lido.');
     redirect('/alertas');
@@ -765,8 +769,9 @@ if ($uri === '/configuracoes/salvar' && $method === 'POST') {
     exit;
 }
 
-if ($uri === '/configuracoes/testar-email') {
+if ($uri === '/configuracoes/testar-email' && $method === 'POST') {
     requireLogin();
+    if (!csrf_verify()) { flash('error', 'Token de segurança expirado.'); redirect('/configuracoes'); }
     $destinatario = getSysConfig('notif_email_destinatario', DEFAULT_ADMIN_EMAIL);
     
     $assunto = "[PecuáriaGest] Teste de Notificação do Sistema";
@@ -912,8 +917,9 @@ if (preg_match('#^/usuarios/(\d+)/salvar$#', $uri, $m) && $method === 'POST') {
     exit;
 }
 
-if (preg_match('#^/usuarios/(\d+)/toggle-status$#', $uri, $m)) {
+if (preg_match('#^/usuarios/(\d+)/toggle-status$#', $uri, $m) && $method === 'POST') {
     requirePermission('gerenciar_usuarios');
+    if (!csrf_verify()) { flash('error', 'Token de segurança expirado.'); redirect('/usuarios'); }
     $id = (int)$m[1];
     if ($_SESSION['user_id'] == $id) {
         flash('error', 'Você não pode desativar seu próprio usuário.');
