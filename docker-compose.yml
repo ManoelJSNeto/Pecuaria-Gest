@@ -1,23 +1,64 @@
 services:
+
+  # ── Banco de Dados PostgreSQL Dedicado ──────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: pecuaria-gest-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-pecuaria}
+      POSTGRES_USER: ${POSTGRES_USER:-pecuaria_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pecuaria_pass_2026}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pecuaria_user} -d ${POSTGRES_DB:-pecuaria}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Aplicacao PHP-FPM ────────────────────────────────────────
   app:
     build:
       context: .
-      dockerfile: Dockerfile
-    image: pecuaria-gest:latest
+      dockerfile: docker/php/Dockerfile
+    image: pecuaria-gest-app:latest
     container_name: pecuaria-gest-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_NAME: ${APP_NAME:-PecuariaGest}
+      APP_ENV: ${APP_ENV:-production}
+      API_KEY: ${API_KEY:-pecuaria-mobile-key}
+      SESSION_SECRET: ${SESSION_SECRET:-pecuaria_secret_2026}
+      DEFAULT_ADMIN_EMAIL: ${DEFAULT_ADMIN_EMAIL:-admin@fazenda.com}
+      DEFAULT_ADMIN_PASS: ${DEFAULT_ADMIN_PASS:-admin123}
+      DB_DRIVER: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: ${POSTGRES_DB:-pecuaria}
+      DB_USERNAME: ${POSTGRES_USER:-pecuaria_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-pecuaria_pass_2026}
+    volumes:
+      - ./storage:/var/www/html/storage
+      - ./public:/var/www/html/public
+      - ./src:/var/www/html/src
+
+  # ── Servidor Web Nginx (Proxy Reverso) ───────────────────────
+  web:
+    image: nginx:alpine
+    container_name: pecuaria-gest-web
     restart: unless-stopped
     ports:
       - "${APP_PORT:-8080}:80"
-    environment:
-      - APP_NAME=${APP_NAME:-PecuáriaGest}
-      - APP_ENV=${APP_ENV:-production}
-      - API_KEY=${API_KEY:-pecuaria-mobile-key}
-      - SESSION_SECRET=${SESSION_SECRET:-pecuaria_secret_2026}
-      - DEFAULT_ADMIN_EMAIL=${DEFAULT_ADMIN_EMAIL:-admin@fazenda.com}
-      - DEFAULT_ADMIN_PASS=${DEFAULT_ADMIN_PASS:-admin123}
     volumes:
-      # Persistência de dados SQLite e uploads
-      - ./storage:/var/www/html/storage
-      # Espelhamento para desenvolvimento (alterações em tempo real sem rebuild)
-      - ./public:/var/www/html/public
-      - ./src:/var/www/html/src
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./public:/var/www/html/public:ro
+    depends_on:
+      - app
+
+volumes:
+  pgdata:
+    name: pecuaria-gest-pgdata

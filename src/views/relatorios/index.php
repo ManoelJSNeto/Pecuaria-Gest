@@ -4,11 +4,11 @@ $totalAnimais  = $db->query("SELECT COUNT(*) FROM animais")->fetchColumn();
 $totalPesagens = $db->query("SELECT COUNT(*) FROM pesagens")->fetchColumn();
 $totalSaude    = $db->query("SELECT COUNT(*) FROM saude")->fetchColumn();
 $custoSaude    = $db->query("SELECT SUM(custo) FROM saude WHERE custo IS NOT NULL")->fetchColumn();
-$pesoMedio     = $db->query("SELECT ROUND(AVG(p.peso),1) FROM pesagens p INNER JOIN (SELECT animal_id,MAX(data) md FROM pesagens GROUP BY animal_id) lp ON p.animal_id=lp.animal_id AND p.data=lp.md")->fetchColumn();
+$pesoMedio     = $db->query("SELECT ROUND(AVG(p.peso)::numeric,1) FROM pesagens p INNER JOIN (SELECT animal_id,MAX(data) md FROM pesagens GROUP BY animal_id) lp ON p.animal_id=lp.animal_id AND p.data=lp.md")->fetchColumn();
 
 $statusReport  = $db->query("SELECT status, COUNT(*) as total FROM animais GROUP BY status ORDER BY total DESC")->fetchAll();
 $racaReport    = $db->query("SELECT raca, COUNT(*) as total FROM animais GROUP BY raca ORDER BY total DESC")->fetchAll();
-$mensal        = $db->query("SELECT strftime('%Y-%m', data) as mes, COUNT(*) as total, ROUND(AVG(peso),1) as media FROM pesagens WHERE data >= date('now','-12 months') GROUP BY mes ORDER BY mes")->fetchAll();
+$mensal        = $db->query("SELECT TO_CHAR(data::date, 'YYYY-MM') as mes, COUNT(*) as total, ROUND(AVG(peso::numeric),1) as media FROM pesagens WHERE data::date >= (CURRENT_DATE - INTERVAL '12 months') GROUP BY mes ORDER BY mes")->fetchAll();
 ?>
 <div class="row g-3 mb-4">
   <div class="col-sm-6 col-xl-3">
