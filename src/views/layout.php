@@ -124,9 +124,6 @@ $alertasNaoLidos = $db->query("SELECT COUNT(*) FROM alertas WHERE lido=0")->fetc
       <h4><?= e($pageTitle ?? '') ?></h4>
     </div>
     <div class="d-flex align-items-center gap-3">
-      <a href="/campo" target="_blank" class="btn btn-sm btn-outline-primary" title="Abrir Modo Campo para Coleta Offline">
-        <i class="bi bi-phone me-1"></i> Modo Campo
-      </a>
       <?php if ($alertasNaoLidos > 0 && $user): ?>
         <a href="/alertas" class="btn btn-sm btn-outline-danger position-relative" title="Alertas Pendentes">
           <i class="bi bi-bell-fill"></i>
