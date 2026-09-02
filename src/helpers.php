@@ -57,16 +57,16 @@ function formatDateTime(?string $date): string {
 }
 
 function statusBadge(string $status): string {
-    $map = [
-        'ativo'     => 'bg-success text-white',
-        'doente'    => 'bg-danger text-white',
-        'vendido'   => 'bg-secondary text-white',
-        'morto'     => 'bg-dark text-white border border-light border-opacity-50',
-        'prenha'    => 'bg-info text-dark',
-        'desmamado' => 'bg-warning text-dark',
-    ];
-    $classes = $map[$status] ?? 'bg-primary text-white';
-    return '<span class="badge ' . $classes . '">' . ucfirst(e($status)) . '</span>';
+    $st = strtolower(trim($status));
+    $classes = match($st) {
+        'ativo'     => 'badge-status ativo',
+        'prenha'    => 'badge-status prenha',
+        'doente'    => 'badge-status doente',
+        'vendido'   => 'badge-status vendido',
+        'morto'     => 'badge-status morto',
+        default     => 'badge-status neutro',
+    };
+    return '<span class="' . $classes . '">' . ucfirst(e($status)) . '</span>';
 }
 
 function sexoLabel(string $sexo): string {

@@ -15,86 +15,150 @@ $countStmt->execute($params);
 $total      = $countStmt->fetchColumn();
 $totalPages = max(1, ceil($total / $perPage));
 
-$stmt = $db->prepare("SELECT s.*, a.brinco, a.nome as animal_nome FROM saude s JOIN animais a ON s.animal_id=a.id WHERE $whereStr ORDER BY s.data DESC, s.created_at DESC LIMIT $perPage OFFSET $offset");
+$stmt = $db->prepare("
+  SELECT s.*, a.brinco, a.nome as animal_nome 
+  FROM saude s 
+  JOIN animais a ON s.animal_id=a.id 
+  WHERE $whereStr 
+  ORDER BY s.data DESC, s.created_at DESC 
+  LIMIT $perPage OFFSET $offset
+");
 $stmt->execute($params);
 $registros = $stmt->fetchAll();
 $tipos     = $db->query("SELECT DISTINCT tipo FROM saude ORDER BY tipo")->fetchAll(PDO::FETCH_COLUMN);
 ?>
+
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <div class="text-muted small"><?= $total ?> registros de saúde</div>
-  <a href="/saude/novo" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i> Registrar Evento de Saúde</a>
-</div>
-
-<div class="card mb-3">
-  <div class="card-body py-2">
-    <form method="GET" class="row g-2">
-      <div class="col-sm-5">
-        <input type="text" name="q" class="form-control form-control-sm" placeholder="Buscar por animal ou descrição..." value="<?= e($search) ?>">
-      </div>
-      <div class="col-sm-3">
-        <select name="tipo" class="form-select form-select-sm">
-          <option value="">Todos os tipos</option>
-          <?php foreach ($tipos as $t): ?>
-            <option value="<?= e($t) ?>" <?= $tipoF===$t?'selected':'' ?>><?= e($t) ?></option>
-          <?php endforeach; ?>
-        </select>
-      </div>
-      <div class="col-sm-2">
-        <button class="btn btn-sm btn-primary w-100">Filtrar</button>
-      </div>
-    </form>
+  <div>
+    <h5 class="mb-0 fw-bold">Manejo Sanitário & Clínico</h5>
+    <small class="text-muted tabular-nums"><?= (int)$total ?> ocorrências e vacinações registradas</small>
   </div>
+  <a href="/saude/novo" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg me-1"></i> Novo Registro Clínico
+  </a>
 </div>
 
-<div class="card">
-  <div class="card-body p-0">
-    <table class="table table-hover mb-0">
-      <thead><tr><th>Animal</th><th>Tipo</th><th>Descrição</th><th>Medicamento</th><th>Data</th><th>Próxima</th><th>Custo</th><th></th></tr></thead>
-      <tbody>
-        <?php if (empty($registros)): ?>
-          <tr><td colspan="8" class="text-center text-muted py-4">Nenhum registro encontrado.</td></tr>
-        <?php endif; ?>
-        <?php foreach ($registros as $s): ?>
-        <?php
-          $tipoColor = match(strtolower($s['tipo'] ?? '')) {
-            'vacinação','vacinacao' => 'success',
-            'tratamento'           => 'danger',
-            'vermifugação','vermifugacao' => 'warning',
-            'exame'                => 'info',
-            default                => 'secondary',
-          };
-        ?>
+<!-- Barra de Filtros -->
+<div class="filter-toolbar">
+  <form method="GET" class="d-flex align-items-center gap-2 w-100" style="max-width: 550px;">
+    <select name="tipo" class="form-select form-select-sm" style="max-width: 170px;" onchange="this.form.submit()">
+      <option value="">Todos os Tipos</option>
+      <?php foreach ($tipos as $t): ?>
+        <option value="<?= e($t) ?>" <?= $tipoF === $t ? 'selected' : '' ?>><?= e($t) ?></option>
+      <?php endforeach; ?>
+    </select>
+
+    <div class="input-group input-group-sm">
+      <input type="text" name="q" class="form-control form-control-sm" placeholder="Buscar por brinco, nome ou descrição..." value="<?= e($search) ?>" autocomplete="off">
+      <button class="btn btn-secondary btn-sm" type="submit">
+        <i class="bi bi-search"></i>
+      </button>
+      <?php if ($search || $tipoF): ?>
+        <a href="/saude" class="btn btn-outline-secondary btn-sm" title="Limpar Filtros">
+          <i class="bi bi-x-lg"></i>
+        </a>
+      <?php endif; ?>
+    </div>
+  </form>
+</div>
+
+<!-- Tabela de Alta Densidade -->
+<div class="table-responsive">
+  <table class="table">
+    <thead>
+      <tr>
+        <th style="width: 200px;">Animal</th>
+        <th>Tipo / Evento</th>
+        <th>Descrição Clínica</th>
+        <th>Medicamento / Posologia</th>
+        <th>Data Aplicação</th>
+        <th>Próxima Dose / Reforço</th>
+        <th class="text-end" style="width: 100px;">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php if (empty($registros)): ?>
         <tr>
-          <td><a href="/animais/<?= $s['animal_id'] ?>" class="fw-700 text-decoration-none" style="color:#1a4d2e"><?= e($s['brinco']) ?></a><small class="text-muted d-block"><?= e($s['animal_nome'] ?? '') ?></small></td>
-          <td><span class="badge bg-<?= $tipoColor ?>"><?= e($s['tipo']) ?></span></td>
-          <td class="small"><?= e($s['descricao']) ?></td>
-          <td class="small"><?= e($s['medicamento'] ?? '—') ?><?php if($s['dose']): ?> <span class="text-muted">(<?= e($s['dose']) ?>)</span><?php endif; ?></td>
-          <td class="small text-muted"><?= formatDate($s['data']) ?></td>
-          <td class="small <?= ($s['proxima_data'] && $s['proxima_data'] < date('Y-m-d')) ? 'text-danger fw-600' : 'text-muted' ?>"><?= formatDate($s['proxima_data']) ?></td>
+          <td colspan="7" class="text-center text-muted py-5">
+            <i class="bi bi-heart-pulse fs-3 d-block mb-2 text-muted"></i>
+            Nenhum evento sanitário registrado com os filtros aplicados.
+          </td>
+        </tr>
+      <?php else: ?>
+        <?php foreach ($registros as $s): ?>
+        <tr>
+          <td>
+            <a href="/animais/<?= $s['animal_id'] ?>" class="fw-bold text-primary text-decoration-none">
+              <?= e($s['brinco']) ?>
+            </a>
+            <?php if (!empty($s['animal_nome'])): ?>
+              <small class="text-muted d-block"><?= e($s['animal_nome']) ?></small>
+            <?php endif; ?>
+          </td>
+          <td>
+            <span class="badge bg-light text-dark border">
+              <?= e($s['tipo']) ?>
+            </span>
+          </td>
+          <td class="small text-secondary">
+            <?= e($s['descricao']) ?>
+          </td>
+          <td class="small">
+            <?php if (!empty($s['medicamento'])): ?>
+              <strong class="text-primary"><?= e($s['medicamento']) ?></strong>
+              <?php if (!empty($s['dose'])): ?>
+                <span class="text-muted small">(<?= e($s['dose']) ?>)</span>
+              <?php endif; ?>
+            <?php else: ?>
+              <span class="text-muted">—</span>
+            <?php endif; ?>
+          </td>
+          <td class="small tabular-nums text-secondary">
+            <?= formatDate($s['data']) ?>
+          </td>
+          <td class="small tabular-nums">
+            <?php if (!empty($s['proxima_data'])): ?>
+              <?php $isAtrasado = ($s['proxima_data'] < date('Y-m-d')); ?>
+              <span class="<?= $isAtrasado ? 'text-danger fw-bold' : 'text-secondary' ?>">
+                <i class="bi <?= $isAtrasado ? 'bi-exclamation-triangle-fill' : 'bi-calendar-check' ?> me-1"></i>
+                <?= formatDate($s['proxima_data']) ?>
+              </span>
+            <?php else: ?>
+              <span class="text-muted">—</span>
+            <?php endif; ?>
+          </td>
           <td class="text-end">
-            <div class="d-flex justify-content-end gap-1">
-              <a href="/saude/<?= $s['id'] ?>/editar" class="btn btn-sm btn-outline-primary py-0 px-2" title="Editar"><i class="bi bi-pencil"></i></a>
-              <form method="POST" action="/saude/<?= $s['id'] ?>/excluir" onsubmit="return confirm('Excluir registro?')">
+            <div class="btn-group btn-group-sm">
+              <a href="/saude/<?= $s['id'] ?>/editar" class="btn btn-secondary btn-sm" title="Editar">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <form method="POST" action="/saude/<?= $s['id'] ?>/excluir" style="display:inline;" onsubmit="return confirm('Excluir este registro sanitário?')">
                 <?= csrf_field() ?>
-                <button class="btn btn-sm btn-outline-danger py-0 px-2" title="Excluir"><i class="bi bi-trash"></i></button>
+                <button type="submit" class="btn btn-secondary btn-sm text-danger" title="Excluir">
+                  <i class="bi bi-trash"></i>
+                </button>
               </form>
             </div>
           </td>
         </tr>
         <?php endforeach; ?>
-      </tbody>
-    </table>
-  </div>
-  <?php if ($totalPages > 1): ?>
-  <div class="card-footer bg-white d-flex justify-content-between align-items-center py-2">
-    <small class="text-muted">Página <?= $page ?> de <?= $totalPages ?></small>
-    <nav><ul class="pagination pagination-sm mb-0">
-      <?php for ($i=1; $i<=$totalPages; $i++): ?>
-        <li class="page-item <?= $i===$page?'active':'' ?>">
-          <a class="page-link" href="?<?= http_build_query(array_merge($_GET,['page'=>$i])) ?>"><?= $i ?></a>
+      <?php endif; ?>
+    </tbody>
+  </table>
+</div>
+
+<!-- Paginação -->
+<?php if ($totalPages > 1): ?>
+<div class="d-flex justify-content-between align-items-center mt-3 pt-2">
+  <small class="text-muted tabular-nums">Página <?= $page ?> de <?= $totalPages ?></small>
+  <nav>
+    <ul class="pagination pagination-sm mb-0">
+      <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+        <li class="page-item <?= $i === $page ? 'active' : '' ?>">
+          <a class="page-link" href="?<?= http_build_query(array_merge($_GET, ['page' => $i])) ?>"><?= $i ?></a>
         </li>
       <?php endfor; ?>
-    </ul></nav>
-  </div>
-  <?php endif; ?>
+    </ul>
+  </nav>
 </div>
+<?php endif; ?>
