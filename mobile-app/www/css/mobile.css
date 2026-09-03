@@ -275,27 +275,32 @@ input, textarea, select, button, .touch-input-lg, .campo-nav-btn {
   outline: none !important;
 }
 
-/* Botões com altura de curral (glove-friendly: 56px) */
+/* Botões com altura extra de curral (glove-friendly: 68px para facilidade máxima de toque sob o sol) */
 .touch-btn-submit {
-  min-height: 56px;
-  padding: 14px 20px;
-  font-size: 1.1rem;
+  min-height: 68px;
+  padding: 18px 24px;
+  font-size: 1.25rem;
   font-weight: 800;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 12px;
   cursor: pointer;
   border: 1px solid transparent;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-  transition: transform 80ms ease-out, filter 150ms ease-out;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: transform 90ms ease-out, filter 150ms ease-out, box-shadow 150ms ease-out;
   letter-spacing: -0.01em;
+}
+.touch-btn-submit i {
+  font-size: 1.45rem;
+  line-height: 1;
 }
 .touch-btn-submit:active {
   transform: scale(0.97);
   filter: brightness(0.9);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
 /* ── Autocomplete Tátil Compacto com Rolagem (Substitui Datalist) ── */

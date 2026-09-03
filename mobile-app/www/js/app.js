@@ -8,12 +8,43 @@ const STORAGE_SERVER_KEY = 'pecuaria_native_server_url';
 const STORAGE_AUTH_KEY = 'pecuaria_native_auth';
 const STORAGE_AUTO_SYNC_KEY = 'pecuaria_native_auto_sync';
 const STORAGE_DARK_MODE_KEY = 'pecuaria_native_dark_mode';
-const STORAGE_RECENT_PESAGENS = 'pecuaria_recent_pesagens';
-const STORAGE_RECENT_BEZERROS = 'pecuaria_recent_bezerros';
-const STORAGE_RECENT_SAUDE    = 'pecuaria_recent_saude';
 
 let isSyncing = false;
 let isServerOnline = false;
+
+// ── Resposta Tátil Robusta (Capacitor Nativo Haptics + Fallback Web) ──
+async function triggerHapticFeedback(type = 'save') {
+  // 1. Tenta Capacitor Plugins Haptics (Nativo Android / Java Vibrator)
+  try {
+    const haptics = window.Capacitor?.Plugins?.Haptics;
+    if (haptics) {
+      if (type === 'save') {
+        await haptics.notification({ type: 'SUCCESS' }).catch(() => {});
+        await haptics.vibrate({ duration: 300 }).catch(() => {});
+        return;
+      } else if (type === 'tap') {
+        await haptics.impact({ style: 'HEAVY' }).catch(() => {});
+        return;
+      } else if (type === 'warning') {
+        await haptics.notification({ type: 'WARNING' }).catch(() => {});
+        return;
+      }
+    }
+  } catch (e) {}
+
+  // 2. Fallback via Navigator Vibrate padrão (com pulso perceptível no curral)
+  try {
+    if (navigator.vibrate) {
+      if (type === 'save') {
+        navigator.vibrate([250, 100, 250]);
+      } else if (type === 'tap') {
+        navigator.vibrate(80);
+      } else if (type === 'warning') {
+        navigator.vibrate([150, 80, 150]);
+      }
+    }
+  } catch (e) {}
+}
 
 // ── 1. Modo Escuro & Tema ──────────────────────────────────────
 function initDarkMode() {
@@ -39,7 +70,7 @@ function toggleDarkMode() {
   const isDark = !document.body.classList.contains('dark-mode');
   localStorage.setItem(STORAGE_DARK_MODE_KEY, isDark ? 'true' : 'false');
   applyDarkMode(isDark);
-  if (navigator.vibrate) navigator.vibrate(20);
+  triggerHapticFeedback('tap');
 }
 
 // ── 2. Configurações de Servidor & Auto-Sync ───────────────────
@@ -149,9 +180,6 @@ function addToQueue(tipo, data, fotoBase64 = null) {
   items.push(newItem);
   saveLocalQueue(items);
 
-  // Adiciona ao histórico da sessão
-  addRecentRecord(tipo, data);
-
   // Se for novo animal, atualiza cache local de autocompletar
   if (tipo === 'animal' && data.brinco) {
     saveAnimalToCache(data);
@@ -167,7 +195,7 @@ function removeSingleItemFromQueue(id) {
   if (!confirm('Deseja excluir este registro da fila offline?')) return;
   const items = getLocalQueue().filter(it => it.id !== id);
   saveLocalQueue(items);
-  if (navigator.vibrate) navigator.vibrate(30);
+  triggerHapticFeedback('tap');
   showToast('Registro removido da fila local.', 'info');
 }
 
@@ -191,13 +219,11 @@ function saveAnimalToCache(animal) {
   if (!exists) {
     list.push(animal);
     localStorage.setItem(STORAGE_ANIMALS_KEY, JSON.stringify(list));
-    renderQuickEarringChips();
   }
 }
 
 function setCachedAnimals(animals) {
   localStorage.setItem(STORAGE_ANIMALS_KEY, JSON.stringify(animals));
-  renderQuickEarringChips();
 }
 
 // ── 4.1 Autocomplete Tátil Compacto com Rolagem (Substitui Datalist) ──
@@ -261,8 +287,8 @@ function selectEarring(dropdownId, inputId, brinco, nextFocusId) {
     dropdown.style.display = 'none';
   }
 
-  // Vibração tátil instantânea
-  if (navigator.vibrate) navigator.vibrate(30);
+  // Resposta tátil instantânea
+  triggerHapticFeedback('tap');
 
   // Pula foco automaticamente para o próximo campo
   if (nextFocusId) {
@@ -286,30 +312,6 @@ function clearEarringInput(inputId, dropdownId) {
   if (dropdown) {
     dropdown.style.display = 'none';
   }
-}
-
-function renderQuickEarringChips() {
-  const containers = ['p_quick_chips', 's_quick_chips'];
-  const animals = getCachedAnimals();
-  if (!animals || animals.length === 0) return;
-
-  const topChips = animals.slice(0, 6);
-  containers.forEach(cId => {
-    const el = document.getElementById(cId);
-    if (!el) return;
-    const targetInputId = cId.startsWith('p_') ? 'p_brinco' : 's_brinco';
-    const targetDropdownId = cId.startsWith('p_') ? 'p_brinco_dropdown' : 's_brinco_dropdown';
-    const nextFocusId = cId.startsWith('p_') ? 'p_peso' : 's_desc';
-
-    el.innerHTML = `
-      <span class="small text-muted me-1 fw-bold" style="font-size:0.7rem; text-transform:uppercase;">Recentes:</span>
-      ${topChips.map(a => `
-        <button type="button" class="quick-chip-btn" onclick="selectEarring('${targetDropdownId}', '${targetInputId}', '${a.brinco}', '${nextFocusId}')">
-          <i class="bi bi-arrow-right-short text-success"></i>${a.brinco}
-        </button>
-      `).join('')}
-    `;
-  });
 }
 
 // ── 5. Compressão de Fotos com Canvas ──────────────────────────
@@ -500,54 +502,7 @@ function renderQueueCards() {
   container.innerHTML = html;
 }
 
-// ── 8. Histórico Local Rápido por Sessão ─────────────────────────
-function addRecentRecord(tipo, data) {
-  let key = STORAGE_RECENT_PESAGENS;
-  let label = `${data.brinco} (${data.peso}kg)`;
-  
-  if (tipo === 'animal') {
-    key = STORAGE_RECENT_BEZERROS;
-    label = `${data.brinco} (${data.sexo === 'M' ? 'M' : 'F'})`;
-  } else if (tipo === 'saude') {
-    key = STORAGE_RECENT_SAUDE;
-    label = `${data.brinco} (${data.tipo})`;
-  }
-
-  try {
-    let list = JSON.parse(localStorage.getItem(key) || '[]');
-    list.unshift({ label, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
-    if (list.length > 5) list = list.slice(0, 5);
-    localStorage.setItem(key, JSON.stringify(list));
-    renderRecentHistories();
-  } catch (e) {}
-}
-
-function renderRecentHistories() {
-  renderHistorySection(STORAGE_RECENT_PESAGENS, 'recentPesagensList', 'recentPesagensCount', 'pesagens');
-  renderHistorySection(STORAGE_RECENT_BEZERROS, 'recentBezerrosList', 'recentBezerrosCount', 'bezerros');
-  renderHistorySection(STORAGE_RECENT_SAUDE,    'recentSaudeList',    'recentSaudeCount',    'manejos');
-}
-
-function renderHistorySection(storageKey, listId, countId, singular) {
-  const listEl = document.getElementById(listId);
-  const countEl = document.getElementById(countId);
-  if (!listEl) return;
-
-  try {
-    const list = JSON.parse(localStorage.getItem(storageKey) || '[]');
-    if (countEl) countEl.textContent = list.length;
-    
-    if (list.length === 0) {
-      listEl.innerHTML = `<span class="text-muted">Nenhum registro nesta sessão.</span>`;
-    } else {
-      listEl.innerHTML = list.map(item => `
-        <span class="recent-item-chip">
-          <i class="bi bi-check2 text-success"></i> ${item.label} <small class="text-muted">${item.time}</small>
-        </span>
-      `).join('');
-    }
-  } catch (e) {}
-}
+// ── 8. Funções de Auxílio Local ──────────────────────────────────
 
 // ── 9. Modais e Ações de Sincronização ─────────────────────────
 function openServerConfigModal() {
@@ -893,10 +848,9 @@ async function handleAppPesagem(e) {
     document.getElementById('formAppPesagem').reset();
     removeFotoPreview('p_foto', 'preview_p');
     document.getElementById('p_data').value = new Date().toISOString().split('T')[0];
-    renderQuickEarringChips();
 
-    // Vibração firme de confirmação de curral
-    if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+    // Resposta tátil firme de confirmação de curral (Haptics nativo + vibração)
+    triggerHapticFeedback('save');
     showToast(`Pesagem de ${peso}kg salva no celular!`, 'success');
   } catch (err) {
     showToast('Erro ao salvar: ' + err.message, 'danger');
@@ -925,10 +879,9 @@ async function handleAppBezerro(e) {
     removeFotoPreview('b_foto', 'preview_b');
     document.getElementById('b_data').value = new Date().toISOString().split('T')[0];
     document.getElementById('b_raca').value = 'Nelore';
-    renderQuickEarringChips();
 
-    // Vibração firme de confirmação de curral
-    if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+    // Resposta tátil firme de confirmação de curral (Haptics nativo + vibração)
+    triggerHapticFeedback('save');
     showToast(`Bezerro ${brinco} salvo no celular!`, 'success');
   } catch (err) {
     showToast('Erro ao salvar: ' + err.message, 'danger');
@@ -956,10 +909,9 @@ async function handleAppSaude(e) {
     
     document.getElementById('formAppSaude').reset();
     removeFotoPreview('s_foto', 'preview_s');
-    renderQuickEarringChips();
 
-    // Vibração firme de confirmação de curral
-    if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+    // Resposta tátil firme de confirmação de curral (Haptics nativo + vibração)
+    triggerHapticFeedback('save');
     showToast(`Evento de ${tipo} para ${brinco} salvo no celular!`, 'success');
   } catch (err) {
     showToast('Erro ao salvar: ' + err.message, 'danger');
@@ -969,10 +921,8 @@ async function handleAppSaude(e) {
 // ── 12. Inicialização do App ───────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   renderStatusBadge(false);
-  renderQuickEarringChips();
   updatePendingBadge();
   renderQueueCards();
-  renderRecentHistories();
 
   // Fecha dropdowns de autocompletar ao tocar fora
   document.addEventListener('click', (e) => {
