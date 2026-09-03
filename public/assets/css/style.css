@@ -744,3 +744,32 @@ a:hover {
     padding: 1rem;
   }
 }
+
+/* ============================================================
+   TELA DE AUTENTICAÇÃO / LOGIN
+   ============================================================ */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-app);
+  padding: 1.5rem;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 2.25rem 2rem;
+}
+
+.login-card .brand-logo {
+  width: 58px;
+  height: 58px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
