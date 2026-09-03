@@ -85,13 +85,15 @@ if ($isEdit) {
             <small class="text-muted">Marque exatamente os privilégios concedidos a este colaborador</small>
           </div>
           
-          <!-- Botões de Presets Rápidos -->
-          <div class="btn-group btn-group-sm">
-            <button type="button" class="btn btn-outline-secondary" onclick="applyPreset('all')" title="Marcar tudo"><i class="bi bi-lightning-charge-fill me-1"></i>Tudo</button>
-            <button type="button" class="btn btn-outline-secondary" onclick="applyPreset('none')" title="Desmarcar tudo"><i class="bi bi-x-circle me-1"></i>Limpar</button>
-            <button type="button" class="btn btn-outline-primary" onclick="applyPreset('veterinario')" title="Animais, Saúde, Reprodução e Pesagens"><i class="bi bi-heart-pulse-fill me-1"></i>Veterinário</button>
-            <button type="button" class="btn btn-outline-success" onclick="applyPreset('campo')" title="Pesagens, Bezerros, Saúde e App"><i class="bi bi-phone-fill me-1"></i>Campo</button>
-            <button type="button" class="btn btn-outline-info" onclick="applyPreset('leitura')" title="Apenas visualização"><i class="bi bi-eye-fill me-1"></i>Leitura</button>
+          <!-- Botões de Presets Rápidos Padronizados -->
+          <div class="d-flex align-items-center gap-1 flex-wrap">
+            <span class="small text-muted me-1">Perfis Prontos:</span>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="applyPreset('gerente')" title="Acesso gerencial amplo (Rebanho, Manejos, Pastos e Relatórios)"><i class="bi bi-briefcase me-1"></i>Gerente</button>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="applyPreset('veterinario')" title="Animais, Saúde, Reprodução e Pesagens"><i class="bi bi-heart-pulse me-1"></i>Veterinário</button>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="applyPreset('campo')" title="Pesagens, Bezerros, Saúde e App"><i class="bi bi-phone me-1"></i>Vaqueiro / Campo</button>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="applyPreset('leitura')" title="Apenas visualização e relatórios"><i class="bi bi-eye me-1"></i>Consultor / Leitura</button>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="applyPreset('all')" title="Marcar todas as permissões"><i class="bi bi-check-all me-1"></i>Tudo</button>
+            <button type="button" class="btn btn-sm btn-secondary text-danger" onclick="applyPreset('none')" title="Desmarcar todas"><i class="bi bi-x-circle me-1"></i>Limpar</button>
           </div>
         </div>
 
@@ -342,6 +344,14 @@ function applyPreset(preset) {
   checkboxes.forEach(cb => cb.checked = false);
 
   const presets = {
+    gerente: [
+      'p_ver_animais', 'p_criar_animais', 'p_editar_animais',
+      'p_ver_pesagens', 'p_criar_pesagens', 'p_editar_pesagens',
+      'p_ver_saude', 'p_criar_saude', 'p_editar_saude',
+      'p_ver_pastagens', 'p_criar_pastagens', 'p_editar_pastagens',
+      'p_ver_reproducao', 'p_criar_reproducao', 'p_editar_reproducao',
+      'p_alertas', 'p_mobile', 'p_ver_relatorios', 'p_exportar_relatorios'
+    ],
     veterinario: [
       'p_ver_animais', 'p_criar_animais', 'p_editar_animais',
       'p_ver_pesagens', 'p_criar_pesagens', 'p_editar_pesagens',

@@ -35,137 +35,178 @@ $chartStmt = $db->prepare("
 ");
 $chartStmt->execute([$animal['id']]);
 $chartPesagens = $chartStmt->fetchAll();
-$chartLabels   = json_encode(array_map(fn($p) => $p['data'], $chartPesagens));
+$chartLabels   = json_encode(array_map(fn($p) => formatDate($p['data']), $chartPesagens));
 $chartData     = json_encode(array_map(fn($p) => (float)$p['peso'], $chartPesagens));
 
 $pesoAtual = !empty($pesagens) ? $pesagens[0]['peso'] : $animal['peso_inicial'];
-$sexoIcon  = $animal['sexo'] === 'M' ? 'bi-gender-male text-primary' : 'bi-gender-female text-danger';
 $isPuppy   = isFilhote($animal['data_nascimento']);
 ?>
+
+<!-- Barra de Navegação Superior -->
 <div class="mb-3 d-flex justify-content-between align-items-center">
-  <a href="/animais" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Voltar</a>
+  <a href="/animais" class="btn btn-sm btn-secondary">
+    <i class="bi bi-arrow-left me-1"></i> Voltar ao Rebanho
+  </a>
   <?php if ($fotoFilhote && !$isPuppy): ?>
-    <span class="badge-filhote"><i class="bi bi-stars"></i> Foto de Filhote salva no histórico</span>
+    <span class="badge-status ativo" style="background:#e8f0e5; border-color:#c6dfbd;">
+      <i class="bi bi-stars text-success me-1"></i> Memória de Filhote disponível
+    </span>
   <?php endif; ?>
 </div>
 
-<div class="animal-profile-header mb-3">
-  <div class="d-flex align-items-start gap-3 flex-wrap">
-    <?php if (!empty($animal['foto_url'])): ?>
-      <img src="<?= e($animal['foto_url']) ?>" alt="Foto" class="rounded-3 border border-white border-2 shadow" style="width: 76px; height: 76px; object-fit: cover;">
-    <?php else: ?>
-      <div class="animal-big-avatar"><i class="bi <?= $sexoIcon ?> fs-1"></i></div>
-    <?php endif; ?>
-    <div class="flex-grow-1">
-      <div class="d-flex align-items-center gap-2 flex-wrap">
-        <h3 class="mb-0 fw-800 text-white"><?= e($animal['brinco']) ?></h3>
-        <?php if ($animal['nome']): ?><span class="text-white-50">"<?= e($animal['nome']) ?>"</span><?php endif; ?>
-        <?= statusBadge($animal['status']) ?>
-        <?php if ($isPuppy): ?>
-          <span class="badge bg-success border border-white border-opacity-25"><i class="bi bi-stars me-1"></i>Bezerro / Filhote</span>
+<!-- Ficha / Prontuário Técnico do Animal (Anti-Generic Hero Card) -->
+<div class="card mb-3">
+  <div class="card-body p-3">
+    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
+      <div class="d-flex align-items-center gap-3">
+        <?php if (!empty($animal['foto_url'])): ?>
+          <img src="<?= e($animal['foto_url']) ?>" alt="Foto" class="rounded" style="width: 72px; height: 72px; object-fit: cover; border: 1px solid var(--border-subtle);">
+        <?php else: ?>
+          <div class="table-animal-avatar" style="width: 72px; height: 72px; font-size: 1.4rem;">
+            <?= e(substr($animal['brinco'], 0, 3)) ?>
+          </div>
+        <?php endif; ?>
+
+        <div>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <h3 class="mb-0 fw-800 tabular-nums" style="color:var(--earth-green-950); letter-spacing:-0.03em;">
+              <?= e($animal['brinco']) ?>
+            </h3>
+            <?php if ($animal['nome']): ?>
+              <span class="text-secondary fw-600">"<?= e($animal['nome']) ?>"</span>
+            <?php endif; ?>
+            <?= statusBadge($animal['status']) ?>
+            <?php if ($isPuppy): ?>
+              <span class="badge-status ativo"><i class="bi bi-stars me-1"></i>Bezerro</span>
+            <?php endif; ?>
+          </div>
+
+          <!-- Metadados em Pílulas Técnicas -->
+          <div class="mt-2 d-flex flex-wrap gap-2 text-secondary small">
+            <span class="badge bg-light text-dark border"><i class="bi bi-tag me-1"></i><?= e($animal['raca'] ?? 'Nelore') ?></span>
+            <span class="badge bg-light text-dark border"><i class="bi bi-gender-ambiguous me-1"></i><?= sexoLabel($animal['sexo']) ?></span>
+            <span class="badge bg-light text-dark border tabular-nums"><i class="bi bi-calendar3 me-1"></i><?= calcIdade($animal['data_nascimento']) ?></span>
+            <span class="badge bg-light text-dark border"><i class="bi bi-tree me-1"></i>Pasto: <?= e($pasto['nome'] ?? 'Não alocado') ?></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ações de Manejo Direto -->
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="/animais/<?= $animal['id'] ?>/editar" class="btn btn-secondary btn-sm">
+          <i class="bi bi-pencil me-1"></i>Editar
+        </a>
+        <a href="/pesagens/novo?animal_id=<?= $animal['id'] ?>" class="btn btn-primary btn-sm">
+          <i class="bi bi-rulers me-1"></i>Pesar
+        </a>
+        <a href="/saude/novo?animal_id=<?= $animal['id'] ?>" class="btn btn-secondary btn-sm">
+          <i class="bi bi-heart-pulse me-1"></i>Saúde
+        </a>
+        <?php if ($animal['sexo'] === 'F'): ?>
+          <a href="/reproducao/novo?animal_id=<?= $animal['id'] ?>" class="btn btn-secondary btn-sm">
+            <i class="bi bi-diagram-3 me-1"></i>Reprodução
+          </a>
         <?php endif; ?>
       </div>
-      <div class="mt-3 d-flex flex-wrap gap-2">
-        <div class="bg-white bg-opacity-10 border border-white border-opacity-25 rounded-2 px-3 py-1 text-center">
-          <small class="text-white-50 d-block" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;">Raça</small>
-          <strong class="text-white small"><?= e($animal['raca'] ?? '—') ?></strong>
-        </div>
-        <div class="bg-white bg-opacity-10 border border-white border-opacity-25 rounded-2 px-3 py-1 text-center">
-          <small class="text-white-50 d-block" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;">Sexo</small>
-          <strong class="text-white small"><?= sexoLabel($animal['sexo']) ?></strong>
-        </div>
-        <div class="bg-white bg-opacity-10 border border-white border-opacity-25 rounded-2 px-3 py-1 text-center">
-          <small class="text-white-50 d-block" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;">Idade</small>
-          <strong class="text-white small"><?= calcIdade($animal['data_nascimento']) ?></strong>
-        </div>
-        <div class="bg-white bg-opacity-10 border border-white border-opacity-25 rounded-2 px-3 py-1 text-center">
-          <small class="text-white-50 d-block" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;">Nascimento</small>
-          <strong class="text-white small"><?= formatDate($animal['data_nascimento']) ?></strong>
-        </div>
-        <div class="bg-white bg-opacity-10 border border-white border-opacity-25 rounded-2 px-3 py-1 text-center">
-          <small class="text-white-50 d-block" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;">Pastagem</small>
-          <strong class="text-white small"><?= e($pasto['nome'] ?? '—') ?></strong>
-        </div>
-      </div>
-    </div>
-    <div class="d-flex gap-2 flex-wrap">
-      <a href="/animais/<?= $animal['id'] ?>/editar" class="btn btn-light btn-sm"><i class="bi bi-pencil me-1"></i>Editar</a>
-      <a href="/pesagens/novo?animal_id=<?= $animal['id'] ?>" class="btn btn-warning btn-sm"><i class="bi bi-rulers me-1"></i>Pesar</a>
-      <a href="/saude/novo?animal_id=<?= $animal['id'] ?>" class="btn btn-danger btn-sm"><i class="bi bi-heart-pulse me-1"></i>Saúde</a>
-      <a href="/reproducao/novo?animal_id=<?= $animal['id'] ?>" class="btn btn-info btn-sm"><i class="bi bi-diagram-3 me-1"></i>Reprodução</a>
     </div>
   </div>
 </div>
 
 <div class="row g-3">
+  <!-- Coluna Esquerda: Biometria e Genealogia -->
   <div class="col-md-3">
-    <div class="card text-center py-3">
-      <div class="card-body">
-        <div style="font-size:2.5rem;font-weight:800;color:#1a4d2e"><?= $pesoAtual ? number_format($pesoAtual,1) : '—' ?></div>
-        <div class="text-muted small">kg — Peso Atual</div>
-        <?php if (count($pesagens) >= 2): ?>
-          <?php $diff = $pesagens[0]['peso'] - $pesagens[1]['peso']; $arrow = $diff >= 0 ? '↑' : '↓'; $color = $diff >= 0 ? 'success' : 'danger'; ?>
-          <div class="text-<?= $color ?> small mt-1"><?= $arrow ?> <?= number_format(abs($diff),1) ?> kg na última</div>
-        <?php endif; ?>
+    <!-- Card de Peso Atual & Desempenho -->
+    <div class="card text-center p-3 mb-3">
+      <span class="metric-label">Peso Atual</span>
+      <div class="metric-value my-1 tabular-nums">
+        <?= $pesoAtual ? number_format($pesoAtual, 1) : '—' ?> <span style="font-size:0.9rem;font-weight:600;color:var(--text-muted);">kg</span>
       </div>
+      <?php if (count($pesagens) >= 2): ?>
+        <?php 
+          $diff = $pesagens[0]['peso'] - $pesagens[1]['peso']; 
+          $dias = max(1, (new DateTime($pesagens[0]['data']))->diff(new DateTime($pesagens[1]['data']))->days);
+          $gmd = $diff / $dias;
+        ?>
+        <div class="small fw-600 <?= $diff >= 0 ? 'text-success' : 'text-danger' ?> tabular-nums">
+          <?= $diff >= 0 ? '+' : '' ?><?= number_format($diff, 1) ?> kg na última pesagem
+          <br><small class="text-muted">(GMD: <?= number_format($gmd, 2) ?> kg/dia em <?= $dias ?>d)</small>
+        </div>
+      <?php else: ?>
+        <small class="text-muted">Apenas peso inicial/único</small>
+      <?php endif; ?>
     </div>
 
-    <!-- Memória de Filhote Card -->
+    <!-- Memória de Filhote -->
     <?php if ($fotoFilhote): ?>
-    <div class="card mt-3 border-success border-opacity-25">
-      <div class="card-header bg-success bg-opacity-10 py-2 d-flex align-items-center gap-2">
-        <i class="bi bi-stars text-success"></i><h6 class="mb-0 text-success fw-bold small">Memória de Filhote</h6>
+    <div class="card mb-3">
+      <div class="card-header py-2">
+        <h6 class="small mb-0"><i class="bi bi-stars text-success me-1"></i>Foto de Nascimento</h6>
       </div>
       <div class="card-body p-2 text-center">
-        <img src="<?= e($fotoFilhote['foto_url']) ?>" alt="Foto filhote" class="img-fluid rounded border shadow-sm mb-2" style="max-height: 140px; object-fit: cover;">
-        <div class="small text-muted"><?= formatDate($fotoFilhote['data']) ?></div>
+        <img src="<?= e($fotoFilhote['foto_url']) ?>" alt="Foto filhote" class="img-fluid rounded border mb-1" style="max-height: 140px; object-fit: cover;">
+        <small class="text-muted d-block tabular-nums"><?= formatDate($fotoFilhote['data']) ?></small>
       </div>
     </div>
     <?php endif; ?>
 
-    <div class="card mt-3">
-      <div class="card-body p-3">
-        <div class="info-label">Origem</div>
-        <div class="info-value mb-2"><?= e($animal['origem'] ?? '—') ?></div>
-        <div class="info-label">Pai (Touro)</div>
-        <div class="info-value mb-2"><?= e($animal['pai_brinco'] ?? '—') ?></div>
-        <div class="info-label">Observações</div>
-        <div class="info-value"><?= e($animal['observacao'] ?? '—') ?></div>
+    <!-- Ficha de Genealogia e Dados Gerais -->
+    <div class="card">
+      <div class="card-header py-2">
+        <h6 class="small mb-0">Genealogia & Origem</h6>
+      </div>
+      <div class="card-body p-3 small">
+        <div class="mb-2">
+          <span class="text-muted d-block">Origem</span>
+          <strong class="text-primary"><?= e($animal['origem'] ?? 'Própria fazenda') ?></strong>
+        </div>
+        <div class="mb-2">
+          <span class="text-muted d-block">Pai (Touro / Inseminação)</span>
+          <strong class="text-primary"><?= e($animal['pai_brinco'] ?? 'Não informado') ?></strong>
+        </div>
+        <div class="mb-2">
+          <span class="text-muted d-block">Mãe (Matriz)</span>
+          <strong class="text-primary"><?= e($animal['mae_brinco'] ?? 'Não informada') ?></strong>
+        </div>
+        <div>
+          <span class="text-muted d-block">Observações</span>
+          <span class="text-secondary"><?= e($animal['observacao'] ?? 'Sem observações adicionais.') ?></span>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- Coluna Direita: Curva de Peso, Histórico Clínico e Linha do Tempo -->
   <div class="col-md-9">
-    <!-- Linha do Tempo Fotográfica -->
+    <!-- Linha do Tempo Visual (Fotos) -->
     <div class="card mb-3">
       <div class="card-header justify-content-between">
         <div class="d-flex align-items-center gap-2">
-          <i class="bi bi-camera-fill text-primary"></i>
-          <h6>Galeria & Linha do Tempo Visual (<?= count($fotos) ?> fotos)</h6>
+          <i class="bi bi-camera text-secondary"></i>
+          <h6>Linha do Tempo Fotográfica (<?= count($fotos) ?> fotos)</h6>
         </div>
         <button class="btn btn-sm btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#formFotoCollapse">
           <i class="bi bi-plus-lg me-1"></i> Nova Foto
         </button>
       </div>
 
-      <!-- Formulário de Upload de Foto (Colapsável) -->
+      <!-- Upload Colapsável -->
       <div class="collapse border-bottom" id="formFotoCollapse">
-        <div class="p-3 bg-light">
+        <div class="p-3" style="background-color: var(--bg-subtle);">
           <form method="POST" action="/animais/<?= $animal['id'] ?>/foto" enctype="multipart/form-data">
             <?= csrf_field() ?>
             <div class="row g-2 align-items-end">
               <div class="col-md-4">
                 <label class="form-label small fw-bold">Arquivo de Imagem *</label>
-                <input type="file" name="foto" class="form-control form-control-sm" accept="image/*" required>
+                <input type="file" name="foto" class="form-control form-control-sm" accept="image/*" capture="environment" required>
               </div>
               <div class="col-md-3">
-                <label class="form-label small fw-bold">Tipo de Evento</label>
-                <select name="tipo_evento" class="form-select form-select-sm" id="tipoEventoSelect">
+                <label class="form-label small fw-bold">Tipo de Registro</label>
+                <select name="tipo_evento" class="form-select form-select-sm">
                   <option value="perfil">Perfil / Geral</option>
-                  <option value="nascimento">Nascimento / Filhote</option>
+                  <option value="nascimento">Nascimento / Bezerro</option>
                   <option value="pesagem">Pesagem</option>
-                  <option value="saude">Saúde / Manejo</option>
-                  <option value="obito">Óbito / Morte</option>
+                  <option value="saude">Tratamento / Manejo</option>
+                  <option value="obito">Óbito / Necropsia</option>
                 </select>
               </div>
               <div class="col-md-2">
@@ -174,16 +215,16 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
               </div>
               <div class="col-md-3">
                 <label class="form-label small fw-bold">Observação</label>
-                <input type="text" name="observacao" class="form-control form-control-sm" placeholder="Detalhes...">
+                <input type="text" name="observacao" class="form-control form-control-sm" placeholder="Opcional">
               </div>
-              <div class="col-12 mt-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div class="col-12 mt-2 d-flex justify-content-between align-items-center">
                 <div class="form-check form-switch">
                   <input class="form-check-input" type="checkbox" name="is_sensivel" value="1" id="checkSensivel">
-                  <label class="form-check-label small" for="checkSensivel">
-                    <i class="bi bi-eye-slash-fill text-warning me-1"></i> Censurar por padrão (Desfoque de conteúdo sensível / óbito)
+                  <label class="form-check-label small text-secondary" for="checkSensivel">
+                    <i class="bi bi-eye-slash text-warning me-1"></i> Censurar por padrão (conteúdo clínico/óbitio)
                   </label>
                 </div>
-                <button type="submit" class="btn btn-sm btn-success">
+                <button type="submit" class="btn btn-sm btn-primary">
                   <i class="bi bi-cloud-arrow-up me-1"></i> Salvar Foto
                 </button>
               </div>
@@ -194,10 +235,9 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
 
       <div class="card-body">
         <?php if (empty($fotos)): ?>
-          <div class="text-center text-muted py-4">
-            <i class="bi bi-images fs-2 d-block opacity-50 mb-2"></i>
-            Nenhuma foto registrada na linha do tempo deste animal.<br>
-            <small>Clique em "Nova Foto" acima para registrar nascimento, pesagem ou manejo.</small>
+          <div class="text-center text-muted py-4 small">
+            <i class="bi bi-images fs-3 d-block mb-2 text-muted"></i>
+            Nenhuma foto registrada neste prontuário.
           </div>
         <?php else: ?>
           <div class="galeria-grid">
@@ -207,38 +247,38 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
                 $tipoIconMap = [
                   'nascimento' => ['icon' => 'bi-stars', 'label' => 'Nascimento'],
                   'pesagem'    => ['icon' => 'bi-rulers', 'label' => 'Pesagem'],
-                  'saude'      => ['icon' => 'bi-heart-pulse-fill', 'label' => 'Saúde'],
-                  'obito'      => ['icon' => 'bi-exclamation-triangle-fill', 'label' => 'Óbito'],
-                  'perfil'     => ['icon' => 'bi-camera-fill', 'label' => 'Perfil']
+                  'saude'      => ['icon' => 'bi-heart-pulse', 'label' => 'Saúde'],
+                  'obito'      => ['icon' => 'bi-exclamation-triangle', 'label' => 'Óbito'],
+                  'perfil'     => ['icon' => 'bi-camera', 'label' => 'Perfil']
                 ];
-                $tipoInfo = $tipoIconMap[$f['tipo_evento']] ?? ['icon' => 'bi-image-fill', 'label' => 'Foto'];
+                $tipoInfo = $tipoIconMap[$f['tipo_evento']] ?? ['icon' => 'bi-image', 'label' => 'Foto'];
               ?>
               <div class="foto-card <?= $isCensurada ? 'foto-censurada' : '' ?>">
                 <div class="foto-thumb-container">
-                  <img src="<?= e($f['foto_url']) ?>" alt="Foto do animal" class="foto-img">
+                  <img src="<?= e($f['foto_url']) ?>" alt="Foto" class="foto-img">
                   <?php if ($isCensurada): ?>
                     <div class="foto-overlay-censura" onclick="toggleCensura(this)">
                       <i class="bi bi-eye-slash-fill"></i>
-                      <span>Conteúdo Sensível<br><small class="opacity-75">Clique para ver</small></span>
+                      <span>Conteúdo Sensível<br><small class="opacity-75">Toque para visualizar</small></span>
                     </div>
                   <?php endif; ?>
                 </div>
-                <div class="p-2 d-flex flex-column justify-content-between" style="min-height: 70px;">
+                <div class="p-2 d-flex flex-column justify-content-between" style="min-height: 65px;">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <span class="badge bg-light text-dark border small d-inline-flex align-items-center gap-1" style="font-size:.7rem;">
                       <i class="bi <?= $tipoInfo['icon'] ?>"></i> <?= $tipoInfo['label'] ?>
                     </span>
-                    <small class="text-muted" style="font-size:.72rem;"><?= formatDate($f['data']) ?></small>
+                    <small class="text-muted tabular-nums" style="font-size:.72rem;"><?= formatDate($f['data']) ?></small>
                   </div>
                   <?php if (!empty($f['observacao'])): ?>
-                    <div class="text-muted small text-truncate" title="<?= e($f['observacao']) ?>" style="font-size:.75rem;">
+                    <div class="text-secondary small text-truncate" title="<?= e($f['observacao']) ?>" style="font-size:.75rem;">
                       <?= e($f['observacao']) ?>
                     </div>
                   <?php endif; ?>
                   <div class="mt-1 pt-1 border-top d-flex justify-content-end">
-                    <form method="POST" action="/fotos/<?= $f['id'] ?>/excluir" onsubmit="return confirm('Remover esta foto?')">
+                    <form method="POST" action="/fotos/<?= $f['id'] ?>/excluir" onsubmit="return confirm('Excluir esta foto?')">
                       <?= csrf_field() ?>
-                      <button class="btn btn-link text-danger p-0 small" style="font-size:.75rem;" title="Remover"><i class="bi bi-trash"></i> Excluir</button>
+                      <button class="btn btn-link text-danger p-0 small text-decoration-none" style="font-size:.72rem;"><i class="bi bi-trash"></i> Excluir</button>
                     </form>
                   </div>
                 </div>
@@ -249,122 +289,148 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
       </div>
     </div>
 
+    <!-- Curva de Crescimento e Tabela de Pesagens -->
     <div class="card mb-3">
       <div class="card-header justify-content-between">
-        <div class="d-flex align-items-center gap-2"><i class="bi bi-graph-up text-success"></i><h6>Histórico de Peso</h6></div>
-        <a href="/pesagens/novo?animal_id=<?= $animal['id'] ?>" class="btn btn-sm btn-primary">+ Pesagem</a>
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-graph-up text-secondary"></i>
+          <h6>Curva de Ganho de Peso</h6>
+        </div>
+        <a href="/pesagens/novo?animal_id=<?= $animal['id'] ?>" class="btn btn-sm btn-primary">+ Registrar Peso</a>
       </div>
       <div class="card-body">
         <?php if (empty($chartPesagens)): ?>
-          <div class="text-center text-muted py-3">Nenhuma pesagem registrada ainda.</div>
+          <div class="text-center text-muted py-3 small">Nenhuma pesagem lançada para este animal.</div>
         <?php else: ?>
-          <div class="chart-container" style="height:180px"><canvas id="pesoHistChart"></canvas></div>
+          <div class="chart-container" style="height:170px;"><canvas id="pesoHistChart"></canvas></div>
         <?php endif; ?>
       </div>
+
       <?php if (!empty($pesagens)): ?>
       <div class="card-body border-top p-0">
-        <table class="table table-sm mb-0">
-          <thead><tr><th>Data</th><th>Peso</th><th>Ganho</th><th>Origem</th><th>Obs.</th><th class="text-end">Ações</th></tr></thead>
-          <tbody>
-            <?php foreach ($pesagens as $idx => $p): ?>
-              <?php $ganho = ($idx < count($pesagens)-1) ? ($p['peso'] - $pesagens[$idx+1]['peso']) : null; ?>
+        <div class="table-responsive" style="border:none; border-radius:0;">
+          <table class="table table-sm">
+            <thead>
               <tr>
-                <td class="small"><?= formatDate($p['data']) ?></td>
-                <td class="fw-700"><?= number_format($p['peso'],1) ?> kg</td>
-                <td class="small">
-                  <?php if ($ganho !== null): ?>
-                    <span class="text-<?= $ganho >= 0 ? 'success' : 'danger' ?>"><?= $ganho >= 0 ? '+' : '' ?><?= number_format($ganho,1) ?> kg</span>
-                  <?php else: ?>—<?php endif; ?>
-                </td>
-                <td class="small text-muted"><?= e($p['origem'] ?? 'web') ?></td>
-                <td class="small text-muted"><?= e($p['observacao'] ?? '—') ?></td>
-                <td class="text-end">
-                  <div class="d-flex justify-content-end gap-1">
-                    <a href="/pesagens/<?= $p['id'] ?>/editar" class="btn btn-sm btn-outline-primary py-0 px-2" title="Editar"><i class="bi bi-pencil"></i></a>
-                    <form method="POST" action="/pesagens/<?= $p['id'] ?>/excluir" onsubmit="return confirm('Excluir pesagem?')">
-                      <?= csrf_field() ?>
-                      <button class="btn btn-sm btn-outline-danger py-0 px-2" title="Excluir"><i class="bi bi-trash"></i></button>
-                    </form>
-                  </div>
-                </td>
+                <th>Data</th>
+                <th>Peso</th>
+                <th>Ganho</th>
+                <th>GMD (kg/dia)</th>
+                <th>Origem</th>
+                <th>Obs.</th>
+                <th class="text-end">Ações</th>
               </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              <?php foreach ($pesagens as $idx => $p): ?>
+                <?php 
+                  $ganho = ($idx < count($pesagens) - 1) ? ($p['peso'] - $pesagens[$idx + 1]['peso']) : null; 
+                  $dias  = ($idx < count($pesagens) - 1) ? max(1, (new DateTime($p['data']))->diff(new DateTime($pesagens[$idx + 1]['data']))->days) : null;
+                  $gmd   = ($ganho !== null && $dias) ? ($ganho / $dias) : null;
+                ?>
+                <tr>
+                  <td class="tabular-nums small"><?= formatDate($p['data']) ?></td>
+                  <td class="fw-bold tabular-nums"><?= number_format($p['peso'], 1) ?> <small class="text-muted">kg</small></td>
+                  <td class="tabular-nums small">
+                    <?php if ($ganho !== null): ?>
+                      <span class="<?= $ganho >= 0 ? 'text-success fw-bold' : 'text-danger fw-bold' ?>">
+                        <?= $ganho >= 0 ? '+' : '' ?><?= number_format($ganho, 1) ?> kg
+                      </span>
+                    <?php else: ?>—<?php endif; ?>
+                  </td>
+                  <td class="tabular-nums small text-secondary">
+                    <?= $gmd !== null ? number_format($gmd, 2) . ' kg/d' : '—' ?>
+                  </td>
+                  <td class="small text-muted"><?= e($p['origem'] ?? 'web') ?></td>
+                  <td class="small text-muted"><?= e($p['observacao'] ?? '—') ?></td>
+                  <td class="text-end">
+                    <div class="btn-group btn-group-sm">
+                      <a href="/pesagens/<?= $p['id'] ?>/editar" class="btn btn-secondary btn-sm" title="Editar"><i class="bi bi-pencil"></i></a>
+                      <form method="POST" action="/pesagens/<?= $p['id'] ?>/excluir" style="display:inline" onsubmit="return confirm('Excluir esta pesagem?')">
+                        <?= csrf_field() ?>
+                        <button class="btn btn-secondary btn-sm text-danger" title="Excluir"><i class="bi bi-trash"></i></button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
       </div>
       <?php endif; ?>
     </div>
 
+    <!-- Histórico Clínico & Reprodução -->
     <div class="row g-3">
       <div class="col-md-6">
         <div class="card h-100">
           <div class="card-header justify-content-between">
-            <div class="d-flex align-items-center gap-2"><i class="bi bi-heart-pulse text-danger"></i><h6>Saúde</h6></div>
-            <a href="/saude/novo?animal_id=<?= $animal['id'] ?>" class="btn btn-sm btn-outline-danger">+ Adicionar</a>
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-heart-pulse text-secondary"></i>
+              <h6>Manejo Sanitário</h6>
+            </div>
+            <a href="/saude/novo?animal_id=<?= $animal['id'] ?>" class="btn btn-sm btn-secondary">+ Adicionar</a>
           </div>
           <div class="card-body p-0">
             <?php if (empty($saude_list)): ?>
-              <div class="text-center text-muted py-3 small">Sem registros de saúde.</div>
+              <div class="text-center text-muted py-4 small">Nenhum evento sanitário registrado.</div>
             <?php else: ?>
-            <table class="table table-sm mb-0">
-              <tbody>
-                <?php foreach ($saude_list as $s): ?>
-                <tr>
-                  <td>
-                    <div class="small fw-600"><?= e($s['tipo']) ?></div>
-                    <div class="text-muted" style="font-size:.75rem"><?= e($s['descricao']) ?></div>
-                    <?php if ($s['medicamento']): ?><div class="text-info" style="font-size:.72rem"><i class="bi bi-capsule me-1"></i><?= e($s['medicamento']) ?><?= $s['dose'] ? ' ('.e($s['dose']).')' : '' ?></div><?php endif; ?>
-                  </td>
-                  <td class="text-end small text-muted text-nowrap">
-                    <div><?= formatDate($s['data']) ?></div>
-                    <div class="mt-1 d-flex justify-content-end gap-1">
-                      <a href="/saude/<?= $s['id'] ?>/editar" class="btn btn-sm btn-outline-primary py-0 px-1" title="Editar"><i class="bi bi-pencil" style="font-size:.75rem"></i></a>
-                      <form method="POST" action="/saude/<?= $s['id'] ?>/excluir" onsubmit="return confirm('Excluir registro de saúde?')">
-                        <?= csrf_field() ?>
-                        <button class="btn btn-sm btn-outline-danger py-0 px-1" title="Excluir"><i class="bi bi-trash" style="font-size:.75rem"></i></button>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-                <?php endforeach; ?>
-              </tbody>
-            </table>
+              <div class="table-responsive" style="border:none; border-radius:0;">
+                <table class="table table-sm">
+                  <tbody>
+                    <?php foreach ($saude_list as $s): ?>
+                    <tr>
+                      <td>
+                        <div class="fw-bold small"><?= e($s['tipo']) ?></div>
+                        <div class="text-secondary small"><?= e($s['descricao']) ?></div>
+                        <?php if ($s['medicamento']): ?>
+                          <div class="text-muted small mt-1"><i class="bi bi-capsule me-1"></i><?= e($s['medicamento']) ?><?= $s['dose'] ? ' ('.e($s['dose']).')' : '' ?></div>
+                        <?php endif; ?>
+                      </td>
+                      <td class="text-end small tabular-nums text-muted text-nowrap">
+                        <?= formatDate($s['data']) ?>
+                      </td>
+                    </tr>
+                    <?php endforeach; ?>
+                  </tbody>
+                </table>
+              </div>
             <?php endif; ?>
           </div>
         </div>
       </div>
+
       <div class="col-md-6">
         <div class="card h-100">
           <div class="card-header justify-content-between">
-            <div class="d-flex align-items-center gap-2"><i class="bi bi-diagram-3 text-info"></i><h6>Reprodução</h6></div>
-            <a href="/reproducao/novo?animal_id=<?= $animal['id'] ?>" class="btn btn-sm btn-outline-info">+ Adicionar</a>
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-diagram-3 text-secondary"></i>
+              <h6>Histórico Reprodutivo</h6>
+            </div>
+            <a href="/reproducao/novo?animal_id=<?= $animal['id'] ?>" class="btn btn-sm btn-secondary">+ Adicionar</a>
           </div>
           <div class="card-body p-0">
             <?php if (empty($repro_list)): ?>
-              <div class="text-center text-muted py-3 small">Sem registros reprodutivos.</div>
+              <div class="text-center text-muted py-4 small">Nenhum evento reprodutivo registrado.</div>
             <?php else: ?>
-            <table class="table table-sm mb-0">
-              <tbody>
-                <?php foreach ($repro_list as $r): ?>
-                <tr>
-                  <td>
-                    <div class="small fw-600"><?= e($r['tipo']) ?></div>
-                    <div class="text-muted" style="font-size:.75rem"><?= e($r['resultado'] ?? '—') ?></div>
-                  </td>
-                  <td class="text-end small text-muted text-nowrap">
-                    <div><?= formatDate($r['data']) ?></div>
-                    <div class="mt-1 d-flex justify-content-end gap-1">
-                      <a href="/reproducao/<?= $r['id'] ?>/editar" class="btn btn-sm btn-outline-primary py-0 px-1" title="Editar"><i class="bi bi-pencil" style="font-size:.75rem"></i></a>
-                      <form method="POST" action="/reproducao/<?= $r['id'] ?>/excluir" onsubmit="return confirm('Excluir registro reprodutivo?')">
-                        <?= csrf_field() ?>
-                        <button class="btn btn-sm btn-outline-danger py-0 px-1" title="Excluir"><i class="bi bi-trash" style="font-size:.75rem"></i></button>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-                <?php endforeach; ?>
-              </tbody>
-            </table>
+              <div class="table-responsive" style="border:none; border-radius:0;">
+                <table class="table table-sm">
+                  <tbody>
+                    <?php foreach ($repro_list as $r): ?>
+                    <tr>
+                      <td>
+                        <div class="fw-bold small"><?= e($r['tipo']) ?></div>
+                        <div class="text-secondary small"><?= e($r['resultado'] ?? '—') ?></div>
+                      </td>
+                      <td class="text-end small tabular-nums text-muted text-nowrap">
+                        <?= formatDate($r['data']) ?>
+                      </td>
+                    </tr>
+                    <?php endforeach; ?>
+                  </tbody>
+                </table>
+              </div>
             <?php endif; ?>
           </div>
         </div>
@@ -386,7 +452,46 @@ function toggleCensura(el) {
 <?php if (!empty($chartPesagens)):
 $scripts = <<<JS
 <script>
-new Chart(document.getElementById('pesoHistChart'),{type:'line',data:{labels:$chartLabels,datasets:[{label:'Peso (kg)',data:$chartData,borderColor:'#2d7a4e',backgroundColor:'rgba(45,122,78,0.07)',tension:0.35,fill:true,pointRadius:4,pointBackgroundColor:'#2d7a4e'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:false,grid:{color:'#f0f4f0'}},x:{grid:{display:false}}}}});
+new Chart(document.getElementById('pesoHistChart'), {
+  type: 'line',
+  data: {
+    labels: $chartLabels,
+    datasets: [{
+      label: 'Peso (kg)',
+      data: $chartData,
+      borderColor: '#33592a',
+      backgroundColor: 'rgba(51, 89, 42, 0.08)',
+      borderWidth: 2,
+      tension: 0.25,
+      fill: true,
+      pointRadius: 3,
+      pointBackgroundColor: '#33592a'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1c1917',
+        titleFont: { family: 'Inter', size: 11 },
+        bodyFont: { family: 'Inter', size: 11 }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: false,
+        grid: { color: '#e6e4dc' },
+        ticks: { font: { family: 'Inter', size: 10 }, color: '#78716c' }
+      },
+      x: {
+        grid: { display: false },
+        ticks: { font: { family: 'Inter', size: 10 }, color: '#78716c' }
+      }
+    }
+  }
+});
 </script>
 JS;
 endif;
