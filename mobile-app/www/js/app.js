@@ -191,22 +191,125 @@ function saveAnimalToCache(animal) {
   if (!exists) {
     list.push(animal);
     localStorage.setItem(STORAGE_ANIMALS_KEY, JSON.stringify(list));
-    renderAnimalsDatalist();
+    renderQuickEarringChips();
   }
 }
 
 function setCachedAnimals(animals) {
   localStorage.setItem(STORAGE_ANIMALS_KEY, JSON.stringify(animals));
-  renderAnimalsDatalist();
+  renderQuickEarringChips();
 }
 
-function renderAnimalsDatalist() {
-  const datalist = document.getElementById('animaisListApp');
-  if (!datalist) return;
-  const list = getCachedAnimals();
-  datalist.innerHTML = list.map(a => 
-    `<option value="${a.brinco}">${a.nome ? a.nome + ' — ' : ''}${a.raca || ''} (${a.sexo === 'M' ? 'Macho' : 'Fêmea'})</option>`
-  ).join('');
+// ── 4.1 Autocomplete Tátil Compacto com Rolagem (Substitui Datalist) ──
+function handleEarringFocus(input, dropdownId, nextFocusId) {
+  renderEarringDropdown(dropdownId, input.id, input.value.trim(), nextFocusId);
+}
+
+function handleEarringInput(input, dropdownId, nextFocusId) {
+  input.value = input.value.toUpperCase();
+  renderEarringDropdown(dropdownId, input.id, input.value.trim(), nextFocusId);
+}
+
+function renderEarringDropdown(dropdownId, inputId, query, nextFocusId) {
+  const dropdown = document.getElementById(dropdownId);
+  if (!dropdown) return;
+
+  const animals = getCachedAnimals();
+  const q = (query || '').toUpperCase();
+
+  // Filtra por brinco ou nome
+  const matches = animals.filter(a => 
+    (a.brinco && a.brinco.toUpperCase().includes(q)) ||
+    (a.nome && a.nome.toUpperCase().includes(q))
+  );
+
+  if (matches.length === 0) {
+    dropdown.innerHTML = `
+      <div class="earring-empty-hint">
+        ${q ? `Nenhum animal cadastrado com brinco "<strong>${q}</strong>".<br><span class="text-success fw-bold">Pode prosseguir para novo registro.</span>` : 'Nenhum animal na memória local.'}
+      </div>
+    `;
+    dropdown.style.display = 'block';
+    return;
+  }
+
+  // Renderiza correspondências com altura travada em 185px (rolagem suave)
+  dropdown.innerHTML = matches.slice(0, 40).map(a => `
+    <button type="button" class="earring-item-btn" onclick="selectEarring('${dropdownId}', '${inputId}', '${a.brinco}', '${nextFocusId || ''}')">
+      <span class="earring-item-code">
+        <i class="bi bi-tag-fill text-success" style="font-size: 0.95rem;"></i>
+        ${a.brinco}
+        ${a.nome ? `<span class="text-secondary fw-normal ms-1" style="font-size: 0.85rem;">(${a.nome})</span>` : ''}
+      </span>
+      <span class="earring-item-meta">
+        ${a.raca || 'Nelore'} • ${a.sexo === 'M' ? 'M' : 'F'}
+      </span>
+    </button>
+  `).join('');
+
+  dropdown.style.display = 'block';
+}
+
+function selectEarring(dropdownId, inputId, brinco, nextFocusId) {
+  const input = document.getElementById(inputId);
+  if (input) {
+    input.value = brinco;
+  }
+  
+  const dropdown = document.getElementById(dropdownId);
+  if (dropdown) {
+    dropdown.style.display = 'none';
+  }
+
+  // Vibração tátil instantânea
+  if (navigator.vibrate) navigator.vibrate(30);
+
+  // Pula foco automaticamente para o próximo campo
+  if (nextFocusId) {
+    const nextEl = document.getElementById(nextFocusId);
+    if (nextEl) {
+      setTimeout(() => {
+        nextEl.focus();
+        if (nextEl.select) nextEl.select();
+      }, 120);
+    }
+  }
+}
+
+function clearEarringInput(inputId, dropdownId) {
+  const input = document.getElementById(inputId);
+  if (input) {
+    input.value = '';
+    input.focus();
+  }
+  const dropdown = document.getElementById(dropdownId);
+  if (dropdown) {
+    dropdown.style.display = 'none';
+  }
+}
+
+function renderQuickEarringChips() {
+  const containers = ['p_quick_chips', 's_quick_chips'];
+  const animals = getCachedAnimals();
+  if (!animals || animals.length === 0) return;
+
+  const topChips = animals.slice(0, 6);
+  containers.forEach(cId => {
+    const el = document.getElementById(cId);
+    if (!el) return;
+    const targetInputId = cId.startsWith('p_') ? 'p_brinco' : 's_brinco';
+    const targetDropdownId = cId.startsWith('p_') ? 'p_brinco_dropdown' : 's_brinco_dropdown';
+    const nextFocusId = cId.startsWith('p_') ? 'p_peso' : 's_desc';
+
+    el.innerHTML = `
+      <span class="small text-muted me-1 fw-bold" style="font-size:0.7rem; text-transform:uppercase;">Recentes:</span>
+      ${topChips.map(a => `
+        <button type="button" class="quick-chip-btn" onclick="selectEarring('${targetDropdownId}', '${targetInputId}', '${a.brinco}', '${nextFocusId}')">
+          <i class="bi bi-arrow-right-short text-success"></i>${a.brinco}
+        </button>
+      `).join('')}
+    `;
+  });
 }
 
 // ── 5. Compressão de Fotos com Canvas ──────────────────────────
@@ -790,8 +893,10 @@ async function handleAppPesagem(e) {
     document.getElementById('formAppPesagem').reset();
     removeFotoPreview('p_foto', 'preview_p');
     document.getElementById('p_data').value = new Date().toISOString().split('T')[0];
+    renderQuickEarringChips();
 
-    if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
+    // Vibração firme de confirmação de curral
+    if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
     showToast(`Pesagem de ${peso}kg salva no celular!`, 'success');
   } catch (err) {
     showToast('Erro ao salvar: ' + err.message, 'danger');
@@ -820,8 +925,10 @@ async function handleAppBezerro(e) {
     removeFotoPreview('b_foto', 'preview_b');
     document.getElementById('b_data').value = new Date().toISOString().split('T')[0];
     document.getElementById('b_raca').value = 'Nelore';
+    renderQuickEarringChips();
 
-    if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
+    // Vibração firme de confirmação de curral
+    if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
     showToast(`Bezerro ${brinco} salvo no celular!`, 'success');
   } catch (err) {
     showToast('Erro ao salvar: ' + err.message, 'danger');
@@ -849,8 +956,10 @@ async function handleAppSaude(e) {
     
     document.getElementById('formAppSaude').reset();
     removeFotoPreview('s_foto', 'preview_s');
+    renderQuickEarringChips();
 
-    if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
+    // Vibração firme de confirmação de curral
+    if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
     showToast(`Evento de ${tipo} para ${brinco} salvo no celular!`, 'success');
   } catch (err) {
     showToast('Erro ao salvar: ' + err.message, 'danger');
@@ -859,19 +968,27 @@ async function handleAppSaude(e) {
 
 // ── 12. Inicialização do App ───────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  initDarkMode();
   renderStatusBadge(false);
-  renderAnimalsDatalist();
+  renderQuickEarringChips();
   updatePendingBadge();
   renderQueueCards();
   renderRecentHistories();
+
+  // Fecha dropdowns de autocompletar ao tocar fora
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.position-relative')) {
+      document.querySelectorAll('.earring-autocomplete-dropdown').forEach(el => el.style.display = 'none');
+    }
+  });
 
   // Datas padrão
   const hoje = new Date().toISOString().split('T')[0];
   const pData = document.getElementById('p_data');
   const bData = document.getElementById('b_data');
+  const sData = document.getElementById('s_data');
   if (pData) pData.value = hoje;
   if (bData) bData.value = hoje;
+  if (sData) sData.value = hoje;
 
   // Checa conexão em segundo plano
   setTimeout(() => {

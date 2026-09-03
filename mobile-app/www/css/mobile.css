@@ -221,63 +221,174 @@ input, textarea, select, button, .touch-input-lg, .campo-nav-btn {
   padding: 1rem;
 }
 
-/* ── Controles e Inputs Táteis de Curral ── */
+/* ── Controles e Inputs Táteis de Curral (Alto Contraste Sob Sol) ── */
 .form-label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  margin-bottom: 0.25rem;
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: #12220e;
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .form-control, .form-select {
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-strong);
+  background-color: #ffffff;
+  border: 1.5px solid var(--border-strong);
   border-radius: var(--radius-sm);
-  color: var(--text-primary);
-  font-size: 0.92rem;
-  padding: 0.5rem 0.75rem;
+  color: #000000;
+  font-size: 0.95rem;
+  padding: 0.6rem 0.85rem;
   transition: border-color 150ms ease-out;
 }
 .form-control:focus, .form-select:focus {
-  border-color: var(--border-focus);
+  border-color: #12220e;
   outline: none;
-  box-shadow: 0 0 0 3px rgba(51, 89, 42, 0.12);
-  background-color: var(--bg-surface);
+  box-shadow: 0 0 0 3px rgba(18, 34, 14, 0.18);
+  background-color: #ffffff;
 }
 
 .input-group-text {
   background-color: var(--bg-subtle);
-  border-color: var(--border-strong);
-  color: var(--text-secondary);
-  font-size: 0.85rem;
+  border: 1.5px solid var(--border-strong);
+  color: #12220e;
+  font-size: 0.95rem;
+  font-weight: 800;
   border-radius: var(--radius-sm);
 }
 
+/* Inputs gigantes e de alto contraste contra o reflexo solar */
 .touch-input-lg {
-  font-size: 1.25rem !important;
-  font-weight: 700 !important;
-  padding: 12px 14px !important;
+  height: 56px !important;
+  font-size: 1.35rem !important;
+  font-weight: 800 !important;
+  color: #000000 !important;
+  background-color: #ffffff !important;
+  border: 2px solid #26441f !important;
   border-radius: var(--radius-sm) !important;
-  border: 1px solid var(--border-strong) !important;
+  padding: 10px 14px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   letter-spacing: -0.01em;
 }
+.touch-input-lg:focus {
+  border-color: #12220e !important;
+  box-shadow: 0 0 0 4px rgba(38, 68, 31, 0.25) !important;
+  outline: none !important;
+}
 
+/* Botões com altura de curral (glove-friendly: 56px) */
 .touch-btn-submit {
-  padding: 13px 18px;
-  font-size: 1.02rem;
-  font-weight: 700;
+  min-height: 56px;
+  padding: 14px 20px;
+  font-size: 1.1rem;
+  font-weight: 800;
   border-radius: var(--radius-sm);
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  border: 1px solid transparent;
+  gap: 10px;
   cursor: pointer;
-  transition: all 150ms ease-out;
+  border: 1px solid transparent;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  transition: transform 80ms ease-out, filter 150ms ease-out;
+  letter-spacing: -0.01em;
 }
 .touch-btn-submit:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
+  filter: brightness(0.9);
+}
+
+/* ── Autocomplete Tátil Compacto com Rolagem (Substitui Datalist) ── */
+.earring-autocomplete-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 185px; /* Altura calibrada: exibe ~4 itens e rola suavemente */
+  overflow-y: auto;
+  background: #ffffff;
+  border: 2px solid #26441f;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  z-index: 1050;
+  -webkit-overflow-scrolling: touch;
+}
+.earring-item-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  width: 100%;
+  text-align: left;
+  background: #ffffff;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  cursor: pointer;
+  transition: background-color 100ms ease;
+}
+.earring-item-btn:last-child {
+  border-bottom: none;
+}
+.earring-item-btn:active, .earring-item-btn:hover {
+  background-color: var(--earth-green-50);
+}
+.earring-item-code {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #000000;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.earring-item-meta {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--earth-green-800);
+  background: var(--earth-green-100);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.earring-empty-hint {
+  padding: 12px 14px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-align: center;
+  font-weight: 600;
+}
+
+/* ── Chips de Brincos Recentes ── */
+.quick-chips-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 4px 0 6px 0;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+.quick-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-xs);
+  background: #ffffff;
+  border: 1.5px solid var(--border-strong);
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #12220e;
+  cursor: pointer;
+  transition: all 120ms ease;
+  font-variant-numeric: tabular-nums;
+}
+.quick-chip-btn:active {
+  background: var(--earth-green-100);
+  border-color: #26441f;
+  transform: scale(0.96);
 }
 
 .btn-pesagem {

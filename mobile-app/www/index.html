@@ -63,9 +63,6 @@
       </button>
     </div>
 
-    <!-- Datalist para autocompletar de brincos (armazenado nativamente) -->
-    <datalist id="animaisListApp"></datalist>
-
     <!-- ============================================================ -->
     <!-- ABA 1: REGISTRO DE PESAGEM -->
     <!-- ============================================================ -->
@@ -80,14 +77,22 @@
         </div>
         <div class="card-body p-3">
           <form id="formAppPesagem" onsubmit="handleAppPesagem(event)">
-            <div class="mb-3">
-              <label class="form-label fw-bold small">Brinco do Animal *</label>
+            <div class="mb-3 position-relative">
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <label class="form-label mb-0">Brinco do Animal *</label>
+                <small class="text-muted fw-bold" style="font-size:0.72rem;">Lista Compacta</small>
+              </div>
               <div class="input-group">
-                <input type="text" id="p_brinco" class="form-control touch-input-lg text-uppercase" list="animaisListApp" required placeholder="Digite ou selecione o brinco" autocomplete="off" inputmode="text" oninput="this.value = this.value.toUpperCase()">
-                <button type="button" class="btn btn-outline-secondary px-3" onclick="document.getElementById('p_brinco').value=''; document.getElementById('p_brinco').focus();" title="Limpar campo">
+                <input type="text" id="p_brinco" class="form-control touch-input-lg text-uppercase" required placeholder="DIGITE O BRINCO..." autocomplete="off" inputmode="text" oninput="handleEarringInput(this, 'p_brinco_dropdown', 'p_peso')" onfocus="handleEarringFocus(this, 'p_brinco_dropdown', 'p_peso')">
+                <button type="button" class="btn btn-outline-secondary px-3" onclick="clearEarringInput('p_brinco', 'p_brinco_dropdown')" title="Limpar campo">
                   <i class="bi bi-x-lg"></i>
                 </button>
               </div>
+              <!-- Dropdown Tátil Compacto com Rolagem (Máx 185px) -->
+              <div id="p_brinco_dropdown" class="earring-autocomplete-dropdown"></div>
+
+              <!-- Pílulas Rápidas de Brincos Recentes do Lote -->
+              <div class="quick-chips-bar" id="p_quick_chips"></div>
             </div>
             <div class="mb-3">
               <label class="form-label fw-bold small">Peso Atual (kg) *</label>
@@ -215,14 +220,22 @@
         </div>
         <div class="card-body p-3">
           <form id="formAppSaude" onsubmit="handleAppSaude(event)">
-            <div class="mb-3">
-              <label class="form-label fw-bold small">Brinco do Animal *</label>
+            <div class="mb-3 position-relative">
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <label class="form-label mb-0">Brinco do Animal *</label>
+                <small class="text-muted fw-bold" style="font-size:0.72rem;">Lista Compacta</small>
+              </div>
               <div class="input-group">
-                <input type="text" id="s_brinco" class="form-control touch-input-lg text-uppercase" list="animaisListApp" required placeholder="Selecione ou digite o brinco" autocomplete="off" oninput="this.value = this.value.toUpperCase()">
-                <button type="button" class="btn btn-outline-secondary px-3" onclick="document.getElementById('s_brinco').value=''; document.getElementById('s_brinco').focus();" title="Limpar campo">
+                <input type="text" id="s_brinco" class="form-control touch-input-lg text-uppercase" required placeholder="DIGITE O BRINCO..." autocomplete="off" inputmode="text" oninput="handleEarringInput(this, 's_brinco_dropdown', 's_desc')" onfocus="handleEarringFocus(this, 's_brinco_dropdown', 's_desc')">
+                <button type="button" class="btn btn-outline-secondary px-3" onclick="clearEarringInput('s_brinco', 's_brinco_dropdown')" title="Limpar campo">
                   <i class="bi bi-x-lg"></i>
                 </button>
               </div>
+              <!-- Dropdown Tátil Compacto com Rolagem (Máx 185px) -->
+              <div id="s_brinco_dropdown" class="earring-autocomplete-dropdown"></div>
+
+              <!-- Pílulas Rápidas de Brincos Recentes -->
+              <div class="quick-chips-bar" id="s_quick_chips"></div>
             </div>
             <div class="row g-2 mb-3">
               <div class="col-6">
