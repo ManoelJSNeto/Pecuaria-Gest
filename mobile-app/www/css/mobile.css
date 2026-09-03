@@ -1,56 +1,85 @@
 /* ============================================================
-   PecuáriaGest Campo — CSS Nativo Mobile, Cores & UX Tátil
+   PecuáriaGest Campo — CSS Nativo Mobile
+   Design System Unificado: Verde Terroso, Alta Densidade,
+   Ergonomia Tátil de Curral e Numerais Tabulares
    ============================================================ */
 
 :root {
-  --green-dark: #1a4d2e;
-  --green-mid: #2d7a4e;
-  --green-light: #4caf78;
-  --green-pale: #e8f5ee;
-  
-  --bg-app: #f1f5f9;
-  --bg-card: #ffffff;
-  --bg-surface: #ffffff;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --border-color: #cbd5e1;
-  --input-bg: #ffffff;
-  
-  --pesagem-color: #d97706;
-  --pesagem-bg: #fef3c7;
-  --bezerro-color: #16a34a;
-  --bezerro-bg: #dcfce7;
-  --saude-color: #dc2626;
-  --saude-bg: #fee2e2;
-  --fila-color: #2563eb;
-  --fila-bg: #dbeafe;
+  /* ── Paleta Verde Terroso (Paridade 100% com a Web) ── */
+  --earth-green-950: #12220e;
+  --earth-green-900: #1b3116;
+  --earth-green-800: #26441f;
+  --earth-green-700: #33592a;
+  --earth-green-600: #427037;
+  --earth-green-500: #558b47;
+  --earth-green-100: #e8f0e5;
+  --earth-green-50:  #f3f7f1;
+
+  /* ── Superfícies e Fundos Neutros Quentes ── */
+  --bg-app:        #f7f7f5;
+  --bg-surface:    #ffffff;
+  --bg-subtle:     #f2f1ed;
+  --bg-hover:      #ecebe5;
+
+  /* ── Bordas Estruturais Nítidas (1px) ── */
+  --border-subtle: #e6e4dc;
+  --border-strong: #d2cfc3;
+  --border-focus:  #33592a;
+
+  /* ── Tipografia de Alto Contraste ── */
+  --text-primary:   #1c1917;
+  --text-secondary: #44403c;
+  --text-muted:     #78716c;
+  --text-inverse:   #ffffff;
+
+  /* ── Cores Temáticas de Manejo de Campo ── */
+  --pesagem-color:  #92400e;
+  --pesagem-bg:     #fef3c7;
+  --pesagem-border: #fde68a;
+
+  --bezerro-color:  #234d1b;
+  --bezerro-bg:     #edf5ea;
+  --bezerro-border: #c6dfbd;
+
+  --saude-color:    #991b1b;
+  --saude-bg:       #fdf2f2;
+  --saude-border:   #f8c9c9;
+
+  --fila-color:     #1e3a5f;
+  --fila-bg:        #e8f0f8;
+  --fila-border:    #c5d7ea;
+
+  /* ── Raios Compactos ── */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+
+  /* ── Sombras Sutis (Sem AI Bloat) ── */
+  --shadow-subtle: 0 1px 2px rgba(28, 25, 23, 0.05);
+  --shadow-card:   0 1px 3px rgba(28, 25, 23, 0.06), 0 1px 2px rgba(28, 25, 23, 0.03);
 }
 
-/* ── Modo Escuro Coeso e Profissional ── */
-body.dark-mode {
-  --bg-app: #090d16;
-  --bg-card: #151e2e;
-  --bg-surface: #151e2e;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --border-color: #283548;
-  --input-bg: #0b111e;
-  
-  --pesagem-bg: #381f08;
-  --bezerro-bg: #072a15;
-  --saude-bg: #3a0a0a;
-  --fila-bg: #0f274a;
+/* ── Base e Tipografia ── */
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--bg-app);
-  color: var(--text-main);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   margin: 0;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  transition: background 0.2s ease, color 0.2s ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Numerais tabulares no celular para alinhar pesos e brincos */
+.tabular-nums, input[type="number"], .stat-value, .badge, strong {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
 }
 
 input, textarea, select, button, .touch-input-lg, .campo-nav-btn {
@@ -59,82 +88,42 @@ input, textarea, select, button, .touch-input-lg, .campo-nav-btn {
   touch-action: manipulation !important;
 }
 
+/* ── Container do App Mobile ── */
 .mobile-app-wrapper {
-  max-width: 600px;
+  max-width: 580px;
   margin: 0 auto;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   background: var(--bg-surface);
-  box-shadow: 0 0 24px rgba(0,0,0,0.1);
+  border-left: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-subtle);
 }
 
+/* ── Header Superior Nativo ── */
 .mobile-top-header {
-  background: linear-gradient(135deg, #123820 0%, #1c5234 100%);
+  background-color: var(--earth-green-950);
   color: #ffffff;
-  padding: 0.85rem 1rem;
+  padding: 0.75rem 1rem;
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .mobile-content {
-  padding: 1rem;
+  padding: 0.85rem;
   flex: 1;
 }
 
 .status-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   display: inline-block;
 }
-.status-dot.online { background-color: #10b981; box-shadow: 0 0 6px #10b981; }
-.status-dot.offline { background-color: #ef4444; box-shadow: 0 0 6px #ef4444; }
-
-/* ── Cards do Bootstrap no Tema ── */
-.card {
-  background-color: var(--bg-card) !important;
-  color: var(--text-main) !important;
-  border-color: var(--border-color) !important;
-  border-radius: 14px;
-  overflow: hidden;
-}
-
-body.dark-mode .card-header.bg-warning.bg-opacity-25 {
-  background: #3d2906 !important;
-}
-body.dark-mode .card-header.bg-warning.bg-opacity-25 .text-dark,
-body.dark-mode .card-header.bg-warning.bg-opacity-25 h6 {
-  color: #fef08a !important;
-}
-
-body.dark-mode .modal-content {
-  background-color: var(--bg-card);
-  color: var(--text-main);
-  border-color: var(--border-color);
-}
-body.dark-mode .modal-footer {
-  border-top-color: var(--border-color);
-}
-
-/* ── Inputs e Controles no Tema ── */
-.form-control, .form-select {
-  background-color: var(--input-bg) !important;
-  color: var(--text-main) !important;
-  border-color: var(--border-color) !important;
-}
-.form-control:focus, .form-select:focus {
-  background-color: var(--input-bg) !important;
-  color: var(--text-main) !important;
-  border-color: #16a34a !important;
-}
-.input-group-text {
-  background-color: var(--bg-app) !important;
-  color: var(--text-muted) !important;
-  border-color: var(--border-color) !important;
-}
+.status-dot.online  { background-color: #22c55e; }
+.status-dot.offline { background-color: #ef4444; }
 
 /* ── Barra de Abas Táteis ── */
 .campo-nav-bar {
@@ -149,49 +138,50 @@ body.dark-mode .modal-footer {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 10px 4px;
-  border-radius: 12px;
-  border: 2px solid var(--border-color);
-  background: var(--bg-card);
-  color: var(--text-muted);
+  padding: 8px 4px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
   font-weight: 700;
   font-size: 0.78rem;
   cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: all 150ms ease-out;
   text-align: center;
 }
 .campo-nav-btn .tab-icon {
-  font-size: 1.35rem;
-  margin-bottom: 3px;
+  font-size: 1.25rem;
+  margin-bottom: 2px;
   line-height: 1;
 }
 .campo-nav-btn:active {
-  transform: scale(0.96);
+  transform: scale(0.97);
 }
+
+/* Abas ativas com cores de manejo funcionais */
 .campo-nav-btn.active.btn-tab-pesagem {
-  background: #d97706;
-  border-color: #d97706;
-  color: #ffffff;
-  box-shadow: 0 3px 10px rgba(217, 119, 6, 0.25);
+  background: var(--pesagem-bg);
+  border-color: var(--pesagem-border);
+  color: var(--pesagem-color);
+  font-weight: 800;
 }
 .campo-nav-btn.active.btn-tab-bezerro {
-  background: #16a34a;
-  border-color: #16a34a;
-  color: #ffffff;
-  box-shadow: 0 3px 10px rgba(22, 163, 74, 0.25);
+  background: var(--bezerro-bg);
+  border-color: var(--bezerro-border);
+  color: var(--bezerro-color);
+  font-weight: 800;
 }
 .campo-nav-btn.active.btn-tab-saude {
-  background: #dc2626;
-  border-color: #dc2626;
-  color: #ffffff;
-  box-shadow: 0 3px 10px rgba(220, 38, 38, 0.25);
+  background: var(--saude-bg);
+  border-color: var(--saude-border);
+  color: var(--saude-color);
+  font-weight: 800;
 }
 .campo-nav-btn.active.btn-tab-fila {
-  background: #2563eb;
-  border-color: #2563eb;
-  color: #ffffff;
-  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.25);
+  background: var(--fila-bg);
+  border-color: var(--fila-border);
+  color: var(--fila-color);
+  font-weight: 800;
 }
 
 .campo-tab-pane {
@@ -199,60 +189,141 @@ body.dark-mode .modal-footer {
 }
 .campo-tab-pane.active {
   display: block;
-  animation: fadeInPane 0.2s ease;
 }
 
-@keyframes fadeInPane {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+/* ── Cartões de Formulário do Manejo ── */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-subtle);
+  margin-bottom: 1rem;
+  overflow: hidden;
 }
 
-/* ── Inputs e Botões Táteis ── */
-.touch-input-lg {
-  font-size: 1.18rem !important;
+.card-header {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-header h6 {
+  margin: 0;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 0.92rem;
+}
+
+.card-body {
+  padding: 1rem;
+}
+
+/* ── Controles e Inputs Táteis de Curral ── */
+.form-label {
+  font-size: 0.8rem;
   font-weight: 600;
-  padding: 12px 14px !important;
-  border-radius: 10px;
-  border: 2px solid var(--border-color);
-  background: var(--input-bg);
-  color: var(--text-main);
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
 }
-.touch-input-lg:focus {
-  border-color: #16a34a;
-  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2);
+
+.form-control, .form-select {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.92rem;
+  padding: 0.5rem 0.75rem;
+  transition: border-color 150ms ease-out;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--border-focus);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(51, 89, 42, 0.12);
+  background-color: var(--bg-surface);
+}
+
+.input-group-text {
+  background-color: var(--bg-subtle);
+  border-color: var(--border-strong);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  border-radius: var(--radius-sm);
+}
+
+.touch-input-lg {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  padding: 12px 14px !important;
+  border-radius: var(--radius-sm) !important;
+  border: 1px solid var(--border-strong) !important;
+  letter-spacing: -0.01em;
 }
 
 .touch-btn-submit {
-  padding: 14px 20px;
-  font-size: 1.08rem;
-  font-weight: 800;
-  border-radius: 12px;
+  padding: 13px 18px;
+  font-size: 1.02rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-  transition: transform 0.1s ease;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 150ms ease-out;
 }
 .touch-btn-submit:active {
   transform: scale(0.98);
+}
+
+.btn-pesagem {
+  background-color: var(--pesagem-color);
+  border-color: var(--pesagem-color);
+  color: #ffffff;
+}
+.btn-pesagem:hover, .btn-pesagem:active {
+  background-color: #78350f;
+  color: #ffffff;
+}
+
+.btn-bezerro {
+  background-color: var(--earth-green-700);
+  border-color: var(--earth-green-700);
+  color: #ffffff;
+}
+.btn-bezerro:hover, .btn-bezerro:active {
+  background-color: var(--earth-green-800);
+  color: #ffffff;
+}
+
+.btn-saude {
+  background-color: var(--saude-color);
+  border-color: var(--saude-color);
+  color: #ffffff;
+}
+.btn-saude:hover, .btn-saude:active {
+  background-color: #7f1d1d;
+  color: #ffffff;
 }
 
 /* ── Preview de Foto ── */
 .foto-preview-box {
   display: none;
   position: relative;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
-  max-height: 180px;
+  max-height: 170px;
   margin-top: 8px;
-  border: 2px dashed var(--border-color);
-  background: var(--bg-card);
+  border: 1px dashed var(--border-strong);
+  background: var(--bg-subtle);
   text-align: center;
 }
 .foto-preview-box img {
-  max-height: 175px;
+  max-height: 165px;
   width: auto;
   max-width: 100%;
   object-fit: cover;
@@ -261,54 +332,51 @@ body.dark-mode .modal-footer {
   position: absolute;
   top: 6px;
   right: 6px;
-  background: rgba(0,0,0,0.75);
-  color: #fff;
+  background: rgba(28, 25, 23, 0.85);
+  color: #ffffff;
   border: none;
   border-radius: 50%;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
 }
 
-/* ── Cards da Fila Visual ── */
+/* ── Cards da Fila Visual Offline ── */
 .queue-card {
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-card);
-  margin-bottom: 10px;
-  padding: 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  margin-bottom: 8px;
+  padding: 10px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-  transition: transform 0.15s ease;
+  gap: 10px;
+  box-shadow: var(--shadow-subtle);
 }
-.queue-card:hover {
-  transform: translateY(-1px);
-}
-.queue-card.tipo-pesagem { border-left: 5px solid var(--pesagem-color); }
-.queue-card.tipo-animal  { border-left: 5px solid var(--bezerro-color); }
-.queue-card.tipo-saude   { border-left: 5px solid var(--saude-color); }
+.queue-card.tipo-pesagem { border-left: 4px solid var(--pesagem-color); }
+.queue-card.tipo-animal  { border-left: 4px solid var(--bezerro-color); }
+.queue-card.tipo-saude   { border-left: 4px solid var(--saude-color); }
 
 .queue-thumb {
-  width: 52px;
-  height: 52px;
-  border-radius: 8px;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-xs);
   object-fit: cover;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-subtle);
+  flex-shrink: 0;
 }
 .queue-icon-box {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-xs);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.3rem;
+  font-size: 1.15rem;
   flex-shrink: 0;
 }
 .queue-icon-pesagem { background: var(--pesagem-bg); color: var(--pesagem-color); }
@@ -321,33 +389,33 @@ body.dark-mode .modal-footer {
 }
 .queue-title {
   font-weight: 700;
-  font-size: 0.95rem;
-  margin-bottom: 2px;
-  color: var(--text-main);
+  font-size: 0.92rem;
+  margin-bottom: 1px;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .queue-sub {
-  font-size: 0.78rem;
-  color: var(--text-muted);
+  font-size: 0.76rem;
+  color: var(--text-secondary);
 }
 
-/* ── Histórico Rápido Local ── */
+/* ── Histórico Rápido Local (Sessão) ── */
 .recent-history-box {
-  margin-top: 1.25rem;
-  padding: 12px;
-  border-radius: 12px;
-  background: var(--bg-card);
-  border: 1px dashed var(--border-color);
+  margin-top: 1rem;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  border: 1px dashed var(--border-subtle);
 }
 .recent-history-title {
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
   color: var(--text-muted);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -355,39 +423,51 @@ body.dark-mode .modal-footer {
 .recent-item-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border-radius: 8px;
-  background: var(--bg-app);
-  border: 1px solid var(--border-color);
-  font-size: 0.82rem;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: var(--radius-xs);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  font-size: 0.8rem;
   font-weight: 600;
-  margin-right: 6px;
-  margin-bottom: 6px;
-  color: var(--text-main);
+  margin-right: 4px;
+  margin-bottom: 4px;
+  color: var(--text-primary);
 }
 
-/* ── Barra de Progresso de Sync ── */
+/* ── Overlay de Sincronização ── */
 .sync-progress-overlay {
   display: none;
-  background: rgba(0,0,0,0.6);
+  background: rgba(18, 34, 14, 0.75);
   backdrop-filter: blur(2px);
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   z-index: 1050;
   align-items: center;
   justify-content: center;
 }
 .sync-progress-card {
-  background: var(--bg-card);
-  border-radius: 16px;
-  padding: 24px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  padding: 20px;
   max-width: 360px;
   width: 90%;
   text-align: center;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-  color: var(--text-main);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+}
+
+/* ── Modais ── */
+.modal-content {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+}
+.modal-header {
+  border-bottom: 1px solid var(--border-subtle);
+}
+.modal-footer {
+  border-top: 1px solid var(--border-subtle);
 }
