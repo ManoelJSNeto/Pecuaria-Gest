@@ -1,0 +1,589 @@
+/* ============================================================
+   PecuáriaGest Campo — CSS Nativo Mobile
+   Design System Unificado: Verde Terroso, Alta Densidade,
+   Ergonomia Tátil de Curral e Numerais Tabulares
+   ============================================================ */
+
+:root {
+  /* ── Paleta Verde Terroso (Paridade 100% com a Web) ── */
+  --earth-green-950: #12220e;
+  --earth-green-900: #1b3116;
+  --earth-green-800: #26441f;
+  --earth-green-700: #33592a;
+  --earth-green-600: #427037;
+  --earth-green-500: #558b47;
+  --earth-green-100: #e8f0e5;
+  --earth-green-50:  #f3f7f1;
+
+  /* ── Superfícies e Fundos Neutros Quentes ── */
+  --bg-app:        #f7f7f5;
+  --bg-surface:    #ffffff;
+  --bg-subtle:     #f2f1ed;
+  --bg-hover:      #ecebe5;
+
+  /* ── Bordas Estruturais Nítidas (1px) ── */
+  --border-subtle: #e6e4dc;
+  --border-strong: #d2cfc3;
+  --border-focus:  #33592a;
+
+  /* ── Tipografia de Alto Contraste ── */
+  --text-primary:   #1c1917;
+  --text-secondary: #44403c;
+  --text-muted:     #78716c;
+  --text-inverse:   #ffffff;
+
+  /* ── Cores Temáticas de Manejo de Campo ── */
+  --pesagem-color:  #92400e;
+  --pesagem-bg:     #fef3c7;
+  --pesagem-border: #fde68a;
+
+  --bezerro-color:  #234d1b;
+  --bezerro-bg:     #edf5ea;
+  --bezerro-border: #c6dfbd;
+
+  --saude-color:    #991b1b;
+  --saude-bg:       #fdf2f2;
+  --saude-border:   #f8c9c9;
+
+  --fila-color:     #1e3a5f;
+  --fila-bg:        #e8f0f8;
+  --fila-border:    #c5d7ea;
+
+  /* ── Raios Compactos ── */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+
+  /* ── Sombras Sutis (Sem AI Bloat) ── */
+  --shadow-subtle: 0 1px 2px rgba(28, 25, 23, 0.05);
+  --shadow-card:   0 1px 3px rgba(28, 25, 23, 0.06), 0 1px 2px rgba(28, 25, 23, 0.03);
+}
+
+/* ── Base e Tipografia ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Numerais tabulares no celular para alinhar pesos e brincos */
+.tabular-nums, input[type="number"], .stat-value, .badge, strong {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+input, textarea, select, button, .touch-input-lg, .campo-nav-btn {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  touch-action: manipulation !important;
+}
+
+/* ── Container do App Mobile ── */
+.mobile-app-wrapper {
+  max-width: 580px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-subtle);
+}
+
+/* ── Header Superior Nativo ── */
+.mobile-top-header {
+  background-color: var(--earth-green-950);
+  color: #ffffff;
+  padding: 0.75rem 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mobile-content {
+  padding: 0.85rem;
+  flex: 1;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.status-dot.online  { background-color: #22c55e; }
+.status-dot.offline { background-color: #ef4444; }
+
+/* ── Barra de Abas Táteis ── */
+.campo-nav-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 1rem;
+}
+
+.campo-nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 150ms ease-out;
+  text-align: center;
+}
+.campo-nav-btn .tab-icon {
+  font-size: 1.25rem;
+  margin-bottom: 2px;
+  line-height: 1;
+}
+.campo-nav-btn:active {
+  transform: scale(0.97);
+}
+
+/* Abas ativas com cores de manejo funcionais */
+.campo-nav-btn.active.btn-tab-pesagem {
+  background: var(--pesagem-bg);
+  border-color: var(--pesagem-border);
+  color: var(--pesagem-color);
+  font-weight: 800;
+}
+.campo-nav-btn.active.btn-tab-bezerro {
+  background: var(--bezerro-bg);
+  border-color: var(--bezerro-border);
+  color: var(--bezerro-color);
+  font-weight: 800;
+}
+.campo-nav-btn.active.btn-tab-saude {
+  background: var(--saude-bg);
+  border-color: var(--saude-border);
+  color: var(--saude-color);
+  font-weight: 800;
+}
+.campo-nav-btn.active.btn-tab-fila {
+  background: var(--fila-bg);
+  border-color: var(--fila-border);
+  color: var(--fila-color);
+  font-weight: 800;
+}
+
+.campo-tab-pane {
+  display: none;
+}
+.campo-tab-pane.active {
+  display: block;
+}
+
+/* ── Cartões de Formulário do Manejo ── */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-subtle);
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.card-header {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-header h6 {
+  margin: 0;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 0.92rem;
+}
+
+.card-body {
+  padding: 1rem;
+}
+
+/* ── Controles e Inputs Táteis de Curral (Alto Contraste Sob Sol) ── */
+.form-label {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: #12220e;
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.form-control, .form-select {
+  background-color: #ffffff;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: #000000;
+  font-size: 0.95rem;
+  padding: 0.6rem 0.85rem;
+  transition: border-color 150ms ease-out;
+}
+.form-control:focus, .form-select:focus {
+  border-color: #12220e;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(18, 34, 14, 0.18);
+  background-color: #ffffff;
+}
+
+.input-group-text {
+  background-color: var(--bg-subtle);
+  border: 1.5px solid var(--border-strong);
+  color: #12220e;
+  font-size: 0.95rem;
+  font-weight: 800;
+  border-radius: var(--radius-sm);
+}
+
+/* Inputs gigantes e de alto contraste contra o reflexo solar */
+.touch-input-lg {
+  height: 56px !important;
+  font-size: 1.35rem !important;
+  font-weight: 800 !important;
+  color: #000000 !important;
+  background-color: #ffffff !important;
+  border: 2px solid #26441f !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 10px 14px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  letter-spacing: -0.01em;
+}
+.touch-input-lg:focus {
+  border-color: #12220e !important;
+  box-shadow: 0 0 0 4px rgba(38, 68, 31, 0.25) !important;
+  outline: none !important;
+}
+
+/* Botões com altura extra de curral (glove-friendly: 68px para facilidade máxima de toque sob o sol) */
+.touch-btn-submit {
+  min-height: 68px;
+  padding: 18px 24px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  border-radius: var(--radius);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: transform 90ms ease-out, filter 150ms ease-out, box-shadow 150ms ease-out;
+  letter-spacing: -0.01em;
+}
+.touch-btn-submit i {
+  font-size: 1.45rem;
+  line-height: 1;
+}
+.touch-btn-submit:active {
+  transform: scale(0.97);
+  filter: brightness(0.9);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* ── Autocomplete Tátil Compacto com Rolagem (Substitui Datalist) ── */
+.earring-autocomplete-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 185px; /* Altura calibrada: exibe ~4 itens e rola suavemente */
+  overflow-y: auto;
+  background: #ffffff;
+  border: 2px solid #26441f;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  z-index: 1050;
+  -webkit-overflow-scrolling: touch;
+}
+.earring-item-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  width: 100%;
+  text-align: left;
+  background: #ffffff;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  cursor: pointer;
+  transition: background-color 100ms ease;
+}
+.earring-item-btn:last-child {
+  border-bottom: none;
+}
+.earring-item-btn:active, .earring-item-btn:hover {
+  background-color: var(--earth-green-50);
+}
+.earring-item-code {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #000000;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.earring-item-meta {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--earth-green-800);
+  background: var(--earth-green-100);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.earring-empty-hint {
+  padding: 12px 14px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-align: center;
+  font-weight: 600;
+}
+
+/* ── Chips de Brincos Recentes ── */
+.quick-chips-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 4px 0 6px 0;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+.quick-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-xs);
+  background: #ffffff;
+  border: 1.5px solid var(--border-strong);
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #12220e;
+  cursor: pointer;
+  transition: all 120ms ease;
+  font-variant-numeric: tabular-nums;
+}
+.quick-chip-btn:active {
+  background: var(--earth-green-100);
+  border-color: #26441f;
+  transform: scale(0.96);
+}
+
+.btn-pesagem {
+  background-color: var(--pesagem-color);
+  border-color: var(--pesagem-color);
+  color: #ffffff;
+}
+.btn-pesagem:hover, .btn-pesagem:active {
+  background-color: #78350f;
+  color: #ffffff;
+}
+
+.btn-bezerro {
+  background-color: var(--earth-green-700);
+  border-color: var(--earth-green-700);
+  color: #ffffff;
+}
+.btn-bezerro:hover, .btn-bezerro:active {
+  background-color: var(--earth-green-800);
+  color: #ffffff;
+}
+
+.btn-saude {
+  background-color: var(--saude-color);
+  border-color: var(--saude-color);
+  color: #ffffff;
+}
+.btn-saude:hover, .btn-saude:active {
+  background-color: #7f1d1d;
+  color: #ffffff;
+}
+
+/* ── Preview de Foto ── */
+.foto-preview-box {
+  display: none;
+  position: relative;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  max-height: 170px;
+  margin-top: 8px;
+  border: 1px dashed var(--border-strong);
+  background: var(--bg-subtle);
+  text-align: center;
+}
+.foto-preview-box img {
+  max-height: 165px;
+  width: auto;
+  max-width: 100%;
+  object-fit: cover;
+}
+.foto-preview-remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(28, 25, 23, 0.85);
+  color: #ffffff;
+  border: none;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+}
+
+/* ── Cards da Fila Visual Offline ── */
+.queue-card {
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  box-shadow: var(--shadow-subtle);
+}
+.queue-card.tipo-pesagem { border-left: 4px solid var(--pesagem-color); }
+.queue-card.tipo-animal  { border-left: 4px solid var(--bezerro-color); }
+.queue-card.tipo-saude   { border-left: 4px solid var(--saude-color); }
+
+.queue-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-xs);
+  object-fit: cover;
+  border: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+.queue-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+.queue-icon-pesagem { background: var(--pesagem-bg); color: var(--pesagem-color); }
+.queue-icon-animal  { background: var(--bezerro-bg); color: var(--bezerro-color); }
+.queue-icon-saude   { background: var(--saude-bg); color: var(--saude-color); }
+
+.queue-info {
+  flex: 1;
+  min-width: 0;
+}
+.queue-title {
+  font-weight: 700;
+  font-size: 0.92rem;
+  margin-bottom: 1px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.queue-sub {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+}
+
+/* ── Histórico Rápido Local (Sessão) ── */
+.recent-history-box {
+  margin-top: 1rem;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  border: 1px dashed var(--border-subtle);
+}
+.recent-history-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.recent-item-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: var(--radius-xs);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-right: 4px;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+}
+
+/* ── Overlay de Sincronização ── */
+.sync-progress-overlay {
+  display: none;
+  background: rgba(18, 34, 14, 0.75);
+  backdrop-filter: blur(2px);
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 1050;
+  align-items: center;
+  justify-content: center;
+}
+.sync-progress-card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  max-width: 360px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+}
+
+/* ── Modais ── */
+.modal-content {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+}
+.modal-header {
+  border-bottom: 1px solid var(--border-subtle);
+}
+.modal-footer {
+  border-top: 1px solid var(--border-subtle);
+}

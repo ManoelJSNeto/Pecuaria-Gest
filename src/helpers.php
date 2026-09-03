@@ -155,11 +155,10 @@ function salvarBase64Foto(string $base64Data, string $subfolder = 'fotos'): ?str
     $filename = uniqid('pwa_', true) . '.' . $ext;
     $targetDir = UPLOADS_PATH . '/' . trim($subfolder, '/');
     if (!is_dir($targetDir)) {
-        @mkdir($targetDir, 0775, true);
+        @mkdir($targetDir, 0777, true);
     }
-    
     $targetFile = $targetDir . '/' . $filename;
-    if (file_put_contents($targetFile, $decoded) !== false) {
+    if (@file_put_contents($targetFile, $decoded) !== false) {
         return '/uploads/' . trim($subfolder, '/') . '/' . $filename;
     }
     

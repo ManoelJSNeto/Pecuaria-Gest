@@ -2,6 +2,8 @@ name: Build Android APK (Capacitor)
 
 on:
   push:
+    branches: [ main, master, 'feature/**' ]
+  pull_request:
     branches: [ main, master ]
   workflow_dispatch:
 
