@@ -61,6 +61,9 @@ O sistema é o objeto de estudo de caso comparativo do TCC entre dois ambientes:
 - [x] **Conectividade & Configuração Flexível de Servidor:** Modal de ajuste de IP (ex: `http://192.168.x.x:8080` ou URL da AWS) com detecção ativa de status **🟢 Online / 🔴 Offline**.
 - [x] **Sincronização Autenticada com Transação Atômica (`/api/sync`):** Envio em lote com validação de credenciais de usuário cadastrado e liberação de CORS.
 - [x] **Compilação Automática CI/CD (`.github/workflows/build-apk.yml`):** Geração do arquivo `app-debug.apk` no GitHub Actions a cada push.
+- [x] **Design Ergonômico de Curral (Botão 68px e Alto Contraste):** Botão de salvar ampliado para 68px de altura mínima, fonte 1.25rem e ícones destacados para operação sem erro com luvas ou sob sol forte.
+- [x] **Resposta Tátil Nativa (`@capacitor/haptics`):** Permissão de vibração no manifesto e driver nativo integrado, gerando confirmação física firme no aparelho ao salvar.
+- [x] **Interface Despoluída:** Remoção de chips de recentes no brinco e blocos secundários no rodapé, priorizando o autocomplete compacto com rolagem suave.
 
 ### D. Módulo de Notificações & Configurações do Sistema (`/configuracoes`)
 - [x] **Geração Automática de Alertas no Painel Web:** Disparo automático de notificações no sininho 🔔 com contadores de pesagens, novos bezerros e manejos recebidos.
@@ -121,3 +124,23 @@ Para elevar o padrão visual para a apresentação acadêmica formal do TCC, foi
 - [ ] Tabela comparativa de Desempenho (On-Premise vs AWS).
 - [ ] Tabela comparativa de Custos (CapEx Local vs OpEx AWS ~US$ 126/mês).
 - [ ] Redação do capítulo de Resultados, Discussão e Considerações Finais.
+
+---
+
+## 📌 5. Pendências Críticas de Usabilidade & Regras de Negócio (Solicitadas pelo Usuário)
+
+### A. Módulo Mobile — Conexão Zero-Touch & Sessão Contínua (Foco Curral / Vaqueiro)
+1. **Eliminar Digitação de IP pelo Operador:**
+   - Evitar que o peão precise digitar ou alterar endereços IP (`192.168.x.x`) no curral para prevenir falhas acidentais de configuração ("chance de dar zulo").
+   - *Abordagens planejadas:* Auto-discovery na rede Wi-Fi da sede (mDNS/ping local), pareamento único por QR Code impresso na sede ou ocultação de telas de configuração sob senha de gerente.
+2. **Manter Logado / Sessão Persistente:**
+   - Preservar credenciais/token de forma segura no aparelho para que a sincronização (manual ou em segundo plano ao detectar Wi-Fi) ocorra sem interromper a rotina de trabalho nem solicitar e-mail/senha repetidamente.
+
+### B. Regras de Negócio & Genealogia (Web & Banco de Dados)
+1. **Validação Estrita de Mãe / Pai no Cadastro de Filhotes:**
+   - Impedir que machos/bois sejam selecionados como mãe biológica. Apenas fêmeas ativas e vivas (`sexo = 'F'`) devem figurar como opção de mãe.
+2. **Ciclo de Venda, Saída e Óbito:**
+   - Registro de comprador, valor, peso de saída e baixa formal do rebanho ativo.
+   - Registro de causa de morte/necropsia com impacto nos índices de mortalidade.
+3. **Relatórios Gerenciais em PDF / DOCX:**
+   - Suporte a exportação formatada para impressão/laudo além do CSV atual.
