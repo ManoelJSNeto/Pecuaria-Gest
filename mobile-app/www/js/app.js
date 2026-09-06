@@ -547,25 +547,78 @@ function handleVerifyAdminPin(e) {
 }
 
 function openInitialLoginModal() {
-  const modalEl = document.getElementById('modalLoginInicial');
-  if (modalEl && typeof bootstrap !== 'undefined') {
-    const modal = bootstrap.Modal.getOrCreateInstance(modalEl, {
-      backdrop: 'static',
-      keyboard: false
-    });
-    modal.show();
-    setTimeout(() => {
-      const emailInput = document.getElementById('init_email');
-      if (emailInput && !emailInput.value) emailInput.focus();
-    }, 400);
-  }
+  const screen = document.getElementById('appLoginScreen');
+  const main = document.getElementById('appMainWrapper');
+  if (screen) screen.style.display = 'flex';
+  if (main) main.style.display = 'none';
+  setTimeout(() => {
+    const emailInput = document.getElementById('init_email');
+    if (emailInput && !emailInput.value) emailInput.focus();
+  }, 200);
 }
 
 function closeInitialLoginModal() {
-  const modalEl = document.getElementById('modalLoginInicial');
-  if (modalEl && typeof bootstrap !== 'undefined') {
-    bootstrap.Modal.getInstance(modalEl)?.hide();
+  const screen = document.getElementById('appLoginScreen');
+  const main = document.getElementById('appMainWrapper');
+  if (screen) screen.style.display = 'none';
+  if (main) main.style.display = 'flex';
+}
+
+// ── Controle Tátil de Sexo do Bezerro ──
+function setBezerroSexo(sexo) {
+  const inputSexo = document.getElementById('b_sexo');
+  if (inputSexo) inputSexo.value = sexo;
+  
+  const btnM = document.getElementById('btnSexoM');
+  const btnF = document.getElementById('btnSexoF');
+  if (sexo === 'M') {
+    btnM?.classList.add('active-m');
+    btnF?.classList.remove('active-f');
+  } else {
+    btnF?.classList.add('active-f');
+    btnM?.classList.remove('active-m');
   }
+  triggerHapticFeedback('tap');
+}
+
+// ── Controle Tátil de Tipo de Manejo Sanitário ──
+function selectHealthType(tipo) {
+  const inputTipo = document.getElementById('s_tipo');
+  if (inputTipo) inputTipo.value = tipo;
+
+  const cardMap = {
+    'Tratamento': 'cardTipo_Tratamento',
+    'Vacinação': 'cardTipo_Vacinacao',
+    'Vermifugação': 'cardTipo_Vermifugacao',
+    'Curativo': 'cardTipo_Curativo',
+    'Óbito': 'cardTipo_Obito'
+  };
+
+  Object.values(cardMap).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.remove('active', 'active-vacina', 'active-curativo', 'active-obito');
+    }
+  });
+
+  const activeCardId = cardMap[tipo];
+  const activeEl = document.getElementById(activeCardId);
+  if (activeEl) {
+    if (tipo === 'Vacinação') activeEl.classList.add('active-vacina');
+    else if (tipo === 'Curativo') activeEl.classList.add('active-curativo');
+    else if (tipo === 'Óbito') activeEl.classList.add('active-obito');
+    else activeEl.classList.add('active');
+  }
+
+  // Se for óbito, foca na descrição da causa da morte
+  const descEl = document.getElementById('s_desc');
+  if (tipo === 'Óbito') {
+    if (descEl && !descEl.value) descEl.placeholder = 'Causa da morte / circunstâncias do óbito...';
+  } else if (descEl && descEl.placeholder.includes('Causa da morte')) {
+    descEl.placeholder = 'Ex: Febre, tosse, carrapato, ferimento na pata...';
+  }
+
+  triggerHapticFeedback('tap');
 }
 
 async function handleInitialLogin(e) {
@@ -634,7 +687,7 @@ async function handleInitialLogin(e) {
 
   if (btnSubmit) {
     btnSubmit.disabled = false;
-    btnSubmit.innerHTML = '<i class="bi bi-box-arrow-in-right fs-5 me-1"></i> Entrar e Ativar Celular';
+    btnSubmit.innerHTML = '<i class="bi bi-box-arrow-in-right fs-4 me-2"></i> Entrar e Ativar Celular';
   }
 
   if (!authValid) {
@@ -1083,6 +1136,7 @@ async function handleAppBezerro(e) {
     
     document.getElementById('formAppBezerro').reset();
     removeFotoPreview('b_foto', 'preview_b');
+    setBezerroSexo('M');
     document.getElementById('b_data').value = new Date().toISOString().split('T')[0];
     document.getElementById('b_raca').value = 'Nelore';
 
@@ -1094,16 +1148,15 @@ async function handleAppBezerro(e) {
   }
 }
 
-// Submissão de Saúde
+// Submissão de Saúde (Sem opção de censura no celular — o sistema web trata automaticamente)
 async function handleAppSaude(e) {
   e.preventDefault();
   try {
     const brinco = document.getElementById('s_brinco').value.trim().toUpperCase();
-    const tipo = document.getElementById('s_tipo').value;
+    const tipo = document.getElementById('s_tipo').value || 'Tratamento';
     const desc = document.getElementById('s_desc').value.trim();
     const med = document.getElementById('s_med').value.trim();
     const dose = document.getElementById('s_dose').value.trim();
-    const isSensivel = document.getElementById('s_sensivel').checked || tipo === 'Óbito';
     const fotoFile = document.getElementById('s_foto').files[0];
 
     let fotoBase64 = null;
@@ -1111,14 +1164,16 @@ async function handleAppSaude(e) {
       fotoBase64 = await compressImage(fotoFile);
     }
 
-    addToQueue('saude', { brinco, tipo, descricao: desc, medicamento: med, dose, is_sensivel: isSensivel ? 1 : 0 }, fotoBase64);
+    addToQueue('saude', { brinco, tipo, descricao: desc, medicamento: med, dose }, fotoBase64);
     
     document.getElementById('formAppSaude').reset();
     removeFotoPreview('s_foto', 'preview_s');
+    selectHealthType('Tratamento');
+    document.getElementById('s_data').value = new Date().toISOString().split('T')[0];
 
     // Resposta tátil firme de confirmação de curral (Haptics nativo + vibração)
     triggerHapticFeedback('save');
-    showToast(`Evento de ${tipo} para ${brinco} salvo no celular!`, 'success');
+    showToast(`Manejo de ${tipo} (${brinco}) salvo no celular!`, 'success');
   } catch (err) {
     showToast('Erro ao salvar: ' + err.message, 'danger');
   }
@@ -1132,19 +1187,19 @@ document.addEventListener('DOMContentLoaded', () => {
   updateOperatorUI();
 
   // Checagem de Sessão no Primeiro Acesso:
-  // Se não houver operador registrado neste celular, exige login inicial
+  // Se não houver operador registrado neste celular, exige login inicial em tela cheia
   if (!getSavedOperator()) {
-    setTimeout(() => {
-      openInitialLoginModal();
-    }, 300);
+    openInitialLoginModal();
+  } else {
+    closeInitialLoginModal();
   }
 
-  // Se o gerente acessar configurações e fechar sem logar, reabre a tela de identificação
+  // Se o gerente acessar configurações e fechar sem logar, mantém a tela de identificação ativa
   const modalConfigEl = document.getElementById('modalConfigServidor');
   if (modalConfigEl) {
     modalConfigEl.addEventListener('hidden.bs.modal', () => {
       if (!getSavedOperator()) {
-        setTimeout(openInitialLoginModal, 250);
+        openInitialLoginModal();
       }
     });
   }
@@ -1154,7 +1209,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const configModal = document.getElementById('modalConfigServidor');
       const isConfigOpen = configModal && configModal.classList.contains('show');
       if (!getSavedOperator() && !isConfigOpen) {
-        setTimeout(openInitialLoginModal, 250);
+        openInitialLoginModal();
       }
     });
   }

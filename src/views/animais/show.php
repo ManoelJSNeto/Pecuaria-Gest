@@ -179,14 +179,21 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
   <div class="col-md-9">
     <!-- Linha do Tempo Visual (Fotos) -->
     <div class="card mb-3">
-      <div class="card-header justify-content-between">
+      <div class="card-header justify-content-between flex-wrap gap-2">
         <div class="d-flex align-items-center gap-2">
           <i class="bi bi-camera text-secondary"></i>
           <h6>Linha do Tempo Fotográfica (<?= count($fotos) ?> fotos)</h6>
         </div>
-        <button class="btn btn-sm btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#formFotoCollapse">
-          <i class="bi bi-plus-lg me-1"></i> Nova Foto
-        </button>
+        <div class="d-flex align-items-center gap-2">
+          <?php if (!empty($fotos)): ?>
+            <button class="btn btn-sm btn-outline-secondary" type="button" id="btnToggleAllCensura" onclick="toggleAllCensura()" title="Alternar censura de todas as fotos clínicas">
+              <i class="bi bi-eye me-1"></i> Revelar Todas
+            </button>
+          <?php endif; ?>
+          <button class="btn btn-sm btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#formFotoCollapse">
+            <i class="bi bi-plus-lg me-1"></i> Nova Foto
+          </button>
+        </div>
       </div>
 
       <!-- Upload Colapsável -->
@@ -221,7 +228,7 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
                 <div class="form-check form-switch">
                   <input class="form-check-input" type="checkbox" name="is_sensivel" value="1" id="checkSensivel">
                   <label class="form-check-label small text-secondary" for="checkSensivel">
-                    <i class="bi bi-eye-slash text-warning me-1"></i> Censurar por padrão (conteúdo clínico/óbitio)
+                    <i class="bi bi-eye-slash text-warning me-1"></i> Censurar por padrão (conteúdo clínico/óbito)
                   </label>
                 </div>
                 <button type="submit" class="btn btn-sm btn-primary">
@@ -253,7 +260,7 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
                 ];
                 $tipoInfo = $tipoIconMap[$f['tipo_evento']] ?? ['icon' => 'bi-image', 'label' => 'Foto'];
               ?>
-              <div class="foto-card <?= $isCensurada ? 'foto-censurada' : '' ?>">
+              <div class="foto-card <?= $isCensurada ? 'foto-censurada' : '' ?>" data-censurada-original="<?= $isCensurada ? '1' : '0' ?>">
                 <div class="foto-thumb-container">
                   <img src="<?= e($f['foto_url']) ?>" alt="Foto" class="foto-img">
                   <?php if ($isCensurada): ?>
@@ -263,7 +270,7 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
                     </div>
                   <?php endif; ?>
                 </div>
-                <div class="p-2 d-flex flex-column justify-content-between" style="min-height: 65px;">
+                <div class="p-2 d-flex flex-column justify-content-between" style="min-height: 70px;">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <span class="badge bg-light text-dark border small d-inline-flex align-items-center gap-1" style="font-size:.7rem;">
                       <i class="bi <?= $tipoInfo['icon'] ?>"></i> <?= $tipoInfo['label'] ?>
@@ -275,7 +282,17 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
                       <?= e($f['observacao']) ?>
                     </div>
                   <?php endif; ?>
-                  <div class="mt-1 pt-1 border-top d-flex justify-content-end">
+                  <div class="mt-2 pt-1 border-top d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-2">
+                      <?php if ($isCensurada): ?>
+                        <button type="button" class="btn btn-link text-secondary p-0 small text-decoration-none btn-card-revelar" onclick="toggleCensuraCard(this)" style="font-size:.72rem;" title="Alternar censura">
+                          <i class="bi bi-eye"></i> Revelar
+                        </button>
+                      <?php endif; ?>
+                      <a href="<?= e($f['foto_url']) ?>" download="animal_<?= e($animal['brinco']) ?>_foto_<?= $f['id'] ?>" target="_blank" class="btn btn-link text-primary p-0 small text-decoration-none" style="font-size:.72rem;" title="Baixar foto original em alta resolução (sem censura)">
+                        <i class="bi bi-download"></i> Baixar
+                      </a>
+                    </div>
                     <form method="POST" action="/fotos/<?= $f['id'] ?>/excluir" onsubmit="return confirm('Excluir esta foto?')">
                       <?= csrf_field() ?>
                       <button class="btn btn-link text-danger p-0 small text-decoration-none" style="font-size:.72rem;"><i class="bi bi-trash"></i> Excluir</button>
@@ -445,6 +462,42 @@ function toggleCensura(el) {
   if (card) {
     card.classList.toggle('foto-censurada');
     el.style.display = card.classList.contains('foto-censurada') ? 'flex' : 'none';
+    const btn = card.querySelector('.btn-card-revelar');
+    if (btn) btn.innerHTML = card.classList.contains('foto-censurada') ? '<i class="bi bi-eye"></i> Revelar' : '<i class="bi bi-eye-slash"></i> Censurar';
+  }
+}
+
+function toggleCensuraCard(btn) {
+  const card = btn.closest('.foto-card');
+  if (!card) return;
+  card.classList.toggle('foto-censurada');
+  const isCensured = card.classList.contains('foto-censurada');
+  btn.innerHTML = isCensured ? '<i class="bi bi-eye"></i> Revelar' : '<i class="bi bi-eye-slash"></i> Censurar';
+  const overlay = card.querySelector('.foto-overlay-censura');
+  if (overlay) overlay.style.display = isCensured ? 'flex' : 'none';
+}
+
+function toggleAllCensura() {
+  const cards = document.querySelectorAll('.foto-card');
+  const btn = document.getElementById('btnToggleAllCensura');
+  const anyCensored = Array.from(cards).some(c => c.classList.contains('foto-censurada'));
+  cards.forEach(c => {
+    const overlay = c.querySelector('.foto-overlay-censura');
+    const cardBtn = c.querySelector('.btn-card-revelar');
+    if (anyCensored) {
+      c.classList.remove('foto-censurada');
+      if (overlay) overlay.style.display = 'none';
+      if (cardBtn) cardBtn.innerHTML = '<i class="bi bi-eye-slash"></i> Censurar';
+    } else {
+      if (c.getAttribute('data-censurada-original') === '1') {
+        c.classList.add('foto-censurada');
+        if (overlay) overlay.style.display = 'flex';
+        if (cardBtn) cardBtn.innerHTML = '<i class="bi bi-eye"></i> Revelar';
+      }
+    }
+  });
+  if (btn) {
+    btn.innerHTML = anyCensored ? '<i class="bi bi-eye-slash me-1"></i> Ocultar Sensíveis' : '<i class="bi bi-eye me-1"></i> Revelar Todas';
   }
 }
 </script>

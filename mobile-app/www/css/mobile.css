@@ -587,3 +587,153 @@ input, textarea, select, button, .touch-input-lg, .campo-nav-btn {
 .modal-footer {
   border-top: 1px solid var(--border-subtle);
 }
+
+/* ============================================================
+   TELA DE LOGIN DEDICADA (TELA CHEIA NATIVA SEM BACKDROP)
+   ============================================================ */
+.app-login-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1040;
+  background: linear-gradient(180deg, #12220e 0%, #1a3320 40%, #26441f 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.login-card-box {
+  width: 100%;
+  max-width: 440px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 32px 24px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ============================================================
+   ERGONOMIA DE CURRAL: DISPLAY DE BALANÇA & SELETORES RÁPIDOS
+   ============================================================ */
+/* Display de Pesagem tipo Balança Digital */
+.scale-digital-display {
+  background: #f8faf6;
+  border: 2px solid #26441f;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+/* Seletor Segmentado de Sexo (Macho / Fêmea) */
+.gender-toggle-group {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+.gender-toggle-btn {
+  flex: 1;
+  min-height: 54px;
+  border: 2px solid var(--border-strong);
+  background: #ffffff;
+  color: var(--text-secondary);
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+.gender-toggle-btn.active-m {
+  background: #1e3a8a;
+  border-color: #1e3a8a;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(30, 58, 138, 0.3);
+}
+.gender-toggle-btn.active-f {
+  background: #9d174d;
+  border-color: #9d174d;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(157, 23, 77, 0.3);
+}
+
+/* Seletor Rápido de Tipo Sanitário em Chips Táteis */
+.health-type-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.health-type-card {
+  min-height: 60px;
+  border: 2px solid var(--border-subtle);
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 10px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  transition: all 0.15s ease-in-out;
+}
+.health-type-card i {
+  font-size: 1.4rem;
+}
+.health-type-card.active {
+  background: #fee2e2;
+  border-color: #991b1b;
+  color: #991b1b;
+  box-shadow: 0 4px 10px rgba(153, 27, 27, 0.18);
+}
+.health-type-card.active-vacina {
+  background: #e0f2fe;
+  border-color: #0284c7;
+  color: #0369a1;
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.18);
+}
+.health-type-card.active-obito {
+  background: #1c1917;
+  border-color: #0c0a09;
+  color: #fef08a;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+.health-type-card.active-curativo {
+  background: #fef3c7;
+  border-color: #d97706;
+  color: #92400e;
+  box-shadow: 0 4px 10px rgba(217, 119, 6, 0.18);
+}
+
+/* Painéis de Seção Claros no Formulário */
+.panel-section-box {
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.panel-section-title {
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+

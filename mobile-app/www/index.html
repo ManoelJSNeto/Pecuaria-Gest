@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>PecuáriaGest Campo</title>
+  <title>PecuGest-Campo</title>
   
   <!-- Tipografia Técnica: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- CSS Nativo Local -->
   <link href="./assets/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
@@ -17,15 +17,54 @@
 </head>
 <body>
 
-<div class="mobile-app-wrapper">
+<!-- ============================================================ -->
+<!-- TELA DEDICADA DE LOGIN DO OPERADOR (SEM MODAIS ENCAVALADOS) -->
+<!-- ============================================================ -->
+<div id="appLoginScreen" class="app-login-fullscreen" style="display: none;">
+  <div class="login-card-box">
+    <div class="text-center mb-4">
+      <img src="./favicon.svg" alt="PecuGest-Campo" style="width: 68px; height: 68px; border-radius: 16px; box-shadow: 0 6px 16px rgba(0,0,0,0.18); margin-bottom: 12px;">
+      <h3 class="fw-bold mb-1" style="color: #12220e; letter-spacing: -0.02em;">PecuGest-Campo</h3>
+      <p class="text-secondary small mb-0">
+        Identificação do operador para coleta offline no pasto. A sessão ficará salva neste aparelho.
+      </p>
+    </div>
+
+    <form id="formInitLogin" onsubmit="handleInitialLogin(event)">
+      <div class="mb-3">
+        <label class="form-label fw-bold small"><i class="bi bi-envelope-fill text-success me-1"></i> E-mail de Colaborador *</label>
+        <input type="email" id="init_email" class="form-control touch-input-lg" required placeholder="admin@fazenda.com" autocomplete="username">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-bold small"><i class="bi bi-key-fill text-success me-1"></i> Senha de Acesso *</label>
+        <input type="password" id="init_senha" class="form-control touch-input-lg" required placeholder="••••••••" autocomplete="current-password">
+      </div>
+
+      <div id="initLoginError" class="alert alert-danger py-2 small fw-bold" style="display:none;"></div>
+
+      <button type="submit" id="btnInitLoginSubmit" class="btn btn-primary touch-btn-submit py-3 fw-bold w-100 mt-2" style="font-size: 1.15rem; min-height: 62px;">
+        <i class="bi bi-box-arrow-in-right fs-4 me-2"></i> Entrar e Ativar Celular
+      </button>
+
+      <div class="text-center mt-3 pt-2 border-top">
+        <button type="button" class="btn btn-link text-muted btn-sm text-decoration-none" onclick="openAdminPinModal()" style="font-size: 0.82rem;">
+          <i class="bi bi-gear-fill me-1"></i> Configurar Endereço IP (Gerente)
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="mobile-app-wrapper" id="appMainWrapper">
 
   <!-- Header Superior Mobile Nativo -->
   <header class="mobile-top-header">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
       <div class="d-flex align-items-center gap-2">
-        <img src="./favicon.svg" alt="PecuáriaGest Logo" style="width: 36px; height: 36px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);">
+        <img src="./favicon.svg" alt="PecuGest-Campo Logo" style="width: 38px; height: 38px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.18);">
         <div>
-          <h6 class="mb-0 fw-bold text-white">PecuáriaGest Campo</h6>
+          <h6 class="mb-0 fw-bold text-white">PecuGest-Campo</h6>
           <small style="color:#a3baa0; font-size: 0.7rem; text-transform:uppercase; letter-spacing:0.05em; font-weight:600;">Coleta Offline no Pasto</small>
         </div>
       </div>
@@ -33,7 +72,7 @@
         <div id="connectionStatusBadge" class="badge bg-danger d-inline-flex align-items-center gap-1 text-white py-1 px-2" style="font-size: 0.74rem; border-radius: 4px;">
           <span class="status-dot offline"></span> Offline
         </div>
-        <button type="button" class="btn btn-sm btn-outline-light py-1 px-2" onclick="openAdminPinModal()" title="Suporte do Gerente">
+        <button type="button" class="btn btn-sm btn-outline-light py-1 px-2" onclick="openAdminPinModal()" title="Suporte do Gerente (PIN 0032)">
           <i class="bi bi-shield-lock-fill"></i>
         </button>
       </div>
@@ -77,45 +116,54 @@
         </div>
         <div class="card-body p-3">
           <form id="formAppPesagem" onsubmit="handleAppPesagem(event)">
+            
+            <!-- Identificação do Animal -->
             <div class="mb-3 position-relative">
               <div class="d-flex align-items-center justify-content-between mb-1">
-                <label class="form-label mb-0 fw-bold small"><i class="bi bi-tag-fill text-success me-1"></i> Brinco do Animal *</label>
-                <small class="text-muted fw-bold" style="font-size:0.72rem;">Lista Compacta</small>
+                <label class="form-label mb-0 fw-bold"><i class="bi bi-tag-fill text-success me-1"></i> Brinco do Animal *</label>
+                <small class="text-muted fw-bold" style="font-size:0.75rem;">Toque para selecionar</small>
               </div>
               <div class="input-group">
                 <input type="text" id="p_brinco" class="form-control touch-input-lg text-uppercase" required placeholder="DIGITE O BRINCO..." autocomplete="off" inputmode="text" oninput="handleEarringInput(this, 'p_brinco_dropdown', 'p_peso')" onfocus="handleEarringFocus(this, 'p_brinco_dropdown', 'p_peso')">
                 <button type="button" class="btn btn-outline-secondary px-3" onclick="clearEarringInput('p_brinco', 'p_brinco_dropdown')" title="Limpar campo">
-                  <i class="bi bi-x-lg"></i>
+                  <i class="bi bi-x-lg fs-5"></i>
                 </button>
               </div>
-              <!-- Dropdown Tátil Compacto com Rolagem (Máx 185px) -->
               <div id="p_brinco_dropdown" class="earring-autocomplete-dropdown"></div>
             </div>
+
+            <!-- Display do Peso tipo Balança Digital -->
             <div class="mb-3">
-              <label class="form-label fw-bold small"><i class="bi bi-speedometer2 text-success me-1"></i> Peso Atual (kg) *</label>
+              <label class="form-label fw-bold"><i class="bi bi-speedometer2 text-success me-1"></i> Peso da Balança (kg) *</label>
               <div class="input-group">
-                <input type="number" step="0.1" id="p_peso" class="form-control touch-input-lg tabular-nums" required placeholder="0.0" inputmode="decimal">
-                <span class="input-group-text fw-bold">kg</span>
+                <input type="number" step="0.1" id="p_peso" class="form-control touch-input-lg tabular-nums fw-bolder" required placeholder="0.0" inputmode="decimal" style="font-size: 1.6rem !important; height: 64px !important; letter-spacing: 0.03em;">
+                <span class="input-group-text fw-bold fs-4 px-3">kg</span>
               </div>
             </div>
+
+            <!-- Linha de Data e Observação (Campos mais altos e confortáveis) -->
             <div class="row g-2 mb-3">
               <div class="col-6">
                 <label class="form-label fw-bold small"><i class="bi bi-calendar-event text-muted me-1"></i> Data da Pesagem</label>
-                <input type="date" id="p_data" class="form-control tabular-nums">
+                <input type="date" id="p_data" class="form-control tabular-nums" style="height: 48px; font-size: 1rem;">
               </div>
               <div class="col-6">
                 <label class="form-label fw-bold small"><i class="bi bi-card-text text-muted me-1"></i> Observação</label>
-                <input type="text" id="p_obs" class="form-control" placeholder="Pasto, lote, etc.">
+                <input type="text" id="p_obs" class="form-control" placeholder="Pasto, piquete..." style="height: 48px; font-size: 1rem;">
               </div>
             </div>
+
+            <!-- Câmera Opcional da Pesagem -->
             <div class="mb-3">
-              <label class="form-label fw-bold small"><i class="bi bi-camera-fill text-success me-1"></i> Foto da Pesagem (Abre Câmera)</label>
+              <label class="form-label fw-bold small"><i class="bi bi-camera-fill text-success me-1"></i> Foto da Pesagem (Opcional)</label>
               <input type="file" id="p_foto" class="form-control" accept="image/*" capture="environment" onchange="handleFotoPreview(this, 'preview_p')">
               <div id="preview_p" class="foto-preview-box">
                 <img src="" alt="Preview">
                 <button type="button" class="foto-preview-remove" onclick="removeFotoPreview('p_foto', 'preview_p')"><i class="bi bi-x-lg"></i></button>
               </div>
             </div>
+
+            <!-- Botão Salvar Largo e Firme -->
             <button type="submit" class="btn btn-pesagem touch-btn-submit">
               <i class="bi bi-check-circle-fill"></i> Salvar Pesagem no Celular
             </button>
@@ -138,41 +186,51 @@
         </div>
         <div class="card-body p-3">
           <form id="formAppBezerro" onsubmit="handleAppBezerro(event)">
-            <div class="row g-2 mb-3">
-              <div class="col-7">
-                <label class="form-label fw-bold small"><i class="bi bi-tag-fill text-warning me-1"></i> Brinco do Bezerro *</label>
-                <input type="text" id="b_brinco" class="form-control touch-input-lg text-uppercase" required placeholder="Ex: BZ001" autocomplete="off" oninput="this.value = this.value.toUpperCase()">
-              </div>
-              <div class="col-5">
-                <label class="form-label fw-bold small"><i class="bi bi-gender-ambiguous text-warning me-1"></i> Sexo *</label>
-                <select id="b_sexo" class="form-select touch-input-lg fw-bold">
-                  <option value="M">♂ Macho</option>
-                  <option value="F">♀ Fêmea</option>
-                </select>
+            
+            <div class="mb-3">
+              <label class="form-label fw-bold"><i class="bi bi-tag-fill text-warning me-1"></i> Brinco do Bezerro *</label>
+              <input type="text" id="b_brinco" class="form-control touch-input-lg text-uppercase" required placeholder="EX: BZ001" autocomplete="off" oninput="this.value = this.value.toUpperCase()">
+            </div>
+
+            <!-- Sexo do Bezerro: Segmented Toggle Confortável -->
+            <div class="mb-3">
+              <label class="form-label fw-bold"><i class="bi bi-gender-ambiguous text-warning me-1"></i> Sexo do Bezerro *</label>
+              <input type="hidden" id="b_sexo" value="M">
+              <div class="gender-toggle-group">
+                <button type="button" class="gender-toggle-btn active-m" id="btnSexoM" onclick="setBezerroSexo('M')">
+                  <i class="bi bi-gender-male fs-5"></i> ♂ Macho
+                </button>
+                <button type="button" class="gender-toggle-btn" id="btnSexoF" onclick="setBezerroSexo('F')">
+                  <i class="bi bi-gender-female fs-5"></i> ♀ Fêmea
+                </button>
               </div>
             </div>
+
             <div class="row g-2 mb-3">
               <div class="col-6">
                 <label class="form-label fw-bold small"><i class="bi bi-card-heading text-muted me-1"></i> Nome / Apelido</label>
-                <input type="text" id="b_nome" class="form-control" placeholder="Opcional">
+                <input type="text" id="b_nome" class="form-control" placeholder="Opcional" style="height: 48px; font-size: 1rem;">
               </div>
               <div class="col-6">
                 <label class="form-label fw-bold small"><i class="bi bi-patch-check text-muted me-1"></i> Raça</label>
-                <input type="text" id="b_raca" class="form-control" value="Nelore">
+                <input type="text" id="b_raca" class="form-control" value="Nelore" style="height: 48px; font-size: 1rem;">
               </div>
             </div>
+
             <div class="mb-3">
               <label class="form-label fw-bold small"><i class="bi bi-calendar-event text-muted me-1"></i> Data de Nascimento</label>
-              <input type="date" id="b_data" class="form-control tabular-nums">
+              <input type="date" id="b_data" class="form-control tabular-nums" style="height: 48px; font-size: 1rem;">
             </div>
+
             <div class="mb-3">
-              <label class="form-label fw-bold small"><i class="bi bi-camera-fill text-warning me-1"></i> Foto do Bezerro (Abre Câmera)</label>
+              <label class="form-label fw-bold small"><i class="bi bi-camera-fill text-warning me-1"></i> Foto de Nascimento (Abre Câmera)</label>
               <input type="file" id="b_foto" class="form-control" accept="image/*" capture="environment" onchange="handleFotoPreview(this, 'preview_b')">
               <div id="preview_b" class="foto-preview-box">
                 <img src="" alt="Preview">
                 <button type="button" class="foto-preview-remove" onclick="removeFotoPreview('b_foto', 'preview_b')"><i class="bi bi-x-lg"></i></button>
               </div>
             </div>
+
             <button type="submit" class="btn btn-bezerro touch-btn-submit">
               <i class="bi bi-check-circle-fill"></i> Salvar Bezerro no Celular
             </button>
@@ -182,79 +240,100 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- ABA 3: SAÚDE / MANEJO -->
+    <!-- ABA 3: SAÚDE / MANEJO (REDESENHADA EM PAINÉIS LÓGICOS) -->
     <!-- ============================================================ -->
     <div class="campo-tab-pane" id="tabPane_saude">
       <div class="card mb-3" style="border-left: 4px solid var(--saude-color);">
         <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between">
           <div class="d-flex align-items-center gap-2">
             <i class="bi bi-heart-pulse fs-5" style="color:var(--saude-color);"></i>
-            <h6 class="mb-0 fw-bold">Saúde / Manejo / Óbito</h6>
+            <h6 class="mb-0 fw-bold">Saúde / Manejo</h6>
           </div>
           <span class="badge" style="background:var(--saude-bg); color:var(--saude-color); border:1px solid var(--saude-border);">Manejo Sanitário</span>
         </div>
         <div class="card-body p-3">
           <form id="formAppSaude" onsubmit="handleAppSaude(event)">
-            <div class="mb-3 position-relative">
-              <div class="d-flex align-items-center justify-content-between mb-1">
-                <label class="form-label mb-0 fw-bold small"><i class="bi bi-tag-fill text-danger me-1"></i> Brinco do Animal *</label>
-                <small class="text-muted fw-bold" style="font-size:0.72rem;">Lista Compacta</small>
-              </div>
-              <div class="input-group">
-                <input type="text" id="s_brinco" class="form-control touch-input-lg text-uppercase" required placeholder="DIGITE O BRINCO..." autocomplete="off" inputmode="text" oninput="handleEarringInput(this, 's_brinco_dropdown', 's_desc')" onfocus="handleEarringFocus(this, 's_brinco_dropdown', 's_desc')">
-                <button type="button" class="btn btn-outline-secondary px-3" onclick="clearEarringInput('s_brinco', 's_brinco_dropdown')" title="Limpar campo">
-                  <i class="bi bi-x-lg"></i>
-                </button>
-              </div>
-              <!-- Dropdown Tátil Compacto com Rolagem (Máx 185px) -->
-              <div id="s_brinco_dropdown" class="earring-autocomplete-dropdown"></div>
-            </div>
-            <div class="row g-2 mb-3">
-              <div class="col-6">
-                <label class="form-label fw-bold small"><i class="bi bi-shield-plus text-danger me-1"></i> Tipo de Evento *</label>
-                <select id="s_tipo" class="form-select touch-input-lg fw-bold" onchange="checkTipoObito(this.value)">
-                  <option value="Tratamento">💊 Tratamento</option>
-                  <option value="Vacinação">💉 Vacinação</option>
-                  <option value="Vermifugação">🌿 Vermifugação</option>
-                  <option value="Exame">🔬 Exame / Laudo</option>
-                  <option value="Óbito">⚠️ Óbito / Morte</option>
-                </select>
-              </div>
-              <div class="col-6">
-                <label class="form-label fw-bold small"><i class="bi bi-calendar-event text-muted me-1"></i> Data da Aplicação</label>
-                <input type="date" id="s_data" class="form-control tabular-nums">
+            
+            <!-- PAINEL 1: ANIMAL -->
+            <div class="panel-section-box">
+              <div class="panel-section-title"><i class="bi bi-tag-fill text-danger"></i> 1. Identificação do Animal</div>
+              <div class="position-relative">
+                <div class="input-group">
+                  <input type="text" id="s_brinco" class="form-control touch-input-lg text-uppercase" required placeholder="DIGITE O BRINCO..." autocomplete="off" inputmode="text" oninput="handleEarringInput(this, 's_brinco_dropdown', 's_desc')" onfocus="handleEarringFocus(this, 's_brinco_dropdown', 's_desc')">
+                  <button type="button" class="btn btn-outline-secondary px-3" onclick="clearEarringInput('s_brinco', 's_brinco_dropdown')" title="Limpar">
+                    <i class="bi bi-x-lg fs-5"></i>
+                  </button>
+                </div>
+                <div id="s_brinco_dropdown" class="earring-autocomplete-dropdown"></div>
               </div>
             </div>
-            <div class="mb-3">
-              <label class="form-label fw-bold small"><i class="bi bi-chat-left-dots text-muted me-1"></i> Descrição / Sintomas *</label>
-              <input type="text" id="s_desc" class="form-control" required placeholder="Ex: Febre, tosse, carrapato, etc.">
-            </div>
-            <div class="row g-2 mb-3" id="medGroup">
-              <div class="col-6">
-                <label class="form-label fw-bold small"><i class="bi bi-capsule text-muted me-1"></i> Medicamento</label>
-                <input type="text" id="s_med" class="form-control" placeholder="Ex: Ivomec, Terramicina">
+
+            <!-- PAINEL 2: TIPO DE OCORRÊNCIA (SELEÇÃO RÁPIDA POR CHIPS) -->
+            <div class="panel-section-box">
+              <div class="panel-section-title"><i class="bi bi-shield-plus text-danger"></i> 2. Tipo de Ocorrência</div>
+              <input type="hidden" id="s_tipo" value="Tratamento">
+              <div class="health-type-grid">
+                <div class="health-type-card active" id="cardTipo_Tratamento" onclick="selectHealthType('Tratamento')">
+                  <i class="bi bi-capsule text-danger"></i>
+                  <span>Tratamento</span>
+                </div>
+                <div class="health-type-card" id="cardTipo_Vacinacao" onclick="selectHealthType('Vacinação')">
+                  <i class="bi bi-droplet-fill text-primary"></i>
+                  <span>Vacinação</span>
+                </div>
+                <div class="health-type-card" id="cardTipo_Vermifugacao" onclick="selectHealthType('Vermifugação')">
+                  <i class="bi bi-flower1 text-success"></i>
+                  <span>Vermífugo</span>
+                </div>
+                <div class="health-type-card" id="cardTipo_Curativo" onclick="selectHealthType('Curativo')">
+                  <i class="bi bi-bandaid-fill text-warning"></i>
+                  <span>Curativo</span>
+                </div>
+                <div class="health-type-card" id="cardTipo_Obito" onclick="selectHealthType('Óbito')" style="grid-column: span 2;">
+                  <i class="bi bi-exclamation-triangle-fill text-dark"></i>
+                  <span>⚠️ Registro de Óbito / Morte</span>
+                </div>
               </div>
-              <div class="col-6">
-                <label class="form-label fw-bold small"><i class="bi bi-droplet-fill text-muted me-1"></i> Dosagem</label>
-                <input type="text" id="s_dose" class="form-control" placeholder="Ex: 5 ml, 2 comp.">
+            </div>
+
+            <!-- PAINEL 3: DETALHES, DATA E TRATAMENTO -->
+            <div class="panel-section-box">
+              <div class="panel-section-title"><i class="bi bi-calendar-check text-danger"></i> 3. Data & Tratamento</div>
+              
+              <div class="mb-3">
+                <label class="form-label fw-bold small"><i class="bi bi-calendar-event text-muted me-1"></i> Data da Aplicação / Ocorrência *</label>
+                <input type="date" id="s_data" class="form-control tabular-nums" required style="height: 48px; font-size: 1.05rem;">
+              </div>
+
+              <div class="row g-2 mb-3" id="medGroup">
+                <div class="col-6">
+                  <label class="form-label fw-bold small"><i class="bi bi-capsule text-muted me-1"></i> Medicamento</label>
+                  <input type="text" id="s_med" class="form-control" placeholder="Ivomec, etc." style="height: 48px; font-size: 1rem;">
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-bold small"><i class="bi bi-droplet-fill text-muted me-1"></i> Dosagem</label>
+                  <input type="text" id="s_dose" class="form-control" placeholder="5 ml, 2 comp." style="height: 48px; font-size: 1rem;">
+                </div>
+              </div>
+
+              <div class="mb-1">
+                <label class="form-label fw-bold small"><i class="bi bi-chat-left-dots text-muted me-1"></i> Descrição / Sintomas *</label>
+                <textarea id="s_desc" class="form-control" rows="2" required placeholder="Ex: Febre, tosse, carrapato, ferimento na pata..." style="font-size: 1rem;"></textarea>
               </div>
             </div>
-            <div class="mb-3">
-              <label class="form-label fw-bold small"><i class="bi bi-camera-fill text-danger me-1"></i> Foto do Manejo / Laudo (Abre Câmera)</label>
+
+            <!-- PAINEL 4: FOTO DO MANEJO (SEM SWITCH DE CENSURA, O SISTEMA CUIDA DISSO) -->
+            <div class="panel-section-box">
+              <div class="panel-section-title"><i class="bi bi-camera-fill text-danger"></i> 4. Foto do Manejo (Opcional)</div>
               <input type="file" id="s_foto" class="form-control" accept="image/*" capture="environment" onchange="handleFotoPreview(this, 'preview_s')">
               <div id="preview_s" class="foto-preview-box">
                 <img src="" alt="Preview">
                 <button type="button" class="foto-preview-remove" onclick="removeFotoPreview('s_foto', 'preview_s')"><i class="bi bi-x-lg"></i></button>
               </div>
             </div>
-            <div class="form-check form-switch mb-3" id="sensivelSwitchGroup">
-              <input class="form-check-input" type="checkbox" id="s_sensivel" value="1">
-              <label class="form-check-label small text-secondary" for="s_sensivel">
-                <i class="bi bi-eye-slash me-1 text-warning"></i> Censurar foto por padrão (desfoque para ferimentos/óbito)
-              </label>
-            </div>
+
             <button type="submit" class="btn btn-saude touch-btn-submit">
-              <i class="bi bi-check-circle-fill"></i> Salvar Registro de Saúde
+              <i class="bi bi-check-circle-fill"></i> Salvar Registro de Saúde no Celular
             </button>
           </form>
         </div>
@@ -399,57 +478,6 @@
           <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
           <button type="submit" class="btn btn-primary btn-sm fw-bold px-3" id="btnConfirmSync">
             <i class="bi bi-cloud-arrow-up me-1"></i> Descarregar Dados
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: LOGIN INICIAL OBRIGATÓRIO (PRIMEIRO ACESSO) -->
-<div class="modal fade" id="modalLoginInicial" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content shadow-lg border-0" style="border-radius: 16px; overflow: hidden;">
-      <div class="modal-header py-3 px-4" style="background: linear-gradient(135deg, var(--earth-green-950) 0%, var(--earth-green-800) 100%); color: #ffffff;">
-        <div class="d-flex align-items-center gap-2">
-          <img src="./favicon.svg" alt="Logo" style="width: 32px; height: 32px; border-radius: 6px;">
-          <div>
-            <h6 class="modal-title fw-bold text-white mb-0">Identificação do Operador</h6>
-            <small style="color: #a3baa0; font-size: 0.72rem;">Ativação do Celular na Fazenda</small>
-          </div>
-        </div>
-      </div>
-      <form id="formInitLogin" onsubmit="handleInitialLogin(event)">
-        <div class="modal-body p-4">
-          <div class="text-center mb-3">
-            <div class="d-inline-flex align-items-center justify-content-center p-3 rounded-circle mb-2" style="background: rgba(46, 125, 50, 0.1);">
-              <i class="bi bi-person-badge-fill text-success fs-2"></i>
-            </div>
-            <h6 class="fw-bold mb-1">Bem-vindo ao PecuáriaGest Campo</h6>
-            <p class="text-secondary small mb-0">
-              Informe seu e-mail e senha de colaborador para liberar o uso deste celular. Esta identificação ficará salva para você trabalhar no curral sem precisar digitar novamente.
-            </p>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label fw-bold small"><i class="bi bi-envelope-fill text-success me-1"></i> E-mail de Colaborador *</label>
-            <input type="email" id="init_email" class="form-control touch-input-lg" required placeholder="admin@fazenda.com" autocomplete="username">
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label fw-bold small"><i class="bi bi-key-fill text-success me-1"></i> Senha de Acesso *</label>
-            <input type="password" id="init_senha" class="form-control touch-input-lg" required placeholder="••••••••" autocomplete="current-password">
-          </div>
-
-          <div id="initLoginError" class="alert alert-danger py-2 small fw-bold" style="display:none;"></div>
-
-          <button type="submit" id="btnInitLoginSubmit" class="btn btn-primary touch-btn-submit py-3 fw-bold w-100 mt-2" style="font-size: 1rem;">
-            <i class="bi bi-box-arrow-in-right fs-5 me-1"></i> Entrar e Ativar Celular
-          </button>
-        </div>
-        <div class="modal-footer justify-content-center p-2 bg-light border-0">
-          <button type="button" class="btn btn-link text-muted btn-sm text-decoration-none" onclick="openAdminPinModalFromInitLogin()" style="font-size: 0.78rem;">
-            <i class="bi bi-gear-fill me-1"></i> Configurar Endereço IP (Gerente)
           </button>
         </div>
       </form>

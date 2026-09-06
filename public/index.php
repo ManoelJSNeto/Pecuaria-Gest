@@ -182,7 +182,8 @@ if (str_starts_with($uri, '/api/')) {
                     if (!empty($s['foto_base64'])) {
                         $fUrl = salvarBase64Foto($s['foto_base64']);
                         if ($fUrl) {
-                            $isSensivel = ($isObito || !empty($s['is_sensivel'])) ? 1 : 0;
+                            $tipoLower = strtolower(trim($s['tipo'] ?? ''));
+                            $isSensivel = ($isObito || in_array($tipoLower, ['curativo', 'ferimento', 'cirurgia', 'óbito', 'obito', 'tratamento']) || !empty($s['is_sensivel'])) ? 1 : 0;
                             $fase = $isObito ? 'obito' : 'adulto';
                             $db->prepare("INSERT INTO fotos_animais (animal_id,foto_url,tipo_evento,fase,is_sensivel,data,observacao) VALUES (?,?,?,?,?,?,?)")
                                ->execute([$aid, $fUrl, $isObito ? 'obito' : 'saude', $fase, $isSensivel, $s['data'] ?? date('Y-m-d'), $s['descricao'] ?? 'Registro de saúde']);

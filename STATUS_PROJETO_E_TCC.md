@@ -130,13 +130,21 @@ Para elevar o padrão visual para a apresentação acadêmica formal do TCC, foi
 ## 📌 5. Pendências Críticas de Usabilidade & Regras de Negócio (Solicitadas pelo Usuário)
 
 ### A. Módulo Mobile — Usabilidade de Campo & Conexão pelo Login: [CONCLUÍDO]
-1. **Login Inicial Obrigatório no Primeiro Acesso & Sessão Persistente:**
-   - Ao abrir o app pela primeira vez, o sistema bloqueia e exige a identificação com e-mail e senha do colaborador.
-   - Uma vez autenticado, a sessão e as credenciais são gravadas de forma permanente no celular (`localStorage`).
-   - Nas aberturas seguintes, o vaqueiro entra direto no aplicativo sem nunca mais ser interrompido por telas de login.
-2. **Proteção do Suporte de Rede por PIN do Gerente (PIN: `0032`):**
-   - Configurações de endereço IP e rede central da fazenda são restritas ao gerente/administrador através do PIN `0032`.
-   - Peão/operador não tem contato com IPs para evitar desconfigurações acidentais.
+1. **Identidade Visual e Nome do Aplicativo (`PecuGest-Campo`):**
+   - Nome oficial unificado como **PecuGest-Campo** no Android (`strings.xml`), Capacitor (`capacitor.config.json`) e webapp.
+   - Ícone padrão do Capacitor substituído pelo ícone oficial do PecuáriaGest em todas as densidades (`mipmap-mdpi`, `hdpi`, `xhdpi`, `xxhdpi`, `xxxhdpi`) com fundo verde floresta (`#1a4d2e`).
+2. **Tela Dedicada de Login (Sem Conflito de Modais):**
+   - Substituição do modal flutuante por uma tela de login dedicada em tela cheia (`appLoginScreen`), eliminando 100% dos bugs de backdrops encavalados com o modal de PIN (`0032`) ou configuração de IP.
+   - Sessão persistente: uma vez autenticado, o vaqueiro entra direto no curral nas próximas aberturas.
+3. **Ergonomia de Curral, Fontes e Aproveitamento de Espaço:**
+   - Display estilo balança digital com numerais grandes e nítidos para leitura sob luz forte do sol.
+   - Seletor de sexo do bezerro em botões de toque rápido (Macho ♂ / Fêmea ♀).
+   - Botões de submissão ampliados com 68px de altura (glove-friendly).
+4. **Redesenho Completo da Aba de Saúde (Manejo Sanitário):**
+   - Distribuição em 4 painéis lógicos limpos: 1. Animal, 2. Tipo de Ocorrência (chips táteis de vacina, tratamento, vermífugo, curativo e óbito), 3. Data em linha espaçosa & Medicamento/Dose, 4. Câmera.
+   - Remoção da opção desnecessária de censura no celular: o aplicativo apenas envia e o servidor trata censura por padrão.
+5. **Gestão de Fotos no Painel Web (Censura e Download):**
+   - O proprietário pode visualizar com ou sem censura (individual e global "Revelar Todas") e baixar a foto original limpa em alta resolução diretamente pelo prontuário do animal.
 
 ### B. Regras de Negócio & Genealogia (Web & Banco de Dados)
 1. **Validação Estrita de Mãe / Pai no Cadastro de Filhotes & Reprodução: [CONCLUÍDO]**

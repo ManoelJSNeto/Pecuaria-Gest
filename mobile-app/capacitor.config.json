@@ -1,6 +1,6 @@
 {
   "appId": "com.pecuariagest.app",
-  "appName": "PecuariaGest Campo",
+  "appName": "PecuGest-Campo",
   "webDir": "www",
   "bundledWebRuntime": false,
   "server": {
