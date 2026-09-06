@@ -1,4 +1,5 @@
 <?php
+if (!isset($db)) { $db = getDb(); }
 // Filtro estrito: Matrizes reprodutivas devem ser fêmeas ativas
 $animaisStmt = $db->query("SELECT id, brinco, nome, sexo FROM animais WHERE sexo = 'F' AND status != 'morto' ORDER BY brinco");
 $animais     = $animaisStmt->fetchAll();
