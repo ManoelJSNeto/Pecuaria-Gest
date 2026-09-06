@@ -146,13 +146,17 @@ Para elevar o padrão visual para a apresentação acadêmica formal do TCC, foi
 5. **Gestão de Fotos no Painel Web (Censura e Download):**
    - O proprietário pode visualizar com ou sem censura (individual e global "Revelar Todas") e baixar a foto original limpa em alta resolução diretamente pelo prontuário do animal.
 
+6. **Vínculo Automático de Status (Saúde e Reprodução): [CONCLUÍDO]**
+   - Eventos de saúde agora refletem automaticamente no status do animal: Óbito ➔ `morto`, Tratamento/Curativo/Cirurgia ➔ `doente` (Em Tratamento), Alta Médica/Curado ➔ `ativo`.
+   - Eventos reprodutivos refletem no status da matriz: Diagnóstico Prenha/Positivo ➔ `prenha`, Parto/Aborto/Desmame ➔ `ativo`.
+   - Removidos todos os resquícios de texto "PWA" na observação de fotos, nomes de arquivos e identificadores do app.
+   - Correção do volume de uploads no Nginx Docker e restauração do formulário de Reprodução.
+
 ### B. Regras de Negócio & Genealogia (Web & Banco de Dados)
 1. **Validação Estrita de Mãe / Pai no Cadastro de Filhotes & Reprodução: [CONCLUÍDO]**
-   - **Mãe:** Impedido estritamente que machos/bois sejam selecionados como mãe biológica. Apenas fêmeas ativas e vivas (`sexo = 'F'`) figuram como opção de mãe, com validação de consistência no backend (bloqueio caso receba macho ou ela mesma).
-   - **Pai / Touro:** Sugestão de touros machos ativos (`sexo = 'M'`) via datalist e digitação livre de sêmen/inseminação. Bloqueio no frontend e backend contra atribuição de fêmeas do rebanho como pai ou touro reprodutor.
-   - **Reprodução:** Bloqueio nas telas e no backend para garantir que apenas fêmeas sejam matrizes e que touros não sejam fêmeas nem a própria matriz.
-2. **Ciclo de Venda, Saída e Óbito:**
-   - Registro de comprador, valor, peso de saída e baixa formal do rebanho ativo.
-   - Registro de causa de morte/necropsia com impacto nos índices de mortalidade.
-3. **Relatórios Gerenciais em PDF / DOCX:**
-   - Suporte a exportação formatada para impressão/laudo além do CSV atual.
+   - **Mãe:** Impedido estritamente que machos/bois sejam selecionados como mãe biológica. Apenas fêmeas ativas e vivas (`sexo = 'F'`) figuram como opção de mãe, com validação de consistência no backend.
+   - **Pai / Touro:** Sugestão de touros machos ativos (`sexo = 'M'`) via datalist e digitação livre de sêmen/inseminação. Bloqueio contra atribuição de fêmeas como touro reprodutor.
+2. **Ciclo de Venda e Saída de Animais: [PENDENTE]**
+   - Tela/modal para registro de venda formal: comprador, valor por kg/total, peso de saída e baixa do rebanho ativo com cálculo de receita.
+3. **Relatórios Gerenciais para Impressão (PDF / Laudo): [PENDENTE]**
+   - Exportação em PDF formatado (ficha do animal e balanço do rebanho para veterinário ou proprietário).
