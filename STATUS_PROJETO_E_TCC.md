@@ -136,8 +136,10 @@ Para elevar o padrão visual para a apresentação acadêmica formal do TCC, foi
    - Manter a sessão salva de forma contínua após o primeiro acesso para que a sincronização não fique pedindo e-mail e senha a cada operação, garantindo que o aplicativo nunca pare a produção ou interrompa o serviço do vaqueiro no meio da lida.
 
 ### B. Regras de Negócio & Genealogia (Web & Banco de Dados)
-1. **Validação Estrita de Mãe / Pai no Cadastro de Filhotes:**
-   - Impedir que machos/bois sejam selecionados como mãe biológica. Apenas fêmeas ativas e vivas (`sexo = 'F'`) devem figurar como opção de mãe.
+1. **Validação Estrita de Mãe / Pai no Cadastro de Filhotes & Reprodução: [CONCLUÍDO]**
+   - **Mãe:** Impedido estritamente que machos/bois sejam selecionados como mãe biológica. Apenas fêmeas ativas e vivas (`sexo = 'F'`) figuram como opção de mãe, com validação de consistência no backend (bloqueio caso receba macho ou ela mesma).
+   - **Pai / Touro:** Sugestão de touros machos ativos (`sexo = 'M'`) via datalist e digitação livre de sêmen/inseminação. Bloqueio no frontend e backend contra atribuição de fêmeas do rebanho como pai ou touro reprodutor.
+   - **Reprodução:** Bloqueio nas telas e no backend para garantir que apenas fêmeas sejam matrizes e que touros não sejam fêmeas nem a própria matriz.
 2. **Ciclo de Venda, Saída e Óbito:**
    - Registro de comprador, valor, peso de saída e baixa formal do rebanho ativo.
    - Registro de causa de morte/necropsia com impacto nos índices de mortalidade.
