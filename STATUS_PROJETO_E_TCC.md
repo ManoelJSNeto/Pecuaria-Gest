@@ -129,11 +129,14 @@ Para elevar o padrão visual para a apresentação acadêmica formal do TCC, foi
 
 ## 📌 5. Pendências Críticas de Usabilidade & Regras de Negócio (Solicitadas pelo Usuário)
 
-### A. Módulo Mobile — Usabilidade de Campo & Conexão pelo Login (A revisar)
-1. **Conectar ao Servidor Apenas com o Login do Usuário:**
-   - Encontrar uma forma prática de o aplicativo conectar ao servidor apenas através do login do usuário, evitando completamente a necessidade de o peão/operador digitar ou mexer em endereço IP (afastando o risco de desconfiguração ou "zulo"). *(Descartada ideia de QR code).*
-2. **Manter Logado / Sessão Contínua de Trabalho:**
-   - Manter a sessão salva de forma contínua após o primeiro acesso para que a sincronização não fique pedindo e-mail e senha a cada operação, garantindo que o aplicativo nunca pare a produção ou interrompa o serviço do vaqueiro no meio da lida.
+### A. Módulo Mobile — Usabilidade de Campo & Conexão pelo Login: [CONCLUÍDO]
+1. **Login Inicial Obrigatório no Primeiro Acesso & Sessão Persistente:**
+   - Ao abrir o app pela primeira vez, o sistema bloqueia e exige a identificação com e-mail e senha do colaborador.
+   - Uma vez autenticado, a sessão e as credenciais são gravadas de forma permanente no celular (`localStorage`).
+   - Nas aberturas seguintes, o vaqueiro entra direto no aplicativo sem nunca mais ser interrompido por telas de login.
+2. **Proteção do Suporte de Rede por PIN do Gerente (PIN: `0032`):**
+   - Configurações de endereço IP e rede central da fazenda são restritas ao gerente/administrador através do PIN `0032`.
+   - Peão/operador não tem contato com IPs para evitar desconfigurações acidentais.
 
 ### B. Regras de Negócio & Genealogia (Web & Banco de Dados)
 1. **Validação Estrita de Mãe / Pai no Cadastro de Filhotes & Reprodução: [CONCLUÍDO]**

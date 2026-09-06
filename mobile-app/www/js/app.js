@@ -503,7 +503,12 @@ function renderQueueCards() {
 }
 
 // ── 8. Funções de Auxílio Local & Gerenciamento de Sessão ─────────
-const DEFAULT_ADMIN_PIN = '1234';
+const DEFAULT_ADMIN_PIN = '0032';
+
+// Garante migração imediata de PIN antigo se houver
+if (localStorage.getItem('pecuaria_admin_pin') === '1234') {
+  localStorage.setItem('pecuaria_admin_pin', '0032');
+}
 
 function openAdminPinModal() {
   const pinInput = document.getElementById('admin_pin_input');
@@ -519,12 +524,17 @@ function openAdminPinModal() {
   }
 }
 
+function openAdminPinModalFromInitLogin() {
+  closeInitialLoginModal();
+  openAdminPinModal();
+}
+
 function handleVerifyAdminPin(e) {
   e.preventDefault();
   const inputPin = document.getElementById('admin_pin_input').value.trim();
   const savedPin = localStorage.getItem('pecuaria_admin_pin') || DEFAULT_ADMIN_PIN;
 
-  if (inputPin === savedPin || inputPin === DEFAULT_ADMIN_PIN) {
+  if (inputPin === savedPin || inputPin === DEFAULT_ADMIN_PIN || inputPin === '0032') {
     const modalPinEl = document.getElementById('modalPinAdmin');
     if (modalPinEl) bootstrap.Modal.getInstance(modalPinEl)?.hide();
     triggerHapticFeedback('tap');
@@ -534,6 +544,126 @@ function handleVerifyAdminPin(e) {
     const errorEl = document.getElementById('pinErrorFeedback');
     if (errorEl) errorEl.style.display = 'block';
   }
+}
+
+function openInitialLoginModal() {
+  const modalEl = document.getElementById('modalLoginInicial');
+  if (modalEl && typeof bootstrap !== 'undefined') {
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl, {
+      backdrop: 'static',
+      keyboard: false
+    });
+    modal.show();
+    setTimeout(() => {
+      const emailInput = document.getElementById('init_email');
+      if (emailInput && !emailInput.value) emailInput.focus();
+    }, 400);
+  }
+}
+
+function closeInitialLoginModal() {
+  const modalEl = document.getElementById('modalLoginInicial');
+  if (modalEl && typeof bootstrap !== 'undefined') {
+    bootstrap.Modal.getInstance(modalEl)?.hide();
+  }
+}
+
+async function handleInitialLogin(e) {
+  e.preventDefault();
+  const emailInput = document.getElementById('init_email');
+  const senhaInput = document.getElementById('init_senha');
+  const errorEl = document.getElementById('initLoginError');
+  const btnSubmit = document.getElementById('btnInitLoginSubmit');
+
+  const email = (emailInput?.value || '').trim();
+  const senha = senhaInput?.value || '';
+
+  if (!email || !senha) {
+    if (errorEl) {
+      errorEl.textContent = 'Informe seu e-mail e senha cadastrados para continuar.';
+      errorEl.style.display = 'block';
+    }
+    return;
+  }
+
+  if (errorEl) errorEl.style.display = 'none';
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Validando com a central...';
+  }
+
+  const serverUrl = getServerUrl();
+  let authValid = true;
+  let validationMessage = '';
+
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 4000);
+
+    const res = await fetch(`${serverUrl}/api/sync`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': 'pecuaria-mobile-key'
+      },
+      body: JSON.stringify({
+        dispositivo: 'App Nativo Android (Login Inicial)',
+        api_key: 'pecuaria-mobile-key',
+        auth_email: email,
+        auth_senha: senha,
+        pesagens: [],
+        saude: [],
+        animais_novos: []
+      }),
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+
+    if (res.status === 401) {
+      authValid = false;
+      const data = await res.json().catch(() => ({}));
+      validationMessage = data.error || 'E-mail ou senha incorretos. Verifique com a administração.';
+    } else if (res.ok) {
+      authValid = true;
+    }
+  } catch (err) {
+    // Se a central estiver offline no momento (ex: sem Wi-Fi no pasto),
+    // grava a credencial localmente para não bloquear a lida do vaqueiro
+    authValid = true;
+  }
+
+  if (btnSubmit) {
+    btnSubmit.disabled = false;
+    btnSubmit.innerHTML = '<i class="bi bi-box-arrow-in-right fs-5 me-1"></i> Entrar e Ativar Celular';
+  }
+
+  if (!authValid) {
+    triggerHapticFeedback('warning');
+    if (errorEl) {
+      errorEl.textContent = validationMessage;
+      errorEl.style.display = 'block';
+    }
+    return;
+  }
+
+  // Grava a sessão persistente no celular
+  const authObj = {
+    email: email,
+    senha: senha,
+    salvo_em: new Date().toISOString()
+  };
+  localStorage.setItem(STORAGE_AUTH_KEY, JSON.stringify(authObj));
+
+  closeInitialLoginModal();
+  triggerHapticFeedback('save');
+  showToast(`Celular ativado com sucesso para ${email}! Bom trabalho.`, 'success');
+
+  updateOperatorUI();
+
+  // Carrega lista de animais atualizada para autocompletar
+  setTimeout(() => {
+    checkServerConnectivity();
+  }, 300);
 }
 
 function getSavedOperator() {
@@ -570,11 +700,12 @@ function updateOperatorUI() {
 }
 
 function logoutCurrentOperator() {
-  if (!confirm('Deseja desconectar este usuário do celular?')) return;
+  if (!confirm('Deseja desconectar este usuário do celular? O aplicativo exigirá novo login para uso.')) return;
   localStorage.removeItem(STORAGE_AUTH_KEY);
   updateOperatorUI();
   triggerHapticFeedback('tap');
   showToast('Sessão encerrada neste dispositivo.', 'info');
+  openInitialLoginModal();
 }
 
 // ── 9. Modais e Ações de Sincronização ─────────────────────────
@@ -999,6 +1130,34 @@ document.addEventListener('DOMContentLoaded', () => {
   updatePendingBadge();
   renderQueueCards();
   updateOperatorUI();
+
+  // Checagem de Sessão no Primeiro Acesso:
+  // Se não houver operador registrado neste celular, exige login inicial
+  if (!getSavedOperator()) {
+    setTimeout(() => {
+      openInitialLoginModal();
+    }, 300);
+  }
+
+  // Se o gerente acessar configurações e fechar sem logar, reabre a tela de identificação
+  const modalConfigEl = document.getElementById('modalConfigServidor');
+  if (modalConfigEl) {
+    modalConfigEl.addEventListener('hidden.bs.modal', () => {
+      if (!getSavedOperator()) {
+        setTimeout(openInitialLoginModal, 250);
+      }
+    });
+  }
+  const modalPinEl = document.getElementById('modalPinAdmin');
+  if (modalPinEl) {
+    modalPinEl.addEventListener('hidden.bs.modal', () => {
+      const configModal = document.getElementById('modalConfigServidor');
+      const isConfigOpen = configModal && configModal.classList.contains('show');
+      if (!getSavedOperator() && !isConfigOpen) {
+        setTimeout(openInitialLoginModal, 250);
+      }
+    });
+  }
 
   // Fecha dropdowns de autocompletar ao tocar fora
   document.addEventListener('click', (e) => {
