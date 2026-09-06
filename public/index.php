@@ -156,6 +156,7 @@ if (str_starts_with($uri, '/api/')) {
                         if ($fUrl) {
                             $db->prepare("INSERT INTO fotos_animais (animal_id,foto_url,tipo_evento,fase,data,observacao) VALUES (?,?,'pesagem','adulto',?,?)")
                                ->execute([$aid, $fUrl, $p['data'] ?? date('Y-m-d'), 'Pesagem ' . ($p['peso']??'') . 'kg (PWA)']);
+                            $db->prepare("UPDATE animais SET foto_url = COALESCE(foto_url, ?) WHERE id = ?")->execute([$fUrl, $aid]);
                             $processados['fotos']++;
                         }
                     }
