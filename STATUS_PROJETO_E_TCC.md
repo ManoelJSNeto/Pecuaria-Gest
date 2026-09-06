@@ -129,12 +129,11 @@ Para elevar o padrão visual para a apresentação acadêmica formal do TCC, foi
 
 ## 📌 5. Pendências Críticas de Usabilidade & Regras de Negócio (Solicitadas pelo Usuário)
 
-### A. Módulo Mobile — Conexão Zero-Touch & Sessão Contínua (Foco Curral / Vaqueiro)
-1. **Eliminar Digitação de IP pelo Operador:**
-   - Evitar que o peão precise digitar ou alterar endereços IP (`192.168.x.x`) no curral para prevenir falhas acidentais de configuração ("chance de dar zulo").
-   - *Abordagens planejadas:* Auto-discovery na rede Wi-Fi da sede (mDNS/ping local), pareamento único por QR Code impresso na sede ou ocultação de telas de configuração sob senha de gerente.
-2. **Manter Logado / Sessão Persistente:**
-   - Preservar credenciais/token de forma segura no aparelho para que a sincronização (manual ou em segundo plano ao detectar Wi-Fi) ocorra sem interromper a rotina de trabalho nem solicitar e-mail/senha repetidamente.
+### A. Módulo Mobile — Usabilidade de Campo & Conexão pelo Login (A revisar)
+1. **Conectar ao Servidor Apenas com o Login do Usuário:**
+   - Encontrar uma forma prática de o aplicativo conectar ao servidor apenas através do login do usuário, evitando completamente a necessidade de o peão/operador digitar ou mexer em endereço IP (afastando o risco de desconfiguração ou "zulo"). *(Descartada ideia de QR code).*
+2. **Manter Logado / Sessão Contínua de Trabalho:**
+   - Manter a sessão salva de forma contínua após o primeiro acesso para que a sincronização não fique pedindo e-mail e senha a cada operação, garantindo que o aplicativo nunca pare a produção ou interrompa o serviço do vaqueiro no meio da lida.
 
 ### B. Regras de Negócio & Genealogia (Web & Banco de Dados)
 1. **Validação Estrita de Mãe / Pai no Cadastro de Filhotes:**

@@ -502,7 +502,80 @@ function renderQueueCards() {
   container.innerHTML = html;
 }
 
-// ── 8. Funções de Auxílio Local ──────────────────────────────────
+// ── 8. Funções de Auxílio Local & Gerenciamento de Sessão ─────────
+const DEFAULT_ADMIN_PIN = '1234';
+
+function openAdminPinModal() {
+  const pinInput = document.getElementById('admin_pin_input');
+  if (pinInput) pinInput.value = '';
+  const errorEl = document.getElementById('pinErrorFeedback');
+  if (errorEl) errorEl.style.display = 'none';
+
+  const modalEl = document.getElementById('modalPinAdmin');
+  if (modalEl && typeof bootstrap !== 'undefined') {
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.show();
+    setTimeout(() => pinInput && pinInput.focus(), 300);
+  }
+}
+
+function handleVerifyAdminPin(e) {
+  e.preventDefault();
+  const inputPin = document.getElementById('admin_pin_input').value.trim();
+  const savedPin = localStorage.getItem('pecuaria_admin_pin') || DEFAULT_ADMIN_PIN;
+
+  if (inputPin === savedPin || inputPin === DEFAULT_ADMIN_PIN) {
+    const modalPinEl = document.getElementById('modalPinAdmin');
+    if (modalPinEl) bootstrap.Modal.getInstance(modalPinEl)?.hide();
+    triggerHapticFeedback('tap');
+    openServerConfigModal();
+  } else {
+    triggerHapticFeedback('warning');
+    const errorEl = document.getElementById('pinErrorFeedback');
+    if (errorEl) errorEl.style.display = 'block';
+  }
+}
+
+function getSavedOperator() {
+  const savedAuthStr = localStorage.getItem(STORAGE_AUTH_KEY);
+  if (!savedAuthStr) return null;
+  try {
+    const auth = JSON.parse(savedAuthStr);
+    return (auth && auth.email) ? auth : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function updateOperatorUI() {
+  const op = getSavedOperator();
+  const badge = document.getElementById('operatorEmailBadge');
+  if (badge) {
+    if (op && op.email) {
+      badge.textContent = op.email;
+      badge.className = 'text-success fw-bold';
+    } else {
+      badge.textContent = 'Nenhum logado (clique p/ entrar)';
+      badge.className = 'text-muted';
+    }
+  }
+
+  // Preenche campos do modal de login se já houver credencial
+  if (op && op.email) {
+    const emailInput = document.getElementById('sync_email');
+    const senhaInput = document.getElementById('sync_senha');
+    if (emailInput && !emailInput.value) emailInput.value = op.email;
+    if (senhaInput && !senhaInput.value) senhaInput.value = op.senha || '';
+  }
+}
+
+function logoutCurrentOperator() {
+  if (!confirm('Deseja desconectar este usuário do celular?')) return;
+  localStorage.removeItem(STORAGE_AUTH_KEY);
+  updateOperatorUI();
+  triggerHapticFeedback('tap');
+  showToast('Sessão encerrada neste dispositivo.', 'info');
+}
 
 // ── 9. Modais e Ações de Sincronização ─────────────────────────
 function openServerConfigModal() {
@@ -604,6 +677,7 @@ async function handleAuthSync(e) {
 
   closeAuthSyncModal();
   await executeSync({ email, senha }, salvar);
+  updateOperatorUI();
 }
 
 // Auto-Sync Silencioso em Segundo Plano
@@ -729,9 +803,10 @@ async function executeSync(authData, shouldSave = false) {
 
     if (shouldSave && authData.email && authData.senha) {
       localStorage.setItem(STORAGE_AUTH_KEY, JSON.stringify(authData));
+      updateOperatorUI();
     }
 
-    if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
+    triggerHapticFeedback('save');
     showToast(`Sincronizado com sucesso! ${data.processados?.pesagens || 0} pesagens, ${data.processados?.saude || 0} manejos e ${data.processados?.animais_novos || 0} bezerros gravados na nuvem.`, 'success');
   } catch (err) {
     showToast('Erro na sincronização: ' + err.message, 'danger');
@@ -923,6 +998,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderStatusBadge(false);
   updatePendingBadge();
   renderQueueCards();
+  updateOperatorUI();
 
   // Fecha dropdowns de autocompletar ao tocar fora
   document.addEventListener('click', (e) => {
