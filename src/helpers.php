@@ -69,6 +69,37 @@ function statusBadge(string $status): string {
     return '<span class="' . $classes . '">' . ucfirst(e($status)) . '</span>';
 }
 
+function normalizarTexto(string $str): string {
+    $s = mb_strtolower(trim($str), 'UTF-8');
+    return str_replace(
+        ['á','à','â','ã','ä','é','è','ê','ë','í','ì','î','ï','ó','ò','ô','õ','ö','ú','ù','û','ü','ç'],
+        ['a','a','a','a','a','e','e','e','e','i','i','i','i','o','o','o','o','o','u','u','u','u','c'],
+        $s
+    );
+}
+
+function atualizarStatusAnimalPorSaude(PDO $db, int $animalId, string $tipo): void {
+    if ($animalId <= 0) return;
+    $tipoNorm = normalizarTexto($tipo);
+
+    if (in_array($tipoNorm, ['obito', 'morte', 'morreu', 'falecimento', 'necropsia'])) {
+        $db->prepare("UPDATE animais SET status = 'morto', updated_at = CURRENT_TIMESTAMP WHERE id = ?")
+           ->execute([$animalId]);
+    } elseif (in_array($tipoNorm, ['tratamento', 'curativo', 'cirurgia', 'doenca', 'enfermidade', 'medicamento'])) {
+        // Se o animal não estiver morto, transiciona para 'doente' (Em Tratamento)
+        $db->prepare("UPDATE animais SET status = 'doente', updated_at = CURRENT_TIMESTAMP WHERE id = ? AND status != 'morto'")
+           ->execute([$animalId]);
+    } elseif (in_array($tipoNorm, ['parto'])) {
+        // Se a fêmea estava prenha, o parto atualiza para 'ativo'
+        $db->prepare("UPDATE animais SET status = 'ativo', updated_at = CURRENT_TIMESTAMP WHERE id = ? AND status = 'prenha'")
+           ->execute([$animalId]);
+    } elseif (in_array($tipoNorm, ['recuperado', 'alta', 'cura', 'curado', 'alta medica', 'recuperacao'])) {
+        // Se estava em tratamento / doente, volta a ser ativo
+        $db->prepare("UPDATE animais SET status = 'ativo', updated_at = CURRENT_TIMESTAMP WHERE id = ? AND status != 'morto'")
+           ->execute([$animalId]);
+    }
+}
+
 function sexoLabel(string $sexo): string {
     return $sexo === 'M' ? 'Macho' : 'Fêmea';
 }

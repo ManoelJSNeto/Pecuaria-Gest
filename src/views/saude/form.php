@@ -34,7 +34,7 @@ $preAnimal   = $s['animal_id'] ?? ($_GET['animal_id'] ?? null);
             <label class="form-label">Tipo de Evento *</label>
             <select name="tipo" class="form-select" required>
               <option value="">— Selecione —</option>
-              <?php foreach (['Vacinação','Tratamento','Vermifugação','Exame','Curativo','Cirurgia','Parto','Outro'] as $t): ?>
+              <?php foreach (['Vacinação','Tratamento','Curativo','Cirurgia','Exame','Vermifugação','Parto','Recuperado / Alta','Óbito','Outro'] as $t): ?>
                 <option value="<?= $t ?>" <?= ($s['tipo'] ?? '') === $t ? 'selected' : '' ?>><?= $t ?></option>
               <?php endforeach; ?>
             </select>

@@ -716,6 +716,18 @@ input, textarea, select, button, .touch-input-lg, .campo-nav-btn {
   color: #92400e;
   box-shadow: 0 4px 10px rgba(217, 119, 6, 0.18);
 }
+.health-type-card.active-vermifugo {
+  background: #f0fdf4;
+  border-color: #16a34a;
+  color: #15803d;
+  box-shadow: 0 4px 10px rgba(22, 163, 74, 0.18);
+}
+.health-type-card.active-recuperado {
+  background: #dcfce7;
+  border-color: #15803d;
+  color: #14532d;
+  box-shadow: 0 4px 10px rgba(21, 128, 61, 0.22);
+}
 
 /* Painéis de Seção Claros no Formulário */
 .panel-section-box {

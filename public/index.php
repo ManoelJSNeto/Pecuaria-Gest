@@ -175,16 +175,16 @@ if (str_starts_with($uri, '/api/')) {
                     $stmt->execute([$aid,$s['tipo']??'Outro',$s['descricao']??'',$s['data']??date('Y-m-d'),$s['medicamento']??null,$s['dose']??null,$s['observacao']??null]);
                     $processados['saude']++;
 
-                    $isObito = strtolower($s['tipo'] ?? '') === 'óbito' || strtolower($s['tipo'] ?? '') === 'obito';
-                    if ($isObito) {
-                        $db->prepare("UPDATE animais SET status='morto' WHERE id=?")->execute([$aid]);
-                    }
+                    // Atualização automática de status do animal (óbito -> morto, tratamento -> doente, alta -> ativo, parto -> ativo)
+                    atualizarStatusAnimalPorSaude($db, (int)$aid, $s['tipo'] ?? '');
+
+                    $tipoNorm = normalizarTexto($s['tipo'] ?? '');
+                    $isObito = in_array($tipoNorm, ['obito', 'morte', 'morreu']);
 
                     if (!empty($s['foto_base64'])) {
                         $fUrl = salvarBase64Foto($s['foto_base64']);
                         if ($fUrl) {
-                            $tipoLower = strtolower(trim($s['tipo'] ?? ''));
-                            $isSensivel = ($isObito || in_array($tipoLower, ['curativo', 'ferimento', 'cirurgia', 'óbito', 'obito', 'tratamento']) || !empty($s['is_sensivel'])) ? 1 : 0;
+                            $isSensivel = ($isObito || in_array($tipoNorm, ['curativo', 'ferimento', 'cirurgia', 'obito', 'tratamento']) || !empty($s['is_sensivel'])) ? 1 : 0;
                             $fase = $isObito ? 'obito' : 'adulto';
                             $db->prepare("INSERT INTO fotos_animais (animal_id,foto_url,tipo_evento,fase,is_sensivel,data,observacao) VALUES (?,?,?,?,?,?,?)")
                                ->execute([$aid, $fUrl, $isObito ? 'obito' : 'saude', $fase, $isSensivel, $s['data'] ?? date('Y-m-d'), $s['descricao'] ?? 'Registro de saúde']);
@@ -579,10 +579,12 @@ if ($uri === '/saude/novo') {
 }
 if ($uri === '/saude/salvar' && $method === 'POST') {
     if (!csrf_verify()) { flash('error','Token inválido.'); redirect('/saude/novo'); }
+    $aid = (int)($_POST['animal_id'] ?? 0);
+    $tipo = (string)($_POST['tipo'] ?? '');
     $db->prepare("INSERT INTO saude (animal_id,tipo,descricao,data,proxima_data,custo,medicamento,dose,veterinario,observacao,origem) VALUES (?,?,?,?,?,?,?,?,?,?,'web')")
        ->execute([
-           $_POST['animal_id'],
-           $_POST['tipo'],
+           $aid,
+           $tipo,
            $_POST['descricao'],
            $_POST['data'],
            $_POST['proxima_data'] ?: null,
@@ -592,8 +594,12 @@ if ($uri === '/saude/salvar' && $method === 'POST') {
            $_POST['veterinario'] ?: null,
            trim($_POST['observacao'] ?? '') ?: null,
        ]);
+
+    // Atualização automática de status (óbito -> morto, tratamento -> doente, alta -> ativo, parto -> ativo)
+    atualizarStatusAnimalPorSaude($db, $aid, $tipo);
+
     flash('success','Evento de saúde registrado!');
-    $back = !empty($_POST['animal_id']) ? "/animais/{$_POST['animal_id']}" : '/saude';
+    $back = !empty($aid) ? "/animais/{$aid}" : '/saude';
     redirect($back);
     exit;
 }
@@ -610,10 +616,12 @@ if (preg_match('#^/saude/(\d+)(/.*)?$#', $uri, $m)) {
     }
     if ($sub === '/atualizar' && $method === 'POST') {
         if (!csrf_verify()) { flash('error','Token inválido.'); redirect("/saude/$id/editar"); }
+        $aid = (int)($_POST['animal_id'] ?? 0);
+        $tipo = (string)($_POST['tipo'] ?? '');
         $db->prepare("UPDATE saude SET animal_id=?,tipo=?,descricao=?,data=?,proxima_data=?,custo=?,medicamento=?,dose=?,veterinario=?,observacao=? WHERE id=?")
            ->execute([
-               $_POST['animal_id'],
-               $_POST['tipo'],
+               $aid,
+               $tipo,
                $_POST['descricao'],
                $_POST['data'],
                $_POST['proxima_data'] ?: null,
@@ -624,8 +632,12 @@ if (preg_match('#^/saude/(\d+)(/.*)?$#', $uri, $m)) {
                trim($_POST['observacao'] ?? '') ?: null,
                $id,
            ]);
+
+        // Atualização automática de status
+        atualizarStatusAnimalPorSaude($db, $aid, $tipo);
+
         flash('success','Evento de saúde atualizado!');
-        $back = !empty($_POST['animal_id']) ? "/animais/{$_POST['animal_id']}" : '/saude';
+        $back = !empty($aid) ? "/animais/{$aid}" : '/saude';
         redirect($back);
         exit;
     }

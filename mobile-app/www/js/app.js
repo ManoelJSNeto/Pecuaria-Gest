@@ -591,13 +591,14 @@ function selectHealthType(tipo) {
     'Vacinação': 'cardTipo_Vacinacao',
     'Vermifugação': 'cardTipo_Vermifugacao',
     'Curativo': 'cardTipo_Curativo',
+    'Recuperado': 'cardTipo_Recuperado',
     'Óbito': 'cardTipo_Obito'
   };
 
   Object.values(cardMap).forEach(id => {
     const el = document.getElementById(id);
     if (el) {
-      el.classList.remove('active', 'active-vacina', 'active-curativo', 'active-obito');
+      el.classList.remove('active', 'active-vacina', 'active-curativo', 'active-vermifugo', 'active-recuperado', 'active-obito');
     }
   });
 
@@ -605,16 +606,20 @@ function selectHealthType(tipo) {
   const activeEl = document.getElementById(activeCardId);
   if (activeEl) {
     if (tipo === 'Vacinação') activeEl.classList.add('active-vacina');
+    else if (tipo === 'Vermifugação') activeEl.classList.add('active-vermifugo');
     else if (tipo === 'Curativo') activeEl.classList.add('active-curativo');
+    else if (tipo === 'Recuperado') activeEl.classList.add('active-recuperado');
     else if (tipo === 'Óbito') activeEl.classList.add('active-obito');
     else activeEl.classList.add('active');
   }
 
-  // Se for óbito, foca na descrição da causa da morte
+  // Se for óbito ou recuperado, ajusta o placeholder
   const descEl = document.getElementById('s_desc');
   if (tipo === 'Óbito') {
     if (descEl && !descEl.value) descEl.placeholder = 'Causa da morte / circunstâncias do óbito...';
-  } else if (descEl && descEl.placeholder.includes('Causa da morte')) {
+  } else if (tipo === 'Recuperado') {
+    if (descEl && !descEl.value) descEl.placeholder = 'Motivo da alta / animal curado e liberado...';
+  } else if (descEl && (descEl.placeholder.includes('Causa da morte') || descEl.placeholder.includes('Motivo da alta'))) {
     descEl.placeholder = 'Ex: Febre, tosse, carrapato, ferimento na pata...';
   }
 
