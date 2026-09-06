@@ -3,7 +3,24 @@ $isEdit    = isset($animal);
 $a         = $animal ?? [];
 $currPasto = (int)($a['pasto_id'] ?? 0);
 $pastagens = $db->query("SELECT id, nome, status FROM pastagens WHERE status='ativa' OR id = $currPasto ORDER BY nome")->fetchAll();
-$animaisF  = $db->query("SELECT id, brinco, nome FROM animais ORDER BY brinco")->fetchAll();
+// Filtro estrito: Apenas fêmeas ativas para Mãe biológica
+$animaisF  = $db->query("SELECT id, brinco, nome, status FROM animais WHERE sexo = 'F' AND status != 'morto' ORDER BY brinco")->fetchAll();
+// Touros/Reprodutores machos da propriedade para sugestão de Pai
+$tourosM   = $db->query("SELECT id, brinco, nome FROM animais WHERE sexo = 'M' AND status != 'morto' ORDER BY brinco")->fetchAll();
+
+// Se for edição e a mãe já estiver vinculada (mesmo que inativa), garante sua presença na lista caso seja fêmea
+if (!empty($a['mae_id'])) {
+    $currentMaeFound = false;
+    foreach ($animaisF as $af) {
+        if ($af['id'] == $a['mae_id']) { $currentMaeFound = true; break; }
+    }
+    if (!$currentMaeFound) {
+        $extraMae = $db->prepare("SELECT id, brinco, nome, status, sexo FROM animais WHERE id = ?");
+        $extraMae->execute([$a['mae_id']]);
+        $em = $extraMae->fetch();
+        if ($em && $em['sexo'] === 'F') $animaisF[] = $em;
+    }
+}
 ?>
 <div class="mb-3">
   <a href="<?= $isEdit ? '/animais/'.$a['id'] : '/animais' ?>" class="btn btn-sm btn-outline-secondary">
@@ -89,21 +106,30 @@ $animaisF  = $db->query("SELECT id, brinco, nome FROM animais ORDER BY brinco")-
         <div class="form-section-title"><i class="bi bi-diagram-3 text-info"></i> Genealogia</div>
         <div class="row g-3">
           <div class="col-md-6">
-            <label class="form-label">Mãe (brinco)</label>
+            <label class="form-label fw-bold small"><i class="bi bi-gender-female text-danger me-1"></i> Mãe Biológica (apenas fêmeas)</label>
             <select name="mae_id" class="form-select">
-              <option value="">— Desconhecida —</option>
+              <option value="">— Desconhecida / Não informada —</option>
               <?php foreach ($animaisF as $af): ?>
                 <?php if (($af['id'] ?? 0) !== ($a['id'] ?? null)): ?>
                 <option value="<?= $af['id'] ?>" <?= ($a['mae_id']??'')==$af['id']?'selected':'' ?>>
-                  <?= e($af['brinco']) ?><?= $af['nome'] ? ' — '.e($af['nome']) : '' ?>
+                  <?= e($af['brinco']) ?><?= $af['nome'] ? ' — '.e($af['nome']) : '' ?><?= !empty($af['status']) && $af['status'] !== 'ativo' ? ' ('.ucfirst($af['status']).')' : '' ?>
                 </option>
                 <?php endif; ?>
               <?php endforeach; ?>
             </select>
+            <small class="text-muted d-block mt-1" style="font-size:0.75rem;">Apenas matrizes fêmeas ativas da fazenda são listadas.</small>
           </div>
           <div class="col-md-6">
-            <label class="form-label">Pai / Touro (brinco)</label>
-            <input type="text" name="pai_brinco" class="form-control" value="<?= e($a['pai_brinco'] ?? '') ?>" placeholder="Ex: TO0042">
+            <label class="form-label fw-bold small"><i class="bi bi-gender-male text-primary me-1"></i> Pai / Touro (brinco ou sêmen)</label>
+            <input type="text" name="pai_brinco" class="form-control text-uppercase" list="tourosList" value="<?= e($a['pai_brinco'] ?? '') ?>" placeholder="Ex: TO0042 ou selecione..." autocomplete="off">
+            <datalist id="tourosList">
+              <?php foreach ($tourosM as $tm): ?>
+                <?php if (($tm['id'] ?? 0) !== ($a['id'] ?? null)): ?>
+                  <option value="<?= e($tm['brinco']) ?>"><?= e($tm['brinco']) ?><?= $tm['nome'] ? ' — '.e($tm['nome']) : '' ?> (Macho da Fazenda)</option>
+                <?php endif; ?>
+              <?php endforeach; ?>
+            </datalist>
+            <small class="text-muted d-block mt-1" style="font-size:0.75rem;">Selecione um touro ativo ou digite código de sêmen/inseminação.</small>
           </div>
         </div>
       </div>
@@ -156,3 +182,55 @@ $animaisF  = $db->query("SELECT id, brinco, nome FROM animais ORDER BY brinco")-
     </div>
   </div>
 </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.querySelector('form');
+  const inputBrinco = document.querySelector('input[name="brinco"]');
+  const selectMae = document.querySelector('select[name="mae_id"]');
+  const inputPai = document.querySelector('input[name="pai_brinco"]');
+
+  // Mapa de fêmeas conhecidas para validação zootécnica imediata
+  const femeasBrincos = <?= json_encode(array_values(array_filter(array_map(fn($f) => strtoupper(trim($f['brinco'] ?? '')), $animaisF)))) ?>;
+  const femeasMap = <?= json_encode(array_column($animaisF, 'brinco', 'id')) ?>;
+
+  form.addEventListener('submit', function(e) {
+    const brincoAtual = (inputBrinco.value || '').trim().toUpperCase();
+    const paiBrinco = (inputPai.value || '').trim().toUpperCase();
+    const maeId = selectMae.value;
+    const maeBrinco = (femeasMap[maeId] || '').trim().toUpperCase();
+
+    // 1. Não pode ser a própria mãe
+    if (maeBrinco && brincoAtual && maeBrinco === brincoAtual) {
+      e.preventDefault();
+      alert('Inconsistência Genealógica: O animal não pode ser a mãe de si mesmo.');
+      selectMae.focus();
+      return;
+    }
+
+    // 2. Não pode ser o próprio pai
+    if (paiBrinco && brincoAtual && paiBrinco === brincoAtual) {
+      e.preventDefault();
+      alert('Inconsistência Genealógica: O animal não pode ser o pai de si mesmo.');
+      inputPai.focus();
+      return;
+    }
+
+    // 3. Pai e mãe não podem ser o mesmo animal
+    if (maeBrinco && paiBrinco && maeBrinco === paiBrinco) {
+      e.preventDefault();
+      alert('Inconsistência Zootécnica: A mãe e o pai não podem ser o mesmo animal (' + paiBrinco + ').');
+      inputPai.focus();
+      return;
+    }
+
+    // 4. O pai não pode ser uma fêmea cadastrada no rebanho
+    if (paiBrinco && femeasBrincos.includes(paiBrinco)) {
+      e.preventDefault();
+      alert('Inconsistência Zootécnica: O brinco "' + paiBrinco + '" pertence a uma FÊMEA do rebanho e não pode ser informado como touro/pai reprodutor.');
+      inputPai.focus();
+      return;
+    }
+  });
+});
+</script>

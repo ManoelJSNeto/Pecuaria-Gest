@@ -288,6 +288,49 @@ if ($uri === '/animais/novo') {
 }
 if ($uri === '/animais/salvar' && $method === 'POST') {
     if (!csrf_verify()) { flash('error', 'Token inválido.'); redirect('/animais/novo'); }
+    
+    $brinco = trim($_POST['brinco'] ?? '');
+    $maeId = !empty($_POST['mae_id']) ? (int)$_POST['mae_id'] : null;
+    $paiBrinco = trim($_POST['pai_brinco'] ?? '') ?: null;
+
+    // Validação estrita da Mãe: deve ser fêmea e não pode ser ela mesma
+    if ($maeId) {
+        $chkMae = $db->prepare("SELECT id, brinco, sexo FROM animais WHERE id = ?");
+        $chkMae->execute([$maeId]);
+        $mae = $chkMae->fetch();
+        if (!$mae) {
+            flash('error', 'A mãe biológica informada não foi encontrada no rebanho.');
+            redirect('/animais/novo');
+        }
+        if ($mae['sexo'] !== 'F') {
+            flash('error', 'Inconsistência zootécnica: A mãe biológica deve ser obrigatoriamente uma FÊMEA.');
+            redirect('/animais/novo');
+        }
+        if (strtoupper($mae['brinco']) === strtoupper($brinco)) {
+            flash('error', 'Inconsistência genealógica: O animal não pode ser a mãe de si mesmo.');
+            redirect('/animais/novo');
+        }
+    }
+
+    // Validação estrita do Pai: não pode ser o próprio animal nem uma fêmea
+    if ($paiBrinco) {
+        if (strtoupper($paiBrinco) === strtoupper($brinco)) {
+            flash('error', 'Inconsistência genealógica: O animal não pode ser o pai de si mesmo.');
+            redirect('/animais/novo');
+        }
+        if ($maeId && isset($mae) && strtoupper($paiBrinco) === strtoupper($mae['brinco'])) {
+            flash('error', 'Inconsistência zootécnica: O pai e a mãe biológicos não podem ser o mesmo animal.');
+            redirect('/animais/novo');
+        }
+        $chkPai = $db->prepare("SELECT id, sexo FROM animais WHERE UPPER(brinco) = UPPER(?)");
+        $chkPai->execute([$paiBrinco]);
+        $pai = $chkPai->fetch();
+        if ($pai && $pai['sexo'] === 'F') {
+            flash('error', 'Inconsistência zootécnica: O animal com brinco "'.$paiBrinco.'" é uma FÊMEA e não pode ser informado como pai/touro reprodutor.');
+            redirect('/animais/novo');
+        }
+    }
+
     $fotoUrl = !empty($_FILES['foto']) ? uploadFoto($_FILES['foto']) : null;
     $stmt = $db->prepare("INSERT INTO animais (brinco,nome,sexo,raca,data_nascimento,peso_inicial,status,pasto_id,origem,mae_id,pai_brinco,observacao,foto_url) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)");
     try {
@@ -367,6 +410,59 @@ if (preg_match('#^/animais/(\d+)(/.*)?$#', $uri, $m)) {
     }
     if ($sub === '/atualizar' && $method === 'POST') {
         if (!csrf_verify()) { flash('error','Token inválido.'); redirect("/animais/$id/editar"); }
+        
+        $brinco = trim($_POST['brinco'] ?? '');
+        $maeId = !empty($_POST['mae_id']) ? (int)$_POST['mae_id'] : null;
+        $paiBrinco = trim($_POST['pai_brinco'] ?? '') ?: null;
+
+        // Validação estrita da Mãe: não pode ser ela mesma e deve ser fêmea
+        if ($maeId) {
+            if ($maeId === $id) {
+                flash('error', 'Inconsistência genealógica: O animal não pode ser a mãe de si mesmo.');
+                redirect("/animais/$id/editar");
+            }
+            $chkMae = $db->prepare("SELECT id, brinco, sexo FROM animais WHERE id = ?");
+            $chkMae->execute([$maeId]);
+            $mae = $chkMae->fetch();
+            if (!$mae) {
+                flash('error', 'A mãe selecionada não foi encontrada no rebanho.');
+                redirect("/animais/$id/editar");
+            }
+            if ($mae['sexo'] !== 'F') {
+                flash('error', 'Inconsistência zootécnica: A mãe biológica deve ser obrigatoriamente uma FÊMEA.');
+                redirect("/animais/$id/editar");
+            }
+            if (strtoupper($mae['brinco']) === strtoupper($brinco)) {
+                flash('error', 'Inconsistência genealógica: O animal não pode ser a mãe de si mesmo.');
+                redirect("/animais/$id/editar");
+            }
+        }
+
+        // Validação estrita do Pai: não pode ser ele mesmo nem fêmea
+        if ($paiBrinco) {
+            if (strtoupper($paiBrinco) === strtoupper($brinco)) {
+                flash('error', 'Inconsistência genealógica: O animal não pode ser o pai de si mesmo.');
+                redirect("/animais/$id/editar");
+            }
+            if ($maeId && isset($mae) && strtoupper($paiBrinco) === strtoupper($mae['brinco'])) {
+                flash('error', 'Inconsistência zootécnica: O pai e a mãe biológicos não podem ser o mesmo animal.');
+                redirect("/animais/$id/editar");
+            }
+            $chkPai = $db->prepare("SELECT id, sexo FROM animais WHERE UPPER(brinco) = UPPER(?)");
+            $chkPai->execute([$paiBrinco]);
+            $pai = $chkPai->fetch();
+            if ($pai) {
+                if ($pai['id'] === $id) {
+                    flash('error', 'Inconsistência genealógica: O animal não pode ser o pai de si mesmo.');
+                    redirect("/animais/$id/editar");
+                }
+                if ($pai['sexo'] === 'F') {
+                    flash('error', 'Inconsistência zootécnica: O animal com brinco "'.$paiBrinco.'" é uma FÊMEA e não pode ser informado como pai/touro reprodutor.');
+                    redirect("/animais/$id/editar");
+                }
+            }
+        }
+
         $fotoUrl = $animal['foto_url'];
         if (!empty($_FILES['foto']['tmp_name'])) {
             $newPhoto = uploadFoto($_FILES['foto']);
@@ -597,8 +693,38 @@ if ($uri === '/reproducao/novo') {
 }
 if ($uri === '/reproducao/salvar' && $method === 'POST') {
     if (!csrf_verify()) { flash('error','Token inválido.'); redirect('/reproducao/novo'); }
+    
+    $animalId = (int)($_POST['animal_id'] ?? 0);
+    $touroBrinco = trim($_POST['touro_brinco'] ?? '') ?: null;
+
+    $matrizStmt = $db->prepare("SELECT id, brinco, sexo FROM animais WHERE id = ?");
+    $matrizStmt->execute([$animalId]);
+    $matriz = $matrizStmt->fetch();
+    if (!$matriz) {
+        flash('error', 'Animal não encontrado para o manejo reprodutivo.');
+        redirect('/reproducao/novo');
+    }
+    if ($matriz['sexo'] !== 'F') {
+        flash('error', 'Inconsistência zootécnica: A matriz reprodutiva selecionada deve ser obrigatoriamente uma FÊMEA.');
+        redirect('/reproducao/novo');
+    }
+
+    if ($touroBrinco) {
+        if (strtoupper($matriz['brinco']) === strtoupper($touroBrinco)) {
+            flash('error', 'Inconsistência: A matriz reprodutiva não pode ser o próprio touro da cobertura.');
+            redirect('/reproducao/novo');
+        }
+        $tStmt = $db->prepare("SELECT id, sexo FROM animais WHERE UPPER(brinco) = UPPER(?)");
+        $tStmt->execute([$touroBrinco]);
+        $touro = $tStmt->fetch();
+        if ($touro && $touro['sexo'] === 'F') {
+            flash('error', 'Inconsistência zootécnica: O animal com brinco "'.$touroBrinco.'" é uma FÊMEA e não pode ser informado como touro reprodutor.');
+            redirect('/reproducao/novo');
+        }
+    }
+
     $db->prepare("INSERT INTO reproducao (animal_id,tipo,data,resultado,touro_brinco,observacao) VALUES (?,?,?,?,?,?)")
-       ->execute([$_POST['animal_id'],$_POST['tipo'],$_POST['data'],$_POST['resultado']?:null,$_POST['touro_brinco']?:null,trim($_POST['observacao']??'')?:null]);
+       ->execute([$_POST['animal_id'],$_POST['tipo'],$_POST['data'],$_POST['resultado']?:null,$touroBrinco,trim($_POST['observacao']??'')?:null]);
     flash('success','Evento registrado!');
     $back = !empty($_POST['animal_id']) ? "/animais/{$_POST['animal_id']}" : '/reproducao';
     redirect($back);
@@ -617,8 +743,38 @@ if (preg_match('#^/reproducao/(\d+)(/.*)?$#', $uri, $m)) {
     }
     if ($sub === '/atualizar' && $method === 'POST') {
         if (!csrf_verify()) { flash('error','Token inválido.'); redirect("/reproducao/$id/editar"); }
+        
+        $animalId = (int)($_POST['animal_id'] ?? 0);
+        $touroBrinco = trim($_POST['touro_brinco'] ?? '') ?: null;
+
+        $matrizStmt = $db->prepare("SELECT id, brinco, sexo FROM animais WHERE id = ?");
+        $matrizStmt->execute([$animalId]);
+        $matriz = $matrizStmt->fetch();
+        if (!$matriz) {
+            flash('error', 'Animal não encontrado para o manejo reprodutivo.');
+            redirect("/reproducao/$id/editar");
+        }
+        if ($matriz['sexo'] !== 'F') {
+            flash('error', 'Inconsistência zootécnica: A matriz reprodutiva selecionada deve ser obrigatoriamente uma FÊMEA.');
+            redirect("/reproducao/$id/editar");
+        }
+
+        if ($touroBrinco) {
+            if (strtoupper($matriz['brinco']) === strtoupper($touroBrinco)) {
+                flash('error', 'Inconsistência: A matriz reprodutiva não pode ser o próprio touro da cobertura.');
+                redirect("/reproducao/$id/editar");
+            }
+            $tStmt = $db->prepare("SELECT id, sexo FROM animais WHERE UPPER(brinco) = UPPER(?)");
+            $tStmt->execute([$touroBrinco]);
+            $touro = $tStmt->fetch();
+            if ($touro && $touro['sexo'] === 'F') {
+                flash('error', 'Inconsistência zootécnica: O animal com brinco "'.$touroBrinco.'" é uma FÊMEA e não pode ser informado como touro reprodutor.');
+                redirect("/reproducao/$id/editar");
+            }
+        }
+
         $db->prepare("UPDATE reproducao SET animal_id=?,tipo=?,data=?,resultado=?,touro_brinco=?,observacao=? WHERE id=?")
-           ->execute([$_POST['animal_id'],$_POST['tipo'],$_POST['data'],$_POST['resultado']?:null,$_POST['touro_brinco']?:null,trim($_POST['observacao']??'')?:null,$id]);
+           ->execute([$_POST['animal_id'],$_POST['tipo'],$_POST['data'],$_POST['resultado']?:null,$touroBrinco,trim($_POST['observacao']??'')?:null,$id]);
         flash('success','Registro reprodutivo atualizado!');
         $back = !empty($_POST['animal_id']) ? "/animais/{$_POST['animal_id']}" : '/reproducao';
         redirect($back);
