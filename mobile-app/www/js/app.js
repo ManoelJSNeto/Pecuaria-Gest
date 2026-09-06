@@ -885,7 +885,7 @@ async function triggerAutoSync() {
 
   isSyncing = true;
   const payload = {
-    dispositivo: 'App Nativo Android (Auto-Sync Automático)',
+    dispositivo: 'PecuGest-Campo (Auto-Sync)',
     api_key: 'pecuaria-mobile-key',
     auth_email: authData.email || '',
     auth_senha: authData.senha || '',
@@ -942,7 +942,7 @@ async function executeSync(authData, shouldSave = false) {
   showSyncProgress(true, `Sincronizando ${items.length} Registros...`, 'Preparando e enviando lote para a central...');
 
   const payload = {
-    dispositivo: 'App Nativo Android (Sincronização Manual)',
+    dispositivo: 'PecuGest-Campo (Sincronização Manual)',
     api_key: 'pecuaria-mobile-key',
     auth_email: authData.email || '',
     auth_senha: authData.senha || '',

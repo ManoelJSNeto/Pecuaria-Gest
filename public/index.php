@@ -132,7 +132,7 @@ if (str_starts_with($uri, '/api/')) {
                         if ($fUrl) {
                             $db->prepare("UPDATE animais SET foto_url=? WHERE id=?")->execute([$fUrl, $aid]);
                             $db->prepare("INSERT INTO fotos_animais (animal_id,foto_url,tipo_evento,fase,data,observacao) VALUES (?,?,'nascimento','filhote',?,?)")
-                               ->execute([$aid, $fUrl, $an['data_nascimento'] ?? date('Y-m-d'), 'Foto de nascimento (Mobile/PWA)']);
+                               ->execute([$aid, $fUrl, $an['data_nascimento'] ?? date('Y-m-d'), 'Foto de nascimento (PecuGest-Campo)']);
                             $processados['fotos']++;
                         }
                     }
@@ -155,7 +155,7 @@ if (str_starts_with($uri, '/api/')) {
                         $fUrl = salvarBase64Foto($p['foto_base64']);
                         if ($fUrl) {
                             $db->prepare("INSERT INTO fotos_animais (animal_id,foto_url,tipo_evento,fase,data,observacao) VALUES (?,?,'pesagem','adulto',?,?)")
-                               ->execute([$aid, $fUrl, $p['data'] ?? date('Y-m-d'), 'Pesagem ' . ($p['peso']??'') . 'kg (PWA)']);
+                               ->execute([$aid, $fUrl, $p['data'] ?? date('Y-m-d'), 'Pesagem ' . ($p['peso']??'') . 'kg (PecuGest-Campo)']);
                             $db->prepare("UPDATE animais SET foto_url = COALESCE(foto_url, ?) WHERE id = ?")->execute([$fUrl, $aid]);
                             $processados['fotos']++;
                         }
@@ -738,7 +738,11 @@ if ($uri === '/reproducao/salvar' && $method === 'POST') {
     }
 
     $db->prepare("INSERT INTO reproducao (animal_id,tipo,data,resultado,touro_brinco,observacao) VALUES (?,?,?,?,?,?)")
-       ->execute([$_POST['animal_id'],$_POST['tipo'],$_POST['data'],$_POST['resultado']?:null,$touroBrinco,trim($_POST['observacao']??'')?:null]);
+       ->execute([$animalId,$_POST['tipo'],$_POST['data'],$_POST['resultado']?:null,$touroBrinco,trim($_POST['observacao']??'')?:null]);
+    
+    // Atualização automática de status da fêmea (prenha / parto / aborto / desmame)
+    atualizarStatusAnimalPorReproducao($db, $animalId, $_POST['tipo'] ?? '', $_POST['resultado'] ?? null);
+
     flash('success','Evento registrado!');
     $back = !empty($_POST['animal_id']) ? "/animais/{$_POST['animal_id']}" : '/reproducao';
     redirect($back);
@@ -788,7 +792,11 @@ if (preg_match('#^/reproducao/(\d+)(/.*)?$#', $uri, $m)) {
         }
 
         $db->prepare("UPDATE reproducao SET animal_id=?,tipo=?,data=?,resultado=?,touro_brinco=?,observacao=? WHERE id=?")
-           ->execute([$_POST['animal_id'],$_POST['tipo'],$_POST['data'],$_POST['resultado']?:null,$touroBrinco,trim($_POST['observacao']??'')?:null,$id]);
+           ->execute([$animalId,$_POST['tipo'],$_POST['data'],$_POST['resultado']?:null,$touroBrinco,trim($_POST['observacao']??'')?:null,$id]);
+
+        // Atualização automática de status da fêmea
+        atualizarStatusAnimalPorReproducao($db, $animalId, $_POST['tipo'] ?? '', $_POST['resultado'] ?? null);
+
         flash('success','Registro reprodutivo atualizado!');
         $back = !empty($_POST['animal_id']) ? "/animais/{$_POST['animal_id']}" : '/reproducao';
         redirect($back);

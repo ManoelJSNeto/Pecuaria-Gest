@@ -100,6 +100,22 @@ function atualizarStatusAnimalPorSaude(PDO $db, int $animalId, string $tipo): vo
     }
 }
 
+function atualizarStatusAnimalPorReproducao(PDO $db, int $matrizId, string $tipo, ?string $resultado): void {
+    if ($matrizId <= 0) return;
+    $tipoNorm = normalizarTexto($tipo);
+    $resNorm  = normalizarTexto($resultado ?? '');
+
+    // Diagnóstico positivo ou prenhez confirmada
+    if (str_contains($resNorm, 'prenha') || str_contains($resNorm, 'positivo') || str_contains($resNorm, 'gestante')) {
+        $db->prepare("UPDATE animais SET status = 'prenha', updated_at = CURRENT_TIMESTAMP WHERE id = ? AND status != 'morto'")
+           ->execute([$matrizId]);
+    } elseif (in_array($tipoNorm, ['parto', 'aborto', 'desmame']) || str_contains($resNorm, 'nascimento') || str_contains($resNorm, 'aborto')) {
+        // Matriz pariu ou desmamou -> volta a ficar ativa
+        $db->prepare("UPDATE animais SET status = 'ativo', updated_at = CURRENT_TIMESTAMP WHERE id = ? AND status = 'prenha'")
+           ->execute([$matrizId]);
+    }
+}
+
 function sexoLabel(string $sexo): string {
     return $sexo === 'M' ? 'Macho' : 'Fêmea';
 }
@@ -183,7 +199,7 @@ function salvarBase64Foto(string $base64Data, string $subfolder = 'fotos'): ?str
     $decoded = base64_decode($base64Data);
     if ($decoded === false) return null;
     
-    $filename = uniqid('pwa_', true) . '.' . $ext;
+    $filename = uniqid('campo_', true) . '.' . $ext;
     $targetDir = UPLOADS_PATH . '/' . trim($subfolder, '/');
     if (!is_dir($targetDir)) {
         @mkdir($targetDir, 0777, true);
