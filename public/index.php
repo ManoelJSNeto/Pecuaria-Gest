@@ -650,6 +650,78 @@ if (preg_match('#^/saude/(\d+)(/.*)?$#', $uri, $m)) {
     }
 }
 
+// ── REPRODUÇÃO ──
+if ($uri === '/reproducao') {
+    requirePermission('ver_reproducao');
+    renderView('reproducao/index', 'Manejo Reprodutivo', 'reproducao');
+    exit;
+}
+if ($uri === '/reproducao/novo') {
+    requirePermission('ver_reproducao');
+    renderView('reproducao/form', 'Registrar Evento Reprodutivo', 'reproducao');
+    exit;
+}
+if ($uri === '/reproducao/salvar' && $method === 'POST') {
+    requirePermission('ver_reproducao');
+    if (!csrf_verify()) { flash('error','Token inválido.'); redirect('/reproducao/novo'); }
+    $aid = (int)($_POST['animal_id'] ?? 0);
+    $tipo = trim($_POST['tipo'] ?? '');
+    $data = $_POST['data'] ?? date('Y-m-d');
+    $touro = trim($_POST['touro_brinco'] ?? '') ?: null;
+    $resultado = trim($_POST['resultado'] ?? '') ?: null;
+    $obs = trim($_POST['observacao'] ?? '') ?: null;
+
+    $db->prepare("INSERT INTO reproducao (animal_id,tipo,data,touro_brinco,resultado,observacao) VALUES (?,?,?,?,?,?)")
+       ->execute([$aid, $tipo, $data, $touro, $resultado, $obs]);
+
+    atualizarStatusAnimalPorReproducao($db, $aid, $tipo, $resultado);
+
+    flash('success','Evento reprodutivo registrado com sucesso!');
+    $back = !empty($aid) ? "/animais/{$aid}" : '/reproducao';
+    redirect($back);
+    exit;
+}
+if (preg_match('#^/reproducao/(\d+)(/.*)?$#', $uri, $m)) {
+    requirePermission('ver_reproducao');
+    $id  = (int)$m[1];
+    $sub = $m[2] ?? '';
+    $rStmt = $db->prepare("SELECT * FROM reproducao WHERE id=?");
+    $rStmt->execute([$id]);
+    $reproducao = $rStmt->fetch() ?: null;
+    if (!$reproducao) { flash('error','Registro reprodutivo não encontrado.'); redirect('/reproducao'); }
+
+    if ($sub === '/editar') {
+        renderView('reproducao/form', 'Editar Evento Reprodutivo', 'reproducao', ['reproducao' => $reproducao]);
+        exit;
+    }
+    if ($sub === '/atualizar' && $method === 'POST') {
+        if (!csrf_verify()) { flash('error','Token inválido.'); redirect("/reproducao/$id/editar"); }
+        $aid = (int)($_POST['animal_id'] ?? 0);
+        $tipo = trim($_POST['tipo'] ?? '');
+        $data = $_POST['data'] ?? date('Y-m-d');
+        $touro = trim($_POST['touro_brinco'] ?? '') ?: null;
+        $resultado = trim($_POST['resultado'] ?? '') ?: null;
+        $obs = trim($_POST['observacao'] ?? '') ?: null;
+
+        $db->prepare("UPDATE reproducao SET animal_id=?,tipo=?,data=?,touro_brinco=?,resultado=?,observacao=? WHERE id=?")
+           ->execute([$aid, $tipo, $data, $touro, $resultado, $obs, $id]);
+
+        atualizarStatusAnimalPorReproducao($db, $aid, $tipo, $resultado);
+
+        flash('success','Evento reprodutivo atualizado com sucesso!');
+        $back = !empty($aid) ? "/animais/{$aid}" : '/reproducao';
+        redirect($back);
+        exit;
+    }
+    if ($sub === '/excluir' && $method === 'POST') {
+        if (!csrf_verify()) { flash('error','Token inválido.'); redirect('/reproducao'); }
+        $db->prepare("DELETE FROM reproducao WHERE id=?")->execute([$id]);
+        flash('success','Evento reprodutivo excluído.');
+        redirect($reproducao['animal_id'] ? "/animais/{$reproducao['animal_id']}" : '/reproducao');
+        exit;
+    }
+}
+
 // ── PASTAGENS ──
 if ($uri === '/pastagens') {
     renderView('pastagens/index', 'Pastagens', 'pastagens');
