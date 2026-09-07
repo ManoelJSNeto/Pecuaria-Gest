@@ -60,9 +60,9 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
     <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
       <div class="d-flex align-items-center gap-3">
         <?php if (!empty($animal['foto_url'])): ?>
-          <img src="<?= e($animal['foto_url']) ?>" alt="Foto" class="rounded" style="width: 72px; height: 72px; object-fit: cover; border: 1px solid var(--border-subtle);">
+          <img src="<?= e($animal['foto_url']) ?>" alt="Foto" class="animal-hero-thumb" onclick="abrirFotoZoom('<?= e($animal['foto_url']) ?>', 'Animal <?= e($animal['brinco']) ?>', 'Foto de Identificação / Perfil')" title="Clique para ampliar">
         <?php else: ?>
-          <div class="table-animal-avatar" style="width: 72px; height: 72px; font-size: 1.4rem;">
+          <div class="table-animal-avatar" style="width: 76px; height: 76px; font-size: 1.4rem;">
             <?= e(substr($animal['brinco'], 0, 3)) ?>
           </div>
         <?php endif; ?>
@@ -143,7 +143,7 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
         <h6 class="small mb-0"><i class="bi bi-stars text-success me-1"></i>Foto de Nascimento</h6>
       </div>
       <div class="card-body p-2 text-center">
-        <img src="<?= e($fotoFilhote['foto_url']) ?>" alt="Foto filhote" class="img-fluid rounded border mb-1" style="max-height: 140px; object-fit: cover;">
+        <img src="<?= e($fotoFilhote['foto_url']) ?>" alt="Foto filhote" class="img-fluid rounded border mb-1" style="max-height: 140px; width: 100%; object-fit: cover; cursor: pointer;" onclick="abrirFotoZoom('<?= e($fotoFilhote['foto_url']) ?>', 'Animal <?= e($animal['brinco']) ?> - Nascimento', 'Foto de nascimento / filhote')" title="Clique para ampliar">
         <small class="text-muted d-block tabular-nums"><?= formatDate($fotoFilhote['data']) ?></small>
       </div>
     </div>
@@ -250,7 +250,16 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
           <div class="galeria-grid">
             <?php foreach ($fotos as $f): ?>
               <?php 
-                $isCensurada = ($f['is_sensivel'] == 1 || $f['tipo_evento'] === 'obito' || $animal['status'] === 'morto');
+                $tipoLower = strtolower(trim($f['tipo_evento'] ?? ''));
+                $obsLower  = strtolower(trim($f['observacao'] ?? ''));
+                $isCensurada = (
+                    $f['is_sensivel'] == 1 ||
+                    in_array($tipoLower, ['obito', 'necropsia']) ||
+                    str_contains($obsLower, 'óbito') ||
+                    str_contains($obsLower, 'obito') ||
+                    str_contains($obsLower, 'morte') ||
+                    str_contains($obsLower, 'necropsia')
+                );
                 $tipoIconMap = [
                   'nascimento' => ['icon' => 'bi-stars', 'label' => 'Nascimento'],
                   'pesagem'    => ['icon' => 'bi-rulers', 'label' => 'Pesagem'],
@@ -259,18 +268,18 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
                   'perfil'     => ['icon' => 'bi-camera', 'label' => 'Perfil']
                 ];
                 $tipoInfo = $tipoIconMap[$f['tipo_evento']] ?? ['icon' => 'bi-image', 'label' => 'Foto'];
+                $labelFoto = $tipoInfo['label'] . ' (' . formatDate($f['data']) . ')';
               ?>
-              <div class="foto-card <?= $isCensurada ? 'foto-censurada' : '' ?>" data-censurada-original="<?= $isCensurada ? '1' : '0' ?>">
-                <div class="foto-thumb-container">
-                  <img src="<?= e($f['foto_url']) ?>" alt="Foto" class="foto-img">
-                  <?php if ($isCensurada): ?>
-                    <div class="foto-overlay-censura" onclick="toggleCensura(this)">
-                      <i class="bi bi-eye-slash-fill"></i>
-                      <span>Conteúdo Sensível<br><small class="opacity-75">Toque para visualizar</small></span>
-                    </div>
-                  <?php endif; ?>
+              <div class="foto-card <?= $isCensurada ? 'foto-censurada' : '' ?>" id="foto-card-<?= $f['id'] ?>" data-censurada-original="<?= $isCensurada ? '1' : '0' ?>">
+                <div class="foto-thumb-container" onclick="handleThumbClick(<?= $f['id'] ?>, '<?= e($f['foto_url']) ?>', '<?= e($labelFoto) ?>', '<?= e(addslashes($f['observacao'] ?? '')) ?>')" title="<?= $isCensurada ? 'Clique para revelar' : 'Clique para ampliar' ?>">
+                  <img src="<?= e($f['foto_url']) ?>" alt="Foto" class="foto-img" loading="lazy">
+                  <div class="foto-overlay-censura" style="<?= $isCensurada ? 'display: flex;' : 'display: none;' ?>">
+                    <i class="bi bi-eye-slash-fill"></i>
+                    <span class="censura-text-title">Conteúdo Sensível</span>
+                    <span class="censura-text-sub">Toque para visualizar</span>
+                  </div>
                 </div>
-                <div class="p-2 d-flex flex-column justify-content-between" style="min-height: 70px;">
+                <div class="p-2 d-flex flex-column justify-content-between" style="min-height: 75px;">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <span class="badge bg-light text-dark border small d-inline-flex align-items-center gap-1" style="font-size:.7rem;">
                       <i class="bi <?= $tipoInfo['icon'] ?>"></i> <?= $tipoInfo['label'] ?>
@@ -284,12 +293,10 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
                   <?php endif; ?>
                   <div class="mt-2 pt-1 border-top d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center gap-2">
-                      <?php if ($isCensurada): ?>
-                        <button type="button" class="btn btn-link text-secondary p-0 small text-decoration-none btn-card-revelar" onclick="toggleCensuraCard(this)" style="font-size:.72rem;" title="Alternar censura">
-                          <i class="bi bi-eye"></i> Revelar
-                        </button>
-                      <?php endif; ?>
-                      <a href="<?= e($f['foto_url']) ?>" download="animal_<?= e($animal['brinco']) ?>_foto_<?= $f['id'] ?>" target="_blank" class="btn btn-link text-primary p-0 small text-decoration-none" style="font-size:.72rem;" title="Baixar foto original em alta resolução (sem censura)">
+                      <button type="button" class="btn btn-link text-secondary p-0 small text-decoration-none btn-card-revelar" onclick="toggleCensuraCard(<?= $f['id'] ?>)" style="font-size:.72rem;" title="Alternar censura">
+                        <i class="bi <?= $isCensurada ? 'bi-eye' : 'bi-eye-slash' ?>"></i> <?= $isCensurada ? 'Revelar' : 'Censurar' ?>
+                      </button>
+                      <a href="<?= e($f['foto_url']) ?>" download="animal_<?= e($animal['brinco']) ?>_foto_<?= $f['id'] ?>" target="_blank" class="btn btn-link text-primary p-0 small text-decoration-none" style="font-size:.72rem;" title="Baixar foto original em alta resolução">
                         <i class="bi bi-download"></i> Baixar
                       </a>
                     </div>
@@ -456,25 +463,57 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
   </div>
 </div>
 
+<!-- Modal Lightbox / Zoom da Foto -->
+<div class="modal fade" id="modalFotoZoom" tabindex="-1" aria-labelledby="modalFotoZoomLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content" style="background-color: var(--bg-surface); border: 1px solid var(--border-subtle); overflow: hidden;">
+      <div class="modal-header border-bottom py-2">
+        <h6 class="modal-title d-flex align-items-center gap-2" id="modalFotoZoomLabel">
+          <i class="bi bi-image text-primary"></i> <span id="modalFotoZoomTitulo">Visualização da Foto</span>
+        </h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body p-2 text-center" style="background: #0d140e;">
+        <img src="" id="modalFotoZoomImg" class="modal-foto-zoom-img" alt="Foto Ampliada">
+        <p id="modalFotoZoomObs" class="text-light small mt-2 mb-1 px-3 text-center" style="opacity: 0.88;"></p>
+      </div>
+      <div class="modal-footer border-top py-2 d-flex justify-content-between align-items-center">
+        <span class="small text-muted" id="modalFotoZoomAnimal">Animal: <strong><?= e($animal['brinco']) ?></strong></span>
+        <div class="d-flex gap-2">
+          <a href="#" id="modalFotoZoomDownload" download target="_blank" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-download me-1"></i> Baixar Original
+          </a>
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-function toggleCensura(el) {
-  const card = el.closest('.foto-card');
-  if (card) {
-    card.classList.toggle('foto-censurada');
-    el.style.display = card.classList.contains('foto-censurada') ? 'flex' : 'none';
-    const btn = card.querySelector('.btn-card-revelar');
-    if (btn) btn.innerHTML = card.classList.contains('foto-censurada') ? '<i class="bi bi-eye"></i> Revelar' : '<i class="bi bi-eye-slash"></i> Censurar';
+function handleThumbClick(id, url, titulo, obs) {
+  const card = document.getElementById('foto-card-' + id);
+  if (!card) return;
+  // Se está com censura ativa, o clique revela a foto
+  if (card.classList.contains('foto-censurada')) {
+    toggleCensuraCard(id);
+  } else {
+    // Se já está visível, abre no Lightbox modal em alta resolução
+    abrirFotoZoom(url, titulo, obs);
   }
 }
 
-function toggleCensuraCard(btn) {
-  const card = btn.closest('.foto-card');
+function toggleCensuraCard(id) {
+  const card = document.getElementById('foto-card-' + id);
   if (!card) return;
   card.classList.toggle('foto-censurada');
   const isCensured = card.classList.contains('foto-censurada');
-  btn.innerHTML = isCensured ? '<i class="bi bi-eye"></i> Revelar' : '<i class="bi bi-eye-slash"></i> Censurar';
   const overlay = card.querySelector('.foto-overlay-censura');
+  const btn = card.querySelector('.btn-card-revelar');
   if (overlay) overlay.style.display = isCensured ? 'flex' : 'none';
+  if (btn) {
+    btn.innerHTML = isCensured ? '<i class="bi bi-eye"></i> Revelar' : '<i class="bi bi-eye-slash"></i> Censurar';
+  }
 }
 
 function toggleAllCensura() {
@@ -499,6 +538,33 @@ function toggleAllCensura() {
   if (btn) {
     btn.innerHTML = anyCensored ? '<i class="bi bi-eye-slash me-1"></i> Ocultar Sensíveis' : '<i class="bi bi-eye me-1"></i> Revelar Todas';
   }
+}
+
+function abrirFotoZoom(url, titulo, obs) {
+  const modalEl = document.getElementById('modalFotoZoom');
+  if (!modalEl) return;
+  const imgEl = document.getElementById('modalFotoZoomImg');
+  const titleEl = document.getElementById('modalFotoZoomTitulo');
+  const obsEl = document.getElementById('modalFotoZoomObs');
+  const dlBtn = document.getElementById('modalFotoZoomDownload');
+  
+  if (imgEl) imgEl.src = url;
+  if (titleEl) titleEl.textContent = titulo || 'Visualização da Foto';
+  if (obsEl) {
+    if (obs && obs.trim() !== '') {
+      obsEl.textContent = obs;
+      obsEl.style.display = 'block';
+    } else {
+      obsEl.textContent = '';
+      obsEl.style.display = 'none';
+    }
+  }
+  if (dlBtn) {
+    dlBtn.href = url;
+    dlBtn.setAttribute('download', 'foto_animal_' + encodeURIComponent(titulo || 'registro'));
+  }
+  const modal = new bootstrap.Modal(modalEl);
+  modal.show();
 }
 </script>
 

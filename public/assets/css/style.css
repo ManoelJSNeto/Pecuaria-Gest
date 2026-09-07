@@ -773,3 +773,216 @@ a:hover {
   border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
 }
+
+/* ============================================================
+   FOTOS DE ANIMAIS — PADRONIZAÇÃO DE TAMANHOS & AVATARES
+   ============================================================ */
+.table-animal-thumb {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--border-subtle);
+  background-color: var(--bg-subtle);
+  display: block;
+}
+
+.table-animal-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-sm);
+  background-color: var(--earth-green-100);
+  color: var(--earth-green-800);
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid var(--earth-green-500);
+  text-transform: uppercase;
+}
+
+.animal-hero-thumb {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-subtle);
+  background: var(--bg-subtle);
+}
+
+/* ============================================================
+   GALERIA DE FOTOS, TIMELINE FOTOGRÁFICA & CENSURA
+/* ============================================================
+   FOTOS, AVATARES E GALERIA MULTIMÍDIA DO REBANHO
+   ============================================================ */
+.table-animal-thumb {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-xs);
+  object-fit: cover;
+  border: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.table-animal-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-xs);
+  background: var(--earth-green-100);
+  color: var(--earth-green-800);
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid var(--border-subtle);
+}
+
+.animal-hero-thumb {
+  width: 76px;
+  height: 76px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  border: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.animal-hero-thumb:hover {
+  transform: scale(1.03);
+  box-shadow: var(--shadow-card);
+}
+
+.galeria-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.15rem;
+}
+
+.foto-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-surface);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-subtle);
+}
+
+.foto-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-card);
+}
+
+/* Container com Tamanho Padrão Uniforme (sem distorção de proporção) */
+.foto-thumb-container {
+  position: relative;
+  width: 100%;
+  height: 190px;
+  background: #141c15;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Imagem Padronizada com Recorte e Enquadramento Limpo */
+.foto-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  transition: filter 250ms ease, transform 250ms ease;
+}
+
+.foto-card:not(.foto-censurada) .foto-thumb-container:hover .foto-img {
+  transform: scale(1.04);
+}
+
+/* ── CENSURA DE FOTOS SENSÍVEIS (Óbito, Cirurgias, Ferimentos) ── */
+.foto-card.foto-censurada .foto-img {
+  filter: blur(28px) grayscale(0.7) brightness(0.4);
+  transform: scale(1.2); /* Elimina bordas brancas com desfoque */
+  pointer-events: none;
+  user-select: none;
+}
+
+.foto-overlay-censura {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(18, 34, 14, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #ffffff;
+  text-align: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: background 180ms ease;
+}
+
+.foto-overlay-censura:hover {
+  background: rgba(18, 34, 14, 0.92);
+}
+
+.foto-overlay-censura i {
+  font-size: 2rem;
+  margin-bottom: 0.35rem;
+  color: #f59e0b;
+}
+
+.foto-overlay-censura .censura-text-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  display: block;
+}
+
+.foto-overlay-censura .censura-text-sub {
+  font-size: 0.72rem;
+  opacity: 0.85;
+  display: block;
+  margin-top: 2px;
+}
+
+/* Badge de Filhote / Nascimento */
+.badge-filhote {
+  background: var(--earth-green-100);
+  color: var(--earth-green-800);
+  border: 1px solid var(--earth-green-500);
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-xs);
+  font-size: 0.72rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Modal Lightbox de Foto em Alta Definição */
+.modal-foto-zoom-img {
+  max-width: 100%;
+  max-height: 75vh;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  display: block;
+  margin: 0 auto;
+}
+
+
