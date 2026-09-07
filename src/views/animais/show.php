@@ -115,11 +115,29 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
 <div class="row g-3">
   <!-- Coluna Esquerda: Biometria e Genealogia -->
   <div class="col-md-3">
-    <!-- Card de Peso Atual & Desempenho -->
+    <!-- Card de Peso Atual & Desempenho (kg e Arrobas) -->
     <div class="card text-center p-3 mb-3">
-      <span class="metric-label">Peso Atual</span>
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="metric-label mb-0">Peso Atual</span>
+        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1" onclick="toggleGlobalPesoUnit()" title="Alternar entre kg e arrobas (@)" style="font-size: 0.68rem;">
+          <i class="bi bi-arrow-left-right me-1"></i>kg / @
+        </button>
+      </div>
       <div class="metric-value my-1 tabular-nums">
-        <?= $pesoAtual ? number_format($pesoAtual, 1) : '—' ?> <span style="font-size:0.9rem;font-weight:600;color:var(--text-muted);">kg</span>
+        <span class="peso-hero-kg">
+          <?= $pesoAtual ? number_format($pesoAtual, 1, ',', '.') : '—' ?> <span style="font-size:0.9rem;font-weight:600;color:var(--text-muted);">kg</span>
+        </span>
+        <span class="peso-hero-arr" style="display:none;">
+          <?= $pesoAtual ? number_format(kgParaArroba($pesoAtual), 2, ',', '.') : '—' ?> <span style="font-size:0.9rem;font-weight:700;color:var(--earth-green-700);">@</span>
+        </span>
+      </div>
+      <div class="small tabular-nums text-muted mb-2">
+        <span class="peso-hero-sub-arr">
+          Equivalente a <strong class="text-success"><?= $pesoAtual ? number_format(kgParaArroba($pesoAtual), 2, ',', '.') : '0' ?> @</strong> (carcaça est. 50%)
+        </span>
+        <span class="peso-hero-sub-kg" style="display:none;">
+          Equivalente a <strong class="text-primary"><?= $pesoAtual ? number_format($pesoAtual, 1, ',', '.') : '0' ?> kg</strong> peso vivo
+        </span>
       </div>
       <?php if (count($pesagens) >= 2): ?>
         <?php 
@@ -127,12 +145,12 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
           $dias = max(1, (new DateTime($pesagens[0]['data']))->diff(new DateTime($pesagens[1]['data']))->days);
           $gmd = $diff / $dias;
         ?>
-        <div class="small fw-600 <?= $diff >= 0 ? 'text-success' : 'text-danger' ?> tabular-nums">
-          <?= $diff >= 0 ? '+' : '' ?><?= number_format($diff, 1) ?> kg na última pesagem
-          <br><small class="text-muted">(GMD: <?= number_format($gmd, 2) ?> kg/dia em <?= $dias ?>d)</small>
+        <div class="small fw-600 <?= $diff >= 0 ? 'text-success' : 'text-danger' ?> tabular-nums border-top pt-2">
+          <?= $diff >= 0 ? '+' : '' ?><?= number_format($diff, 1, ',', '.') ?> kg na última pesagem
+          <br><small class="text-muted">(GMD: <?= number_format($gmd, 2, ',', '.') ?> kg/dia em <?= $dias ?>d)</small>
         </div>
       <?php else: ?>
-        <small class="text-muted">Apenas peso inicial/único</small>
+        <small class="text-muted border-top pt-1 d-block">Apenas peso inicial/único</small>
       <?php endif; ?>
     </div>
 
@@ -337,7 +355,7 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
             <thead>
               <tr>
                 <th>Data</th>
-                <th>Peso</th>
+                <th>Peso <span class="badge bg-light text-secondary border fw-normal cursor-pointer ms-1" onclick="toggleGlobalPesoUnit()" title="Alternar kg / @" style="font-size:0.68rem; cursor:pointer;"><i class="bi bi-arrow-left-right me-1"></i>kg / @</span></th>
                 <th>Ganho</th>
                 <th>GMD (kg/dia)</th>
                 <th>Origem</th>
@@ -354,7 +372,7 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
                 ?>
                 <tr>
                   <td class="tabular-nums small"><?= formatDate($p['data']) ?></td>
-                  <td class="fw-bold tabular-nums"><?= number_format($p['peso'], 1) ?> <small class="text-muted">kg</small></td>
+                  <td class="tabular-nums"><?= renderPesoBadge($p['peso']) ?></td>
                   <td class="tabular-nums small">
                     <?php if ($ganho !== null): ?>
                       <span class="<?= $ganho >= 0 ? 'text-success fw-bold' : 'text-danger fw-bold' ?>">

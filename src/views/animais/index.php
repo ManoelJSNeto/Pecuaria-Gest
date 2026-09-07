@@ -121,7 +121,7 @@ if ($pastoF) {
         <th style="width: 220px;">Identificação</th>
         <th>Raça / Categoria</th>
         <th>Idade</th>
-        <th>Peso Atual</th>
+        <th>Peso Atual <span class="badge bg-light text-secondary border fw-normal cursor-pointer ms-1" onclick="toggleGlobalPesoUnit()" title="Clique para alternar entre kg e arroba (@)" style="font-size:0.68rem; cursor:pointer;"><i class="bi bi-arrow-left-right me-1"></i>kg / @</span></th>
         <th>Localização</th>
         <th>Status</th>
         <th class="text-end" style="width: 120px;">Ações</th>
@@ -166,7 +166,7 @@ if ($pastoF) {
           </td>
           <td>
             <?php if ($a['peso_atual']): ?>
-              <span class="fw-bold tabular-nums"><?= number_format($a['peso_atual'], 1) ?></span> <small class="text-muted">kg</small>
+              <?= renderPesoBadge($a['peso_atual']) ?>
               <br><small class="text-muted tabular-nums" style="font-size:0.72rem;"><?= $a['data_pesagem'] ? formatDate($a['data_pesagem']) : 'Inicial' ?></small>
             <?php else: ?>
               <span class="text-muted small">—</span>

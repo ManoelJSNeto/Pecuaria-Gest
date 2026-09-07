@@ -53,8 +53,18 @@ $alertasNaoLidos = $db->query("SELECT COUNT(*) FROM alertas WHERE lido=0")->fetc
 <link href="/assets/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
 <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
 <link href="/assets/css/style.css" rel="stylesheet">
+<script>
+  (function() {
+    try {
+      const u = localStorage.getItem('pecuaria_peso_unit') || (document.cookie.match(/pecuaria_peso_unit=([^;]+)/) || [])[1];
+      if (u === 'arroba') {
+        document.documentElement.classList.add('mode-arroba');
+      }
+    } catch(e) {}
+  })();
+</script>
 </head>
-<body>
+<body class="<?= (($_COOKIE['pecuaria_peso_unit'] ?? '') === 'arroba') ? 'mode-arroba' : '' ?>">
 
 <!-- Sidebar com Rolagem Autônoma e Seções Semânticas -->
 <aside class="sidebar">
@@ -124,6 +134,13 @@ $alertasNaoLidos = $db->query("SELECT COUNT(*) FROM alertas WHERE lido=0")->fetc
       <h4><?= e($pageTitle ?? '') ?></h4>
     </div>
     <div class="d-flex align-items-center gap-3">
+      <!-- Seletor Rápido de Unidade de Peso: kg ⟷ @ (Arroba) -->
+      <div class="unit-toggle-container" title="Alternar unidade de exibição de peso no sistema">
+        <span class="unit-toggle-label d-none d-sm-inline"><i class="bi bi-sliders me-1"></i>Peso:</span>
+        <button type="button" class="btn-unit-opt active" id="btnTopUnitKg" onclick="setGlobalPesoUnit('kg')" title="Exibir pesos em Quilogramas">kg</button>
+        <button type="button" class="btn-unit-opt" id="btnTopUnitArr" onclick="setGlobalPesoUnit('arroba')" title="Exibir pesos em Arrobas (@ comercial - 50% carcaça)">@ Arroba</button>
+      </div>
+
       <?php if ($alertasNaoLidos > 0 && $user): ?>
         <a href="/alertas" class="btn btn-sm btn-outline-danger position-relative" title="Alertas Pendentes">
           <i class="bi bi-bell-fill"></i>
@@ -157,6 +174,44 @@ $alertasNaoLidos = $db->query("SELECT COUNT(*) FROM alertas WHERE lido=0")->fetc
 <script>
 document.getElementById('sidebarToggle')?.addEventListener('click', () => {
   document.querySelector('.sidebar').classList.toggle('open');
+});
+
+// ── Gestão Global de Unidade de Peso (kg ⟷ Arrobas) ──
+function getGlobalPesoUnit() {
+  return localStorage.getItem('pecuaria_peso_unit') || 'kg';
+}
+
+function setGlobalPesoUnit(unit) {
+  const isArroba = (unit === 'arroba');
+  localStorage.setItem('pecuaria_peso_unit', isArroba ? 'arroba' : 'kg');
+  document.cookie = 'pecuaria_peso_unit=' + (isArroba ? 'arroba' : 'kg') + ';path=/;max-age=31536000';
+  
+  if (isArroba) {
+    document.body.classList.add('mode-arroba');
+    document.documentElement.classList.add('mode-arroba');
+  } else {
+    document.body.classList.remove('mode-arroba');
+    document.documentElement.classList.remove('mode-arroba');
+  }
+
+  // Atualiza os botões do seletor
+  const btnKg = document.getElementById('btnTopUnitKg');
+  const btnArr = document.getElementById('btnTopUnitArr');
+  if (btnKg && btnArr) {
+    btnKg.classList.toggle('active', !isArroba);
+    btnArr.classList.toggle('active', isArroba);
+  }
+}
+
+function toggleGlobalPesoUnit() {
+  const current = getGlobalPesoUnit();
+  setGlobalPesoUnit(current === 'arroba' ? 'kg' : 'arroba');
+}
+
+// Inicializa botões no carregamento
+document.addEventListener('DOMContentLoaded', () => {
+  const unit = getGlobalPesoUnit();
+  setGlobalPesoUnit(unit);
 });
 
 // Limpa qualquer Service Worker ou Cache legado no navegador

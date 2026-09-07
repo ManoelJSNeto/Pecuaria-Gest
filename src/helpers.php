@@ -56,6 +56,31 @@ function formatDateTime(?string $date): string {
     }
 }
 
+/**
+ * Converte Peso Vivo (kg) para Arrobas Comerciais (@)
+ * Padrão pecuário brasileiro: Rendimento de carcaça estimado em 50% => 1 @ comercial = 30 kg PV.
+ */
+function kgParaArroba(float|int|null $pesoKg, float $rendimentoPct = 50.0): float {
+    if (!$pesoKg || $pesoKg <= 0) return 0.0;
+    return round(($pesoKg * ($rendimentoPct / 100.0)) / 15.0, 2);
+}
+
+/**
+ * Renderiza o peso com marcação semântica para alternância dinâmica instantânea entre kg e arrobas (@)
+ */
+function renderPesoBadge(float|int|null $pesoKg, bool $inline = false): string {
+    if (!$pesoKg || $pesoKg <= 0) {
+        return '<span class="text-muted small">—</span>';
+    }
+    $kgVal = number_format((float)$pesoKg, 1, ',', '.');
+    $arrVal = number_format(kgParaArroba((float)$pesoKg), 2, ',', '.');
+    
+    return "<span class=\"peso-display tabular-nums\" data-kg=\"{$pesoKg}\">"
+         . "<span class=\"peso-kg-text\"><span class=\"fw-bold\">{$kgVal}</span> <small class=\"text-muted\">kg</small> <span class=\"peso-sec-badge text-muted\">({$arrVal} @)</span></span>"
+         . "<span class=\"peso-arr-text\" style=\"display:none;\"><span class=\"fw-bold\">{$arrVal}</span> <small class=\"text-success fw-bold\">@</small> <span class=\"peso-sec-badge text-muted\">({$kgVal} kg)</span></span>"
+         . "</span>";
+}
+
 function statusBadge(string $status): string {
     $st = strtolower(trim($status));
     $classes = match($st) {

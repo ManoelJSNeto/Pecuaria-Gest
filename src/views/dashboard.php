@@ -44,8 +44,23 @@ if (empty($pesoTrend)) {
   </div>
   <div class="metric-cell">
     <span class="metric-label">Peso Médio Estimado</span>
-    <div class="metric-value"><?= $pesoMedio ? number_format($pesoMedio, 1) : '—' ?> <span style="font-size:0.9rem;font-weight:600;color:var(--text-muted);">kg</span></div>
-    <span class="metric-sub">Última pesagem: <?= formatDate($ultimaPesagem) ?></span>
+    <div class="metric-value">
+      <span class="peso-hero-kg">
+        <?= $pesoMedio ? number_format($pesoMedio, 1, ',', '.') : '—' ?> <span style="font-size:0.9rem;font-weight:600;color:var(--text-muted);">kg</span>
+      </span>
+      <span class="peso-hero-arr" style="display:none;">
+        <?= $pesoMedio ? number_format(kgParaArroba($pesoMedio), 2, ',', '.') : '—' ?> <span style="font-size:0.9rem;font-weight:700;color:var(--earth-green-700);">@</span>
+      </span>
+    </div>
+    <span class="metric-sub">
+      <span class="peso-hero-sub-arr">
+        Equiv. a <strong><?= $pesoMedio ? number_format(kgParaArroba($pesoMedio), 2, ',', '.') : '0' ?> @</strong> carcaça
+      </span>
+      <span class="peso-hero-sub-kg" style="display:none;">
+        Equiv. a <strong><?= $pesoMedio ? number_format($pesoMedio, 1, ',', '.') : '0' ?> kg</strong> peso vivo
+      </span>
+      • Última: <?= formatDate($ultimaPesagem) ?>
+    </span>
   </div>
   <div class="metric-cell">
     <span class="metric-label">Alertas & Estrutura</span>

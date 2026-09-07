@@ -59,7 +59,7 @@ $pesagens = $stmt->fetchAll();
       <tr>
         <th style="width: 220px;">Animal</th>
         <th>Data</th>
-        <th class="text-end">Peso Registrado</th>
+        <th class="text-end">Peso Registrado <span class="badge bg-light text-secondary border fw-normal cursor-pointer ms-1" onclick="toggleGlobalPesoUnit()" title="Alternar kg / @" style="font-size:0.68rem; cursor:pointer;"><i class="bi bi-arrow-left-right me-1"></i>kg / @</span></th>
         <th>Canal / Origem</th>
         <th>Observações</th>
         <th class="text-end" style="width: 100px;">Ações</th>
@@ -87,8 +87,8 @@ $pesagens = $stmt->fetchAll();
           <td class="tabular-nums small text-secondary">
             <?= formatDate($p['data']) ?>
           </td>
-          <td class="text-end fw-bold tabular-nums">
-            <?= number_format($p['peso'], 1) ?> <small class="text-muted">kg</small>
+          <td class="text-end tabular-nums">
+            <?= renderPesoBadge($p['peso']) ?>
           </td>
           <td class="small">
             <span class="badge bg-light text-dark border">
