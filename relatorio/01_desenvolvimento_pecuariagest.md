@@ -89,3 +89,26 @@ Atendendo a queixas de lentidão no navegador, foi realizada uma auditoria profu
 Durante os estudos de otimização, avaliou-se a introdução de uma camada de cache em memória com **Redis**. 
 * **A Conclusão Metodológica:** Após a aplicação das correções estruturais descritas acima, a latência média das páginas do PostgreSQL caiu para **25ms a 35ms**, e as consultas individuais responderam em menos de **2ms**.
 * **Princípio da Simplicidade:** Introduzir um quarto contêiner Docker apenas para cache traria complexidade desnecessária de invalidação de dados, consumo de memória RAM e ponto adicional de falha no servidor da fazenda, sem trazer ganho perceptível para o usuário final. Concluiu-se que o banco relacional PostgreSQL com índices adequados é mais do que suficiente para suportar rebanhos de milhares de cabeças com folga extrema de performance.
+
+---
+
+## 6. Arquitetura Modular MVC e Desacoplamento dos Controladores
+
+### 6.1 O Desafio da Coesão no Front Controller Monolítico
+Inicialmente, o sistema utilizava um padrão simples de arquivo único (`public/index.php`) atuando simultaneamente como roteador, processador de formulários, camada de persistência e orquestrador de templates. Com o acréscimo de regras complexas de validação zootécnica (genealogia biológica e reprodução) e importação de XMLs fiscais, o arquivo ultrapassou 1.400 linhas, gerando alta complexidade ciclomática e dificultando a manutenção paralela.
+
+### 6.2 Implementação da Camada de Controladores Especializados (`src/controllers/`)
+Para elevar o projeto ao padrão esperado pela banca acadêmica e pelas boas práticas de engenharia de software (Clean Architecture / MVC), a lógica procedural foi totalmente refatorada em **13 controladores especializados**, mantendo o `public/index.php` apenas como despachante de rotas:
+
+1. **`BaseController.php`:** Abstração comum que provê injeção de dependência do PDO, renderização de views, respostas padronizadas em JSON, redirecionamentos e validação de tokens anti-CSRF e controle de acesso RBAC.
+2. **`AuthController.php`:** Centralização do fluxo de login, encerramento de sessão e rate limiting com lockout temporário.
+3. **`ComercialController.php`:** Gestão do cockpit de compras e vendas de animais, integração de XMLs e controle de faturamento por lote.
+4. **`AnimaisController.php` & `PesagensController.php`:** Gestão central do rebanho, genealogia, fotos e evolução ponderal com cálculo de GMD.
+5. **`SaudeController.php`, `PastagensController.php`, `ReproducaoController.php` & `AlertasController.php`:** Manejo sanitário com atualização de status, rotação de piquetes, coberturas/partos e notificações.
+6. **`DashboardController.php`, `RelatoriosController.php`, `ConfiguracoesController.php`, `UsuariosController.php` & `ApiController.php`:** Gestão estratégica, auditoria de sincronizações móveis, SMTP e RBAC.
+
+### 6.3 Resultados Práticos da Refatoração
+* **Redução de Código:** O `public/index.php` foi reduzido de **~1.450 linhas para 425 linhas** (redução de 71%).
+* **Autoloading Dinâmico:** Implementado via `spl_autoload_register`, garantindo que cada requisição carregue em memória apenas o controlador demandado.
+* **Validação Contínua:** 100% das 21 rotas de tela e 2 endpoints REST validados com sucesso em suíte automatizada de testes de regressão.
+

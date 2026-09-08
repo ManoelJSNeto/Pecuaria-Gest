@@ -11,35 +11,38 @@ O **PecuáriaGest** é uma plataforma completa e moderna para gerenciamento de p
 
 ## ✨ Funcionalidades Principais
 
-- 🐂 **Gestão de Rebanho**: Cadastro completo de animais (brinco, raça, sexo, genealogia, fotos e status).
+- 🐂 **Gestão de Rebanho**: Cadastro completo de animais (brinco, raça, sexo, genealogia biológica, fotos e status).
 - ⚖️ **Histórico de Pesagens**: Monitoramento de ganho de peso, curvas de evolução e GMD (Ganho Médio Diário).
+- 💼 **Módulo Comercial (Compras & Vendas)**: Cockpit de compras e vendas de gado, importador inteligente de XML de NF-e e GTAs (chaves de 44 dígitos), precificação por cabeça ou arroba (@) e baixa automática no rebanho.
 - 💉 **Manejo Sanitário**: Controle de vacinações, tratamentos, vermifugações e vencimentos de medicamentos.
-- 🌾 **Gestão de Pastagens e Lotes**: Controle de capacidade de lotação por hectare e rotação de piquetes.
-- 🧬 **Módulo Reprodutivo**: Registro de coberturas, inseminações, confirmação de prenhez e previsão de partos.
-- 📊 **Dashboard & Relatórios**: Indicadores gráficos em tempo real e exportação de relatórios gerenciais.
-- 📱 **API de Sincronização Mobile**: Endpoint seguro (`/api/sync`) para sincronização em lote de dados coletados offline no campo.
+- 🌾 **Gestão de Pastagens e Lotes**: Controle de capacidade de lotação por hectare (UA/ha) e rotação de piquetes.
+- 🧬 **Módulo Reprodutivo**: Registro de coberturas, inseminações, confirmação de prenhez e previsão de partos com validações zootécnicas estritas.
+- 📊 **Dashboard & Relatórios**: Indicadores gráficos em tempo real e exportação de relatórios gerenciais em CSV.
+- 📱 **API de Sincronização Mobile**: Endpoints seguros (`/api/sync` e `/api/animais`) para sincronização bidirecional offline-first com o aplicativo móvel de campo.
 
 ---
 
-## 🏗️ Arquitetura do Projeto
+## 🏗️ Arquitetura do Projeto (MVC Desacoplado)
 
 ```
 Pecuaria-Gest/
 ├── .github/workflows/       # Automações CI/CD (lint & build Docker)
-├── docker/                  # Configurações de container (Nginx + Entrypoint)
+├── docker/                  # Configurações de containers (Nginx, PHP 8.3 FPM, PostgreSQL 16)
 ├── docs/                    # Documentação técnica e especificações da API
-├── public/                  # Document Root público (index.php, CSS, assets)
-├── src/                     # Núcleo da aplicação (views, regras, conexão DB)
+├── public/                  # Document Root público (Front Controller index.php enxuto, assets)
+├── relatorio/               # Documentação técnica, arquitetural e relatórios do TCC
+├── src/                     # Núcleo da aplicação em Arquitetura Limpa MVC
+│   ├── controllers/         # 13 Controladores especializados (herdam de BaseController)
 │   ├── views/               # Telas do sistema organizadas por módulo
-│   ├── auth.php             # Autenticação e controle de sessões
+│   ├── auth.php             # Autenticação, controle de sessões e RBAC
 │   ├── config.php           # Tratamento de variáveis de ambiente
-│   ├── db.php               # Gerenciador de banco de dados SQLite / PDO
-│   └── helpers.php          # Funções utilitárias e segurança
-├── storage/                 # Armazenamento persistente (banco de dados e uploads)
+│   ├── db.php               # Gerenciador de conexão singleton PDO PostgreSQL
+│   └── helpers.php          # Funções utilitárias, segurança, CSRF e e-mail SMTP
+├── storage/                 # Armazenamento persistente (uploads de fotos e XMLs)
+├── tests/                   # Bateria automatizada de testes de regressão e segurança
 ├── .env.example             # Modelo de variáveis de ambiente
 ├── .gitignore               # Regras de exclusão do Git
-├── docker-compose.yml       # Orquestração do container em 1 comando
-├── Dockerfile               # Imagem otimizada PHP 8.2 FPM + Nginx (~80MB)
+├── docker-compose.yml       # Orquestração dos containers (Web Nginx, App PHP, DB Postgres)
 └── README.md                # Documentação principal
 ```
 
