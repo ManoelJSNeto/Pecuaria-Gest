@@ -122,7 +122,7 @@ $mensal        = $db->query("SELECT TO_CHAR(data::date, 'YYYY-MM') as mes, COUNT
   </div>
   <div class="card-body">
     <div class="row g-3">
-      <div class="col-md-3">
+      <div class="col-lg-4 col-md-6">
         <div class="p-3 border rounded h-100 d-flex flex-column justify-content-between" style="background:var(--bg-subtle);">
           <div>
             <div class="fs-4 text-primary mb-1"><i class="bi bi-tag"></i></div>
@@ -135,7 +135,7 @@ $mensal        = $db->query("SELECT TO_CHAR(data::date, 'YYYY-MM') as mes, COUNT
         </div>
       </div>
 
-      <div class="col-md-3">
+      <div class="col-lg-4 col-md-6">
         <div class="p-3 border rounded h-100 d-flex flex-column justify-content-between" style="background:var(--bg-subtle);">
           <div>
             <div class="fs-4 text-primary mb-1"><i class="bi bi-rulers"></i></div>
@@ -148,7 +148,7 @@ $mensal        = $db->query("SELECT TO_CHAR(data::date, 'YYYY-MM') as mes, COUNT
         </div>
       </div>
 
-      <div class="col-md-3">
+      <div class="col-lg-4 col-md-6">
         <div class="p-3 border rounded h-100 d-flex flex-column justify-content-between" style="background:var(--bg-subtle);">
           <div>
             <div class="fs-4 text-primary mb-1"><i class="bi bi-heart-pulse"></i></div>
@@ -161,7 +161,7 @@ $mensal        = $db->query("SELECT TO_CHAR(data::date, 'YYYY-MM') as mes, COUNT
         </div>
       </div>
 
-      <div class="col-md-3">
+      <div class="col-lg-4 col-md-6">
         <div class="p-3 border rounded h-100 d-flex flex-column justify-content-between" style="background:var(--bg-subtle);">
           <div>
             <div class="fs-4 text-primary mb-1"><i class="bi bi-tree"></i></div>
@@ -169,6 +169,32 @@ $mensal        = $db->query("SELECT TO_CHAR(data::date, 'YYYY-MM') as mes, COUNT
             <small class="text-muted d-block mb-3">Capacidade, área e taxa de ocupação dos piquetes.</small>
           </div>
           <a href="/relatorios?export=pastagens" class="btn btn-secondary btn-sm w-100">
+            <i class="bi bi-download me-1"></i> Baixar CSV
+          </a>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6">
+        <div class="p-3 border rounded h-100 d-flex flex-column justify-content-between" style="background:var(--bg-subtle);">
+          <div>
+            <div class="fs-4 text-primary mb-1"><i class="bi bi-truck"></i></div>
+            <strong class="d-block mb-1">Compras & Entradas</strong>
+            <small class="text-muted d-block mb-3">Lotes adquiridos com GTA, NF-e, custos e médias.</small>
+          </div>
+          <a href="/relatorios?export=compras" class="btn btn-secondary btn-sm w-100">
+            <i class="bi bi-download me-1"></i> Baixar CSV
+          </a>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6">
+        <div class="p-3 border rounded h-100 d-flex flex-column justify-content-between" style="background:var(--bg-subtle);">
+          <div>
+            <div class="fs-4 text-success mb-1"><i class="bi bi-cash-coin"></i></div>
+            <strong class="d-block mb-1">Vendas & Saídas</strong>
+            <small class="text-muted d-block mb-3">Abates e comercialização com GTA, NF-e e apuração.</small>
+          </div>
+          <a href="/relatorios?export=vendas" class="btn btn-secondary btn-sm w-100">
             <i class="bi bi-download me-1"></i> Baixar CSV
           </a>
         </div>

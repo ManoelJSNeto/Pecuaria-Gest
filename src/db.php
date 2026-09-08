@@ -128,11 +128,48 @@ function initDb(PDO $db): void {
             valor TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
+
+        CREATE TABLE IF NOT EXISTS compras (
+            id SERIAL PRIMARY KEY,
+            data_compra TEXT NOT NULL,
+            descricao TEXT,
+            numero_gta TEXT,
+            chave_nfe TEXT,
+            quantidade_cabecas INTEGER NOT NULL DEFAULT 1,
+            peso_total_kg REAL,
+            valor_total REAL NOT NULL DEFAULT 0.0,
+            fornecedor_origem TEXT,
+            pasto_destino_id INTEGER REFERENCES pastagens(id) ON DELETE SET NULL,
+            observacao TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS vendas (
+            id SERIAL PRIMARY KEY,
+            data_venda TEXT NOT NULL,
+            descricao TEXT,
+            numero_gta TEXT,
+            chave_nfe TEXT,
+            quantidade_cabecas INTEGER NOT NULL DEFAULT 1,
+            peso_total_kg REAL,
+            tipo_precificacao TEXT DEFAULT 'arroba',
+            preco_unitario REAL,
+            valor_total REAL NOT NULL DEFAULT 0.0,
+            comprador_destino TEXT,
+            observacao TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
     ");
 
     // Migrações dinâmicas para bases já existentes
     try { $db->exec("ALTER TABLE usuarios ADD COLUMN cargo TEXT DEFAULT 'Colaborador'"); } catch (Exception $e) {}
     try { $db->exec("ALTER TABLE usuarios ADD COLUMN permissoes TEXT DEFAULT '{}'"); } catch (Exception $e) {}
+    try { $db->exec("ALTER TABLE animais ADD COLUMN compra_id INTEGER REFERENCES compras(id) ON DELETE SET NULL"); } catch (Exception $e) {}
+    try { $db->exec("ALTER TABLE animais ADD COLUMN venda_id INTEGER REFERENCES vendas(id) ON DELETE SET NULL"); } catch (Exception $e) {}
+    try { $db->exec("ALTER TABLE animais ADD COLUMN valor_compra_individual REAL"); } catch (Exception $e) {}
+    try { $db->exec("ALTER TABLE animais ADD COLUMN valor_venda_individual REAL"); } catch (Exception $e) {}
+    try { $db->exec("ALTER TABLE animais ADD COLUMN peso_venda REAL"); } catch (Exception $e) {}
+    try { $db->exec("ALTER TABLE animais ADD COLUMN data_venda TEXT"); } catch (Exception $e) {}
 
     // Seed admin user if none exists
     $count = $db->query("SELECT COUNT(*) FROM usuarios")->fetchColumn();

@@ -40,6 +40,27 @@ $chartData     = json_encode(array_map(fn($p) => (float)$p['peso'], $chartPesage
 
 $pesoAtual = !empty($pesagens) ? $pesagens[0]['peso'] : $animal['peso_inicial'];
 $isPuppy   = isFilhote($animal['data_nascimento']);
+
+// Dados comerciais (Compra, Venda e Lucro)
+$compra = null;
+if (!empty($animal['compra_id'])) {
+    $cStmt = $db->prepare("SELECT * FROM compras WHERE id = ?");
+    $cStmt->execute([$animal['compra_id']]);
+    $compra = $cStmt->fetch() ?: null;
+}
+
+$venda = null;
+if (!empty($animal['venda_id'])) {
+    $vStmt = $db->prepare("SELECT * FROM vendas WHERE id = ?");
+    $vStmt->execute([$animal['venda_id']]);
+    $venda = $vStmt->fetch() ?: null;
+}
+
+$custoSaudeStmt = $db->prepare("SELECT COALESCE(SUM(custo), 0) FROM saude WHERE animal_id = ?");
+$custoSaudeStmt->execute([$animal['id']]);
+$totalCustoSaude = (float)$custoSaudeStmt->fetchColumn();
+
+$desempenho = calcularDesempenhoComercial($animal, $totalCustoSaude);
 ?>
 
 <!-- Barra de Navegação Superior -->
@@ -105,6 +126,11 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
         <?php if ($animal['sexo'] === 'F'): ?>
           <a href="/reproducao/novo?animal_id=<?= $animal['id'] ?>" class="btn btn-secondary btn-sm">
             <i class="bi bi-diagram-3 me-1"></i>Reprodução
+          </a>
+        <?php endif; ?>
+        <?php if ($animal['status'] !== 'vendido' && $animal['status'] !== 'morto'): ?>
+          <a href="/vendas/novo?animal_id=<?= $animal['id'] ?>" class="btn btn-success btn-sm">
+            <i class="bi bi-cash-coin me-1"></i>Vender
           </a>
         <?php endif; ?>
       </div>
@@ -189,6 +215,89 @@ $isPuppy   = isFilhote($animal['data_nascimento']);
           <span class="text-muted d-block">Observações</span>
           <span class="text-secondary"><?= e($animal['observacao'] ?? 'Sem observações adicionais.') ?></span>
         </div>
+      </div>
+    </div>
+
+    <!-- Rastreabilidade Comercial & Desempenho Financeiro -->
+    <div class="card mt-3 mb-3">
+      <div class="card-header py-2 d-flex justify-content-between align-items-center">
+        <h6 class="small mb-0"><i class="bi bi-shield-check text-success me-1"></i>Comercial & Rastreabilidade</h6>
+        <?php if ($desempenho['is_vendido']): ?>
+          <span class="badge bg-success" style="font-size:0.68rem;">VENDIDO</span>
+        <?php else: ?>
+          <span class="badge bg-light text-dark border" style="font-size:0.68rem;">NO REBANHO</span>
+        <?php endif; ?>
+      </div>
+      <div class="card-body p-3 small">
+        <!-- Entrada / Aquisição -->
+        <div class="mb-2 pb-2 border-bottom">
+          <span class="text-muted d-block fw-bold" style="font-size:0.72rem;">ENTRADA / ORIGEM</span>
+          <?php if ($compra): ?>
+            <strong class="text-primary d-block">Compra Lote #<?= $compra['id'] ?></strong>
+            <?php if (!empty($compra['numero_gta'])): ?>
+              <span class="d-block text-secondary" style="font-size:0.75rem;"><i class="bi bi-file-earmark-medical me-1 text-success"></i>GTA: <?= e($compra['numero_gta']) ?></span>
+            <?php endif; ?>
+            <?php if (!empty($compra['chave_nfe'])): ?>
+              <span class="d-block text-secondary tabular-nums" style="font-size:0.68rem;" title="<?= e($compra['chave_nfe']) ?>"><i class="bi bi-receipt me-1"></i>NF-e: <?= substr($compra['chave_nfe'], 0, 12) ?>...</span>
+            <?php endif; ?>
+            <span class="d-block text-secondary" style="font-size:0.75rem;">Entrada: <?= formatDate($compra['data_compra']) ?></span>
+            <?php if ($desempenho['valor_compra'] > 0): ?>
+              <span class="d-block text-dark fw-bold mt-1">Custo: R$ <?= number_format($desempenho['valor_compra'], 2, ',', '.') ?></span>
+            <?php endif; ?>
+          <?php else: ?>
+            <strong class="text-success d-block"><i class="bi bi-stars me-1"></i>Nascido na Fazenda</strong>
+            <span class="text-muted" style="font-size:0.75rem;">Origem: Cria própria</span>
+          <?php endif; ?>
+        </div>
+
+        <!-- Saída / Comercialização -->
+        <?php if ($desempenho['is_vendido']): ?>
+          <div class="mb-2 pb-2 border-bottom">
+            <span class="text-muted d-block fw-bold" style="font-size:0.72rem;">SAÍDA / COMERCIALIZAÇÃO</span>
+            <strong class="text-success d-block"><?= e($venda['comprador_destino'] ?? 'Vendido') ?></strong>
+            <?php if (!empty($venda['numero_gta'])): ?>
+              <span class="d-block text-secondary" style="font-size:0.75rem;"><i class="bi bi-file-earmark-medical me-1 text-success"></i>GTA Saída: <?= e($venda['numero_gta']) ?></span>
+            <?php endif; ?>
+            <?php if (!empty($venda['chave_nfe'])): ?>
+              <span class="d-block text-secondary tabular-nums" style="font-size:0.68rem;" title="<?= e($venda['chave_nfe']) ?>"><i class="bi bi-receipt me-1"></i>NF-e Saída: <?= substr($venda['chave_nfe'], 0, 12) ?>...</span>
+            <?php endif; ?>
+            <span class="d-block text-secondary" style="font-size:0.75rem;">Data: <?= formatDate($venda['data_venda'] ?? $animal['data_venda']) ?></span>
+            <?php if ($desempenho['peso_saida'] > 0): ?>
+              <span class="d-block text-dark mt-1">Peso Saída: <strong><?= number_format($desempenho['peso_saida'], 1, ',', '.') ?> kg</strong> (<?= number_format(kgParaArroba($desempenho['peso_saida']), 1, ',', '.') ?> @)</span>
+            <?php endif; ?>
+            <span class="d-block text-success fw-bold mt-1">Venda: R$ <?= number_format($desempenho['valor_venda'], 2, ',', '.') ?></span>
+          </div>
+
+          <!-- Balanço do Animal -->
+          <div class="p-2 rounded bg-light border">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="text-muted">Lucro Apurado:</span>
+              <strong class="<?= $desempenho['lucro_bruto'] >= 0 ? 'text-success' : 'text-danger' ?>">
+                R$ <?= number_format($desempenho['lucro_bruto'], 2, ',', '.') ?>
+              </strong>
+            </div>
+            <?php if ($desempenho['custos_saude'] > 0): ?>
+              <div class="d-flex justify-content-between align-items-center mb-1" style="font-size:0.72rem;">
+                <span class="text-muted">Medicamentos:</span>
+                <span class="text-danger">- R$ <?= number_format($desempenho['custos_saude'], 2, ',', '.') ?></span>
+              </div>
+            <?php endif; ?>
+            <?php if ($desempenho['arr_ganhas'] > 0): ?>
+              <div class="d-flex justify-content-between align-items-center" style="font-size:0.72rem;">
+                <span class="text-muted">Ganho Fazenda:</span>
+                <strong class="text-success">+<?= number_format($desempenho['arr_ganhas'], 1, ',', '.') ?> @</strong>
+              </div>
+            <?php endif; ?>
+          </div>
+        <?php else: ?>
+          <?php if ($animal['status'] !== 'morto'): ?>
+            <div class="mt-2">
+              <a href="/vendas/novo?animal_id=<?= $animal['id'] ?>" class="btn btn-sm btn-outline-success w-100">
+                <i class="bi bi-cash-coin me-1"></i> Registrar Saída / Venda
+              </a>
+            </div>
+          <?php endif; ?>
+        <?php endif; ?>
       </div>
     </div>
   </div>

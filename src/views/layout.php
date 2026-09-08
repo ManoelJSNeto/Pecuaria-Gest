@@ -15,6 +15,10 @@ $navSections = [
         ['href' => '/saude',          'icon' => 'bi-heart-pulse',    'label' => 'Saúde & Vacinas',  'perm' => 'ver_saude'],
         ['href' => '/reproducao',     'icon' => 'bi-diagram-3',      'label' => 'Reprodução',       'perm' => 'ver_reproducao'],
     ],
+    'Gestão Comercial' => [
+        ['href' => '/compras',        'icon' => 'bi-truck',          'label' => 'Compras & Entradas', 'perm' => 'ver_animais'],
+        ['href' => '/vendas',         'icon' => 'bi-cash-coin',      'label' => 'Vendas & Saídas',    'perm' => 'ver_animais'],
+    ],
     'Campo & Estrutura' => [
         ['href' => '/pastagens',      'icon' => 'bi-tree',           'label' => 'Pastagens',        'perm' => 'ver_pastagens'],
         ['href' => '/sincronizacoes', 'icon' => 'bi-arrow-repeat',    'label' => 'Sinc. Mobile',     'perm' => null],

@@ -81,6 +81,46 @@ function renderPesoBadge(float|int|null $pesoKg, bool $inline = false): string {
          . "</span>";
 }
 
+/**
+ * Formata Chave de Acesso da NF-e (44 dígitos) em blocos legíveis
+ */
+function formatChaveNFe(?string $chave): string {
+    if (!$chave) return '-';
+    $limpa = preg_replace('/\D/', '', $chave);
+    if (strlen($limpa) !== 44) return e($chave);
+    return trim(chunk_split($limpa, 4, ' '));
+}
+
+/**
+ * Calcula a rentabilidade financeira e zootécnica de um animal
+ */
+function calcularDesempenhoComercial(array $animal, float $custosSaude = 0.0): array {
+    $venda = (float)($animal['valor_venda_individual'] ?? 0);
+    $compra = (float)($animal['valor_compra_individual'] ?? 0);
+    $custoTotal = $compra + $custosSaude;
+    $lucro = $venda > 0 ? ($venda - $custoTotal) : 0.0;
+    $margemPct = ($custoTotal > 0 && $venda > 0) ? (($lucro / $custoTotal) * 100.0) : 0.0;
+
+    $pesoEntrada = (float)($animal['peso_inicial'] ?? 0);
+    $pesoSaida = (float)($animal['peso_venda'] ?? ($animal['peso_atual'] ?? 0));
+    $kgGanhos = ($pesoSaida > $pesoEntrada && $pesoEntrada > 0) ? ($pesoSaida - $pesoEntrada) : 0.0;
+    $arrGanhas = kgParaArroba($kgGanhos);
+
+    return [
+        'valor_compra'   => $compra,
+        'valor_venda'    => $venda,
+        'custos_saude'   => $custosSaude,
+        'custo_total'    => $custoTotal,
+        'lucro_bruto'    => $lucro,
+        'margem_pct'     => $margemPct,
+        'peso_entrada'   => $pesoEntrada,
+        'peso_saida'     => $pesoSaida,
+        'kg_ganhos'      => $kgGanhos,
+        'arr_ganhas'     => $arrGanhas,
+        'is_vendido'     => ($animal['status'] === 'vendido' || !empty($animal['venda_id']))
+    ];
+}
+
 function statusBadge(string $status): string {
     $st = strtolower(trim($status));
     $classes = match($st) {
