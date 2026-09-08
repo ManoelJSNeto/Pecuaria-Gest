@@ -31,20 +31,21 @@ Todos os controladores herdam de `BaseController`, que disponibiliza atalhos pro
 
 ---
 
-## 📋 Mapa de Controladores Planejados para Extração
+## 📋 Mapa de Controladores Implementados e Ativos (100% Concluído)
 
-| Controlador | Módulos e Rotas Atendidas |
-|---|---|
-| **`AuthController.php`** | `/login`, `/logout`, verificação de tentativas e sessões. |
-| **`DashboardController.php`** | `/dashboard`, cálculo de KPIs e consolidação de gráficos. |
-| **`AnimaisController.php`** | `/animais`, `/animais/novo`, `/animais/criar`, `/animais/detalhes/{id}`. |
-| **`ComercialController.php`** | `/compras`, `/compras/novo`, `/vendas`, `/vendas/novo`, processamento de XMLs de NF-e e GTAs. |
-| **`PesagensController.php`** | `/pesagens`, `/pesagens/novo`, cálculo de GMD (Ganho Médio Diário). |
-| **`SaudeController.php`** | `/saude`, `/saude/novo`, prontuários clínicos e laudos com desfoque de imagem. |
-| **`PastagensController.php`** | `/pastagens`, `/pastagens/novo`, taxa de lotação por hectare. |
-| **`ReproducaoController.php`** | `/reproducao`, `/reproducao/novo`, inseminações, coberturas e partos. |
-| **`AlertasController.php`** | `/alertas`, avisos de sistema e notificações de sincronização. |
-| **`RelatoriosController.php`** | `/relatorios`, filtros e exportação. |
-| **`UsuariosController.php`** | `/usuarios`, controle de acesso RBAC e gestão de equipe. |
-| **`ConfiguracoesController.php`**| `/configuracoes`, teste de e-mail SMTP e parâmetros rurais. |
-| **`ApiController.php`** | `/api/sync`, `/api/animais` (comunicação com o aplicativo Android). |
+| Controlador | Módulos e Rotas Atendidas | Status |
+|---|---|---|
+| **`BaseController.php`** | Núcleo MVC compartilhado (render, JSON, redirect, CSRF, auth). | ✅ Ativo |
+| **`AuthController.php`** | `/login`, `/logout`, verificação de tentativas e sessões. | ✅ Ativo |
+| **`DashboardController.php`** | `/dashboard`, cálculo de KPIs e consolidação de gráficos. | ✅ Ativo |
+| **`AnimaisController.php`** | `/animais`, `/animais/novo`, `/animais/criar`, `/animais/detalhes/{id}`. | ✅ Ativo |
+| **`ComercialController.php`** | `/compras`, `/compras/novo`, `/vendas`, `/vendas/novo`, processamento de XMLs de NF-e e GTAs. | ✅ Ativo |
+| **`PesagensController.php`** | `/pesagens`, `/pesagens/novo`, cálculo de GMD (Ganho Médio Diário). | ✅ Ativo |
+| **`SaudeController.php`** | `/saude`, `/saude/novo`, prontuários clínicos e laudos com desfoque de imagem. | ✅ Ativo |
+| **`PastagensController.php`** | `/pastagens`, `/pastagens/novo`, taxa de lotação por hectare. | ✅ Ativo |
+| **`ReproducaoController.php`** | `/reproducao`, `/reproducao/novo`, inseminações, coberturas e partos. | ✅ Ativo |
+| **`AlertasController.php`** | `/alertas`, avisos de sistema e notificações de sincronização. | ✅ Ativo |
+| **`RelatoriosController.php`** | `/relatorios`, filtros e exportação. | ✅ Ativo |
+| **`UsuariosController.php`** | `/usuarios`, controle de acesso RBAC e gestão de equipe. | ✅ Ativo |
+| **`ConfiguracoesController.php`**| `/configuracoes`, teste de e-mail SMTP e parâmetros rurais. | ✅ Ativo |
+| **`ApiController.php`** | `/api/sync`, `/api/animais` (comunicação com o aplicativo Android). | ✅ Ativo |
