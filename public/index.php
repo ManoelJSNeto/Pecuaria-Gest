@@ -293,291 +293,78 @@ if ($uri === '/dashboard') {
     exit;
 }
 
-// ── ANIMAIS ──
+// ── MÓDULO ANIMAIS & REBANHO (AnimaisController) ──
 if ($uri === '/animais') {
-    renderView('animais/index', 'Animais', 'animais');
+    (new AnimaisController())->index();
     exit;
 }
 if ($uri === '/animais/novo') {
-    renderView('animais/form', 'Cadastrar Animal', 'animais');
+    (new AnimaisController())->novo();
     exit;
 }
 if ($uri === '/animais/salvar' && $method === 'POST') {
-    if (!csrf_verify()) { flash('error', 'Token inválido.'); redirect('/animais/novo'); }
-    
-    $brinco = trim($_POST['brinco'] ?? '');
-    $maeId = !empty($_POST['mae_id']) ? (int)$_POST['mae_id'] : null;
-    $paiBrinco = trim($_POST['pai_brinco'] ?? '') ?: null;
-
-    // Validação estrita da Mãe: deve ser fêmea e não pode ser ela mesma
-    if ($maeId) {
-        $chkMae = $db->prepare("SELECT id, brinco, sexo FROM animais WHERE id = ?");
-        $chkMae->execute([$maeId]);
-        $mae = $chkMae->fetch();
-        if (!$mae) {
-            flash('error', 'A mãe biológica informada não foi encontrada no rebanho.');
-            redirect('/animais/novo');
-        }
-        if ($mae['sexo'] !== 'F') {
-            flash('error', 'Inconsistência zootécnica: A mãe biológica deve ser obrigatoriamente uma FÊMEA.');
-            redirect('/animais/novo');
-        }
-        if (strtoupper($mae['brinco']) === strtoupper($brinco)) {
-            flash('error', 'Inconsistência genealógica: O animal não pode ser a mãe de si mesmo.');
-            redirect('/animais/novo');
-        }
-    }
-
-    // Validação estrita do Pai: não pode ser o próprio animal nem uma fêmea
-    if ($paiBrinco) {
-        if (strtoupper($paiBrinco) === strtoupper($brinco)) {
-            flash('error', 'Inconsistência genealógica: O animal não pode ser o pai de si mesmo.');
-            redirect('/animais/novo');
-        }
-        if ($maeId && isset($mae) && strtoupper($paiBrinco) === strtoupper($mae['brinco'])) {
-            flash('error', 'Inconsistência zootécnica: O pai e a mãe biológicos não podem ser o mesmo animal.');
-            redirect('/animais/novo');
-        }
-        $chkPai = $db->prepare("SELECT id, sexo FROM animais WHERE UPPER(brinco) = UPPER(?)");
-        $chkPai->execute([$paiBrinco]);
-        $pai = $chkPai->fetch();
-        if ($pai && $pai['sexo'] === 'F') {
-            flash('error', 'Inconsistência zootécnica: O animal com brinco "'.$paiBrinco.'" é uma FÊMEA e não pode ser informado como pai/touro reprodutor.');
-            redirect('/animais/novo');
-        }
-    }
-
-    $fotoUrl = !empty($_FILES['foto']) ? uploadFoto($_FILES['foto']) : null;
-    $stmt = $db->prepare("INSERT INTO animais (brinco,nome,sexo,raca,data_nascimento,peso_inicial,status,pasto_id,origem,mae_id,pai_brinco,observacao,foto_url) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)");
-    try {
-        $stmt->execute([
-            trim($_POST['brinco']),
-            trim($_POST['nome'] ?? '') ?: null,
-            $_POST['sexo'] ?? 'M',
-            trim($_POST['raca'] ?? '') ?: null,
-            $_POST['data_nascimento'] ?: null,
-            $_POST['peso_inicial'] ?: null,
-            $_POST['status'] ?? 'ativo',
-            $_POST['pasto_id'] ?: null,
-            trim($_POST['origem'] ?? '') ?: null,
-            $_POST['mae_id'] ?: null,
-            trim($_POST['pai_brinco'] ?? '') ?: null,
-            trim($_POST['observacao'] ?? '') ?: null,
-            $fotoUrl
-        ]);
-        $newId = $db->lastInsertId();
-        if ($fotoUrl && $newId) {
-            $isPuppy = isFilhote($_POST['data_nascimento'] ?: null);
-            $db->prepare("INSERT INTO fotos_animais (animal_id,foto_url,tipo_evento,fase,data,observacao) VALUES (?,?,?,?,?,?)")
-               ->execute([$newId, $fotoUrl, 'nascimento', $isPuppy ? 'filhote' : 'adulto', $_POST['data_nascimento'] ?: date('Y-m-d'), 'Foto de cadastro inicial']);
-        }
-        flash('success', 'Animal cadastrado com sucesso!');
-        redirect('/animais/' . $newId);
-    } catch (Exception $e) {
-        flash('error', 'Erro: brinco já existe ou dados inválidos.');
-        redirect('/animais/novo');
-    }
+    (new AnimaisController())->salvar();
     exit;
 }
-
-// Animal detail/edit — match /animais/{id}[/...]
 if (preg_match('#^/animais/(\d+)(/.*)?$#', $uri, $m)) {
     $id  = (int)$m[1];
     $sub = $m[2] ?? '';
-
-    $animalStmt = $db->prepare("SELECT * FROM animais WHERE id=?");
-    $animalStmt->execute([$id]);
-    $animal = $animalStmt->fetch() ?: null;
-
-    if (!$animal) { flash('error','Animal não encontrado.'); redirect('/animais'); }
+    $controller = new AnimaisController();
 
     if ($sub === '' || $sub === '/') {
-        renderView('animais/show', 'Animal #'.$animal['brinco'], 'animais', ['animal' => $animal]);
+        $controller->show($id);
         exit;
     }
     if ($sub === '/editar') {
-        renderView('animais/form', 'Editar Animal', 'animais', ['animal' => $animal]);
+        $controller->editar($id);
         exit;
     }
     if ($sub === '/foto' && $method === 'POST') {
-        if (!csrf_verify()) { flash('error','Token inválido.'); redirect("/animais/$id"); }
-        if (!empty($_FILES['foto']['tmp_name'])) {
-            $fUrl = uploadFoto($_FILES['foto']);
-            if ($fUrl) {
-                $tipo = $_POST['tipo_evento'] ?? 'geral';
-                $isSensivel = !empty($_POST['is_sensivel']) || $tipo === 'obito' || $animal['status'] === 'morto' ? 1 : 0;
-                $fase = $tipo === 'obito' ? 'obito' : (isFilhote($animal['data_nascimento']) ? 'filhote' : 'adulto');
-                $obs = trim($_POST['observacao'] ?? '') ?: null;
-                $dataFoto = $_POST['data'] ?: date('Y-m-d');
-                
-                $db->prepare("INSERT INTO fotos_animais (animal_id,foto_url,tipo_evento,fase,is_sensivel,data,observacao) VALUES (?,?,?,?,?,?,?)")
-                   ->execute([$id, $fUrl, $tipo, $fase, $isSensivel, $dataFoto, $obs]);
-                
-                if (empty($animal['foto_url']) || !empty($_POST['definir_principal'])) {
-                    $db->prepare("UPDATE animais SET foto_url=? WHERE id=?")->execute([$fUrl, $id]);
-                }
-                flash('success','Foto adicionada com sucesso à galeria do animal!');
-            } else {
-                flash('error','Formato de imagem inválido (use JPG, PNG ou WEBP).');
-            }
-        }
-        redirect("/animais/$id");
+        $controller->adicionarFoto($id);
         exit;
     }
     if ($sub === '/atualizar' && $method === 'POST') {
-        if (!csrf_verify()) { flash('error','Token inválido.'); redirect("/animais/$id/editar"); }
-        
-        $brinco = trim($_POST['brinco'] ?? '');
-        $maeId = !empty($_POST['mae_id']) ? (int)$_POST['mae_id'] : null;
-        $paiBrinco = trim($_POST['pai_brinco'] ?? '') ?: null;
-
-        // Validação estrita da Mãe: não pode ser ela mesma e deve ser fêmea
-        if ($maeId) {
-            if ($maeId === $id) {
-                flash('error', 'Inconsistência genealógica: O animal não pode ser a mãe de si mesmo.');
-                redirect("/animais/$id/editar");
-            }
-            $chkMae = $db->prepare("SELECT id, brinco, sexo FROM animais WHERE id = ?");
-            $chkMae->execute([$maeId]);
-            $mae = $chkMae->fetch();
-            if (!$mae) {
-                flash('error', 'A mãe selecionada não foi encontrada no rebanho.');
-                redirect("/animais/$id/editar");
-            }
-            if ($mae['sexo'] !== 'F') {
-                flash('error', 'Inconsistência zootécnica: A mãe biológica deve ser obrigatoriamente uma FÊMEA.');
-                redirect("/animais/$id/editar");
-            }
-            if (strtoupper($mae['brinco']) === strtoupper($brinco)) {
-                flash('error', 'Inconsistência genealógica: O animal não pode ser a mãe de si mesmo.');
-                redirect("/animais/$id/editar");
-            }
-        }
-
-        // Validação estrita do Pai: não pode ser ele mesmo nem fêmea
-        if ($paiBrinco) {
-            if (strtoupper($paiBrinco) === strtoupper($brinco)) {
-                flash('error', 'Inconsistência genealógica: O animal não pode ser o pai de si mesmo.');
-                redirect("/animais/$id/editar");
-            }
-            if ($maeId && isset($mae) && strtoupper($paiBrinco) === strtoupper($mae['brinco'])) {
-                flash('error', 'Inconsistência zootécnica: O pai e a mãe biológicos não podem ser o mesmo animal.');
-                redirect("/animais/$id/editar");
-            }
-            $chkPai = $db->prepare("SELECT id, sexo FROM animais WHERE UPPER(brinco) = UPPER(?)");
-            $chkPai->execute([$paiBrinco]);
-            $pai = $chkPai->fetch();
-            if ($pai) {
-                if ($pai['id'] === $id) {
-                    flash('error', 'Inconsistência genealógica: O animal não pode ser o pai de si mesmo.');
-                    redirect("/animais/$id/editar");
-                }
-                if ($pai['sexo'] === 'F') {
-                    flash('error', 'Inconsistência zootécnica: O animal com brinco "'.$paiBrinco.'" é uma FÊMEA e não pode ser informado como pai/touro reprodutor.');
-                    redirect("/animais/$id/editar");
-                }
-            }
-        }
-
-        $fotoUrl = $animal['foto_url'];
-        if (!empty($_FILES['foto']['tmp_name'])) {
-            $newPhoto = uploadFoto($_FILES['foto']);
-            if ($newPhoto) {
-                $fotoUrl = $newPhoto;
-                $db->prepare("INSERT INTO fotos_animais (animal_id,foto_url,tipo_evento,fase,data,observacao) VALUES (?,?,'perfil',?,?,?)")
-                   ->execute([$id, $newPhoto, isFilhote($_POST['data_nascimento'] ?: null) ? 'filhote' : 'adulto', date('Y-m-d'), 'Atualização de foto de perfil']);
-            }
-        }
-        $db->prepare("UPDATE animais SET brinco=?,nome=?,sexo=?,raca=?,data_nascimento=?,peso_inicial=?,status=?,pasto_id=?,origem=?,mae_id=?,pai_brinco=?,observacao=?,foto_url=?,updated_at=CURRENT_TIMESTAMP WHERE id=?")
-           ->execute([
-               trim($_POST['brinco']),
-               trim($_POST['nome'] ?? '') ?: null,
-               $_POST['sexo'] ?? 'M',
-               trim($_POST['raca'] ?? '') ?: null,
-               $_POST['data_nascimento'] ?: null,
-               $_POST['peso_inicial'] ?: null,
-               $_POST['status'] ?? 'ativo',
-               $_POST['pasto_id'] ?: null,
-               trim($_POST['origem'] ?? '') ?: null,
-               $_POST['mae_id'] ?: null,
-               trim($_POST['pai_brinco'] ?? '') ?: null,
-               trim($_POST['observacao'] ?? '') ?: null,
-               $fotoUrl,
-               $id,
-           ]);
-        flash('success','Animal atualizado!');
-        redirect("/animais/$id");
+        $controller->atualizar($id);
         exit;
     }
     if ($sub === '/excluir' && $method === 'POST') {
-        if (!csrf_verify()) { flash('error','Token inválido.'); redirect('/animais'); }
-        $db->prepare("DELETE FROM animais WHERE id=?")->execute([$id]);
-        flash('success','Animal removido.');
-        redirect('/animais');
+        $controller->excluir($id);
         exit;
     }
 }
-
-// ── FOTOS EXCLUIR ──
 if (preg_match('#^/fotos/(\d+)/excluir$#', $uri, $m) && $method === 'POST') {
-    if (!csrf_verify()) { flash('error','Token inválido.'); redirect('/animais'); }
-    $fId = (int)$m[1];
-    $fStmt = $db->prepare("SELECT animal_id, foto_url FROM fotos_animais WHERE id=?");
-    $fStmt->execute([$fId]);
-    $f = $fStmt->fetch();
-    if ($f) {
-        $db->prepare("DELETE FROM fotos_animais WHERE id=?")->execute([$fId]);
-        flash('success','Foto removida do histórico.');
-        redirect('/animais/' . $f['animal_id']);
-    } else {
-        redirect('/animais');
-    }
+    (new AnimaisController())->excluirFoto((int)$m[1]);
     exit;
 }
 
-// ── PESAGENS ──
+// ── MÓDULO PESAGENS (PesagensController) ──
 if ($uri === '/pesagens') {
-    renderView('pesagens/index', 'Pesagens', 'pesagens');
+    (new PesagensController())->index();
     exit;
 }
 if ($uri === '/pesagens/novo') {
-    renderView('pesagens/form', 'Registrar Pesagem', 'pesagens');
+    (new PesagensController())->novo();
     exit;
 }
 if ($uri === '/pesagens/salvar' && $method === 'POST') {
-    if (!csrf_verify()) { flash('error','Token inválido.'); redirect('/pesagens/novo'); }
-    $db->prepare("INSERT INTO pesagens (animal_id,peso,data,observacao,origem) VALUES (?,?,?,?,'web')")
-       ->execute([$_POST['animal_id'],$_POST['peso'],$_POST['data'],trim($_POST['observacao'] ?? '') ?: null]);
-    flash('success','Pesagem registrada!');
-    $back = !empty($_POST['animal_id']) ? "/animais/{$_POST['animal_id']}" : '/pesagens';
-    redirect($back);
+    (new PesagensController())->salvar();
     exit;
 }
 if (preg_match('#^/pesagens/(\d+)(/.*)?$#', $uri, $m)) {
     $id  = (int)$m[1];
     $sub = $m[2] ?? '';
-    $pStmt = $db->prepare("SELECT * FROM pesagens WHERE id=?");
-    $pStmt->execute([$id]);
-    $pesagem = $pStmt->fetch() ?: null;
-    if (!$pesagem) { flash('error','Pesagem não encontrada.'); redirect('/pesagens'); }
+    $controller = new PesagensController();
+
     if ($sub === '/editar') {
-        renderView('pesagens/form', 'Editar Pesagem', 'pesagens', ['pesagem' => $pesagem]);
+        $controller->editar($id);
         exit;
     }
     if ($sub === '/atualizar' && $method === 'POST') {
-        if (!csrf_verify()) { flash('error','Token inválido.'); redirect("/pesagens/$id/editar"); }
-        $db->prepare("UPDATE pesagens SET animal_id=?,peso=?,data=?,observacao=? WHERE id=?")
-           ->execute([$_POST['animal_id'],$_POST['peso'],$_POST['data'],trim($_POST['observacao'] ?? '') ?: null, $id]);
-        flash('success','Pesagem atualizada com sucesso!');
-        $back = !empty($_POST['animal_id']) ? "/animais/{$_POST['animal_id']}" : '/pesagens';
-        redirect($back);
+        $controller->atualizar($id);
         exit;
     }
     if ($sub === '/excluir' && $method === 'POST') {
-        if (!csrf_verify()) { flash('error','Token inválido.'); redirect('/pesagens'); }
-        $db->prepare("DELETE FROM pesagens WHERE id=?")->execute([$id]);
-        flash('success','Pesagem excluída.');
-        redirect($pesagem['animal_id'] ? "/animais/{$pesagem['animal_id']}" : '/pesagens');
+        $controller->excluir($id);
         exit;
     }
 }
