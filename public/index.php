@@ -108,7 +108,7 @@ if (str_starts_with($uri, '/api/')) {
         // Validação de segurança: Exige sessão ativa OU credenciais válidas OU API Key
         $authOk = isLoggedIn();
         $apiKey = $_SERVER['HTTP_X_API_KEY'] ?? ($body['api_key'] ?? '');
-        if (!$authOk && !empty($apiKey) && $apiKey === API_KEY) {
+        if (!$authOk && !empty($apiKey) && hash_equals(API_KEY, (string)$apiKey)) {
             $authOk = true;
         }
 
@@ -122,14 +122,14 @@ if (str_starts_with($uri, '/api/')) {
             $userObj = $uStmt->fetch();
             if ($userObj && password_verify($senha, $userObj['senha'])) {
                 $authOk = true;
-            } elseif ($email === DEFAULT_ADMIN_EMAIL && $senha === DEFAULT_ADMIN_PASS) {
+            } elseif (defined('APP_ENV') && APP_ENV === 'development' && $email === DEFAULT_ADMIN_EMAIL && $senha === DEFAULT_ADMIN_PASS) {
                 $authOk = true;
             }
         }
 
         if (!$authOk) {
             http_response_code(401);
-            echo json_encode(['error' => 'Não autorizado. Informe o e-mail e senha de um usuário cadastrado para autorizar a sincronização.']);
+            echo json_encode(['error' => 'Não autorizado. Informe uma API Key válida ou credenciais de um usuário ativo.']);
             exit;
         }
         $processados = ['pesagens' => 0, 'saude' => 0, 'animais_novos' => 0, 'fotos' => 0];
@@ -252,6 +252,18 @@ if (str_starts_with($uri, '/api/')) {
     }
 
     if ($uri === '/api/animais' && $method === 'GET') {
+        $authOk = isLoggedIn();
+        $apiKey = $_SERVER['HTTP_X_API_KEY'] ?? ($_GET['api_key'] ?? '');
+        if (!$authOk && !empty($apiKey) && hash_equals(API_KEY, (string)$apiKey)) {
+            $authOk = true;
+        }
+
+        if (!$authOk) {
+            http_response_code(401);
+            echo json_encode(['error' => 'Acesso não autorizado. Chave de API ou sessão de usuário obrigatória.']);
+            exit;
+        }
+
         $db = getDb();
         $animais = $db->query("
             SELECT a.*, p.nome as pasto_nome,
