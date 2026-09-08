@@ -6,6 +6,8 @@
 # Storage & Databases
 storage/data/*.db
 storage/data/*.sqlite*
+storage/data/.db_ready
+storage/benchmark_run.php
 storage/uploads/*
 !storage/uploads/.gitkeep
 !storage/data/.gitkeep

@@ -6,9 +6,21 @@ function getDb(): PDO {
         $db = new PDO($dsn, DB_USERNAME, DB_PASSWORD);
         $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-        initDb($db);
+
+        $lockFile = defined('DATA_PATH') ? DATA_PATH . '/.db_ready' : null;
+        if (!$lockFile || !is_file($lockFile)) {
+            initDb($db);
+        }
     }
     return $db;
+}
+
+function reinitDb(): void {
+    $lockFile = defined('DATA_PATH') ? DATA_PATH . '/.db_ready' : null;
+    if ($lockFile && is_file($lockFile)) {
+        @unlink($lockFile);
+    }
+    initDb(getDb());
 }
 
 function initDb(PDO $db): void {
@@ -179,6 +191,23 @@ function initDb(PDO $db): void {
     try { $db->exec("ALTER TABLE animais ADD COLUMN peso_venda REAL"); } catch (Exception $e) {}
     try { $db->exec("ALTER TABLE animais ADD COLUMN data_venda TEXT"); } catch (Exception $e) {}
 
+    // Índices B-Tree de alta performance para aceleração de buscas e relatórios
+    $indices = [
+        "CREATE INDEX IF NOT EXISTS idx_pesagens_animal_data ON pesagens(animal_id, data DESC)",
+        "CREATE INDEX IF NOT EXISTS idx_animais_pasto_status ON animais(pasto_id, status)",
+        "CREATE INDEX IF NOT EXISTS idx_animais_status ON animais(status)",
+        "CREATE INDEX IF NOT EXISTS idx_animais_brinco ON animais(brinco)",
+        "CREATE INDEX IF NOT EXISTS idx_saude_animal ON saude(animal_id)",
+        "CREATE INDEX IF NOT EXISTS idx_reproducao_animal ON reproducao(animal_id)",
+        "CREATE INDEX IF NOT EXISTS idx_alertas_lido ON alertas(lido)",
+        "CREATE INDEX IF NOT EXISTS idx_compras_data ON compras(data_compra DESC)",
+        "CREATE INDEX IF NOT EXISTS idx_vendas_data ON vendas(data_venda DESC)",
+        "CREATE INDEX IF NOT EXISTS idx_usuarios_email ON usuarios(email)"
+    ];
+    foreach ($indices as $sql) {
+        try { $db->exec($sql); } catch (Exception $e) {}
+    }
+
     // Seed admin user if none exists
     $count = $db->query("SELECT COUNT(*) FROM usuarios")->fetchColumn();
     if ($count == 0) {
@@ -270,5 +299,10 @@ function initDb(PDO $db): void {
             (7, 'reproducao', 'Prenhez confirmada — atenção ao parto'),
             (9, 'pesagem',    'Ganho de peso abaixo do esperado')
         ");
+    }
+
+    // Sinaliza inicialização do banco concluída
+    if (defined('DATA_PATH')) {
+        @file_put_contents(DATA_PATH . '/.db_ready', date('c'));
     }
 }

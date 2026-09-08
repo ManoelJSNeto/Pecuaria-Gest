@@ -217,18 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const unit = getGlobalPesoUnit();
   setGlobalPesoUnit(unit);
 });
-
-// Limpa qualquer Service Worker ou Cache legado no navegador
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(registrations => {
-    for (let reg of registrations) reg.unregister();
-  });
-}
-if ('caches' in window) {
-  caches.keys().then(keys => {
-    for (let k of keys) caches.delete(k);
-  });
-}
 </script>
 <?= $scripts ?? '' ?>
 </body>
