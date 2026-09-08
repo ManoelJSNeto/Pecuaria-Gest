@@ -936,182 +936,31 @@ if (preg_match('#^/alertas/(\d+)/excluir$#', $uri, $m) && $method === 'POST') {
     exit;
 }
 
-// ── COMPRAS DE GADO ──
+// ── MÓDULO COMERCIAL: COMPRAS & VENDAS (ComercialController) ──
 if ($uri === '/compras') {
-    renderView('compras/index', 'Compras de Gado', 'compras');
-    exit;
+    (new ComercialController())->comprasIndex();
 }
 if ($uri === '/compras/novo') {
-    renderView('compras/form', 'Registrar Compra', 'compras');
-    exit;
+    (new ComercialController())->comprasNovo();
 }
 if ($uri === '/compras/salvar' && $method === 'POST') {
-    if (!csrf_verify()) { flash('error', 'Token inválido. Tente novamente.'); redirect('/compras/novo'); }
-    
-    $numeroGta = trim($_POST['numero_gta'] ?? '');
-    $chaveNfe = preg_replace('/\D/', '', trim($_POST['chave_nfe'] ?? ''));
-    $fornecedor = trim($_POST['fornecedor_origem'] ?? '') ?: null;
-    $dataCompra = trim($_POST['data_compra'] ?? '') ?: date('Y-m-d');
-    $qtdCabecas = max(1, (int)($_POST['quantidade_cabecas'] ?? 1));
-    $pesoTotal = !empty($_POST['peso_total_kg']) ? (float)$_POST['peso_total_kg'] : null;
-    $valorTotal = (float)($_POST['valor_total'] ?? 0);
-    $descricao = trim($_POST['descricao'] ?? '') ?: null;
-    $pastoDestinoId = !empty($_POST['pasto_destino_id']) ? (int)$_POST['pasto_destino_id'] : null;
-
-    if (empty($numeroGta)) {
-        flash('error', 'O número ou série da GTA é obrigatório.');
-        redirect('/compras/novo');
-    }
-    if ($valorTotal <= 0) {
-        flash('error', 'O valor total da compra deve ser informado.');
-        redirect('/compras/novo');
-    }
-
-    $arquivoXml = salvarUploadDocumento($_FILES['arquivo_xml'] ?? null, 'documentos');
-
-    $stmt = $db->prepare("
-        INSERT INTO compras (numero_gta, chave_nfe, arquivo_xml, fornecedor_origem, data_compra, quantidade_cabecas, peso_total_kg, valor_total, descricao, pasto_destino_id, criado_em)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-    ");
-    $stmt->execute([$numeroGta, $chaveNfe ?: null, $arquivoXml, $fornecedor, $dataCompra, $qtdCabecas, $pesoTotal, $valorTotal, $descricao, $pastoDestinoId]);
-    $compraId = (int)$db->lastInsertId();
-
-    // Cadastro automático de animais do lote se habilitado
-    if (!empty($_POST['cadastrar_animais'])) {
-        $prefixo = trim($_POST['prefixo_brinco'] ?? 'C-') ?: 'C-';
-        $raca = trim($_POST['raca_animais'] ?? 'Nelore') ?: 'Nelore';
-        $sexo = in_array($_POST['sexo_animais'] ?? '', ['M', 'F']) ? $_POST['sexo_animais'] : 'M';
-
-        $pesoIndiv = ($pesoTotal && $qtdCabecas > 0) ? round($pesoTotal / $qtdCabecas, 2) : null;
-        $valorIndiv = $qtdCabecas > 0 ? round($valorTotal / $qtdCabecas, 2) : null;
-
-        $stmtAnimal = $db->prepare("
-            INSERT INTO animais (brinco, sexo, raca, status, pasto_id, peso_inicial, data_entrada, compra_id, valor_compra_individual, observacoes, criado_em)
-            VALUES (?, ?, ?, 'ativo', ?, ?, ?, ?, ?, ?, NOW())
-        ");
-
-        $brincosInseridos = 0;
-        $seq = 1;
-        while ($brincosInseridos < $qtdCabecas && $seq <= ($qtdCabecas + 5000)) {
-            $brincoGerado = $prefixo . str_pad((string)$seq, 3, '0', STR_PAD_LEFT);
-            $chk = $db->prepare("SELECT id FROM animais WHERE brinco = ? LIMIT 1");
-            $chk->execute([$brincoGerado]);
-            if (!$chk->fetchColumn()) {
-                $obs = "Lote de Compra #$compraId (GTA: $numeroGta)";
-                $stmtAnimal->execute([$brincoGerado, $sexo, $raca, $pastoDestinoId, $pesoIndiv, $dataCompra, $compraId, $valorIndiv, $obs]);
-                $brincosInseridos++;
-            }
-            $seq++;
-        }
-    }
-
-    flash('success', "Compra de {$qtdCabecas} cabeças registrada com sucesso!");
-    redirect('/compras');
-    exit;
+    (new ComercialController())->comprasSalvar();
 }
 if (preg_match('#^/compras/(\d+)/excluir$#', $uri, $m) && $method === 'POST') {
-    if (!csrf_verify()) { flash('error', 'Token inválido.'); redirect('/compras'); }
-    $id = (int)$m[1];
-    $db->prepare("UPDATE animais SET compra_id = NULL, valor_compra_individual = NULL WHERE compra_id = ?")->execute([$id]);
-    $db->prepare("DELETE FROM compras WHERE id = ?")->execute([$id]);
-    flash('success', 'Registro de compra excluído com sucesso.');
-    redirect('/compras');
-    exit;
+    (new ComercialController())->comprasExcluir((int)$m[1]);
 }
 
-// ── VENDAS DE GADO ──
 if ($uri === '/vendas') {
-    renderView('vendas/index', 'Vendas de Gado', 'vendas');
-    exit;
+    (new ComercialController())->vendasIndex();
 }
 if ($uri === '/vendas/novo') {
-    renderView('vendas/form', 'Registrar Venda', 'vendas');
-    exit;
+    (new ComercialController())->vendasNovo();
 }
 if ($uri === '/vendas/salvar' && $method === 'POST') {
-    if (!csrf_verify()) { flash('error', 'Token inválido. Tente novamente.'); redirect('/vendas/novo'); }
-
-    $numeroGta = trim($_POST['numero_gta'] ?? '');
-    $chaveNfe = preg_replace('/\D/', '', trim($_POST['chave_nfe'] ?? ''));
-    $comprador = trim($_POST['comprador_destino'] ?? '');
-    $dataVenda = trim($_POST['data_venda'] ?? '') ?: date('Y-m-d');
-    $tipoPrecificacao = trim($_POST['tipo_precificacao'] ?? 'arroba');
-    $precoUnitario = !empty($_POST['preco_unitario']) ? (float)$_POST['preco_unitario'] : null;
-    $pesoTotal = !empty($_POST['peso_total_kg']) ? (float)$_POST['peso_total_kg'] : null;
-    $valorTotal = (float)($_POST['valor_total'] ?? 0);
-    $descricao = trim($_POST['descricao'] ?? '') ?: null;
-    $animaisIds = $_POST['animais_ids'] ?? [];
-
-    if (empty($numeroGta)) {
-        flash('error', 'O número da GTA de saída é obrigatório.');
-        redirect('/vendas/novo');
-    }
-    if (empty($comprador)) {
-        flash('error', 'O comprador ou frigorífico de destino é obrigatório.');
-        redirect('/vendas/novo');
-    }
-    if ($valorTotal <= 0) {
-        flash('error', 'O valor total da venda deve ser informado.');
-        redirect('/vendas/novo');
-    }
-
-    $arquivoXml = salvarUploadDocumento($_FILES['arquivo_xml'] ?? null, 'documentos');
-    $qtdCabecas = (!empty($animaisIds) && is_array($animaisIds)) ? count($animaisIds) : max(1, (int)($_POST['quantidade_cabecas'] ?? 1));
-
-    $stmt = $db->prepare("
-        INSERT INTO vendas (numero_gta, chave_nfe, arquivo_xml, comprador_destino, data_venda, quantidade_cabecas, peso_total_kg, valor_total, preco_unitario, tipo_precificacao, descricao, criado_em)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-    ");
-    $stmt->execute([$numeroGta, $chaveNfe ?: null, $arquivoXml, $comprador, $dataVenda, $qtdCabecas, $pesoTotal, $valorTotal, $precoUnitario, $tipoPrecificacao, $descricao]);
-    $vendaId = (int)$db->lastInsertId();
-
-    // Baixa comercial dos animais selecionados
-    if (!empty($animaisIds) && is_array($animaisIds)) {
-        $valorIndiv = $qtdCabecas > 0 ? round($valorTotal / $qtdCabecas, 2) : 0;
-        $pesoIndiv = ($pesoTotal && $qtdCabecas > 0) ? round($pesoTotal / $qtdCabecas, 2) : null;
-
-        $updAnimal = $db->prepare("
-            UPDATE animais 
-            SET status = 'vendido',
-                pasto_id = NULL,
-                venda_id = ?,
-                valor_venda_individual = ?,
-                peso_venda = COALESCE(?, peso_venda),
-                data_venda = ?
-            WHERE id = ?
-        ");
-
-        foreach ($animaisIds as $aid) {
-            $aid = (int)$aid;
-            if ($aid > 0) {
-                $updAnimal->execute([$vendaId, $valorIndiv, $pesoIndiv, $dataVenda, $aid]);
-            }
-        }
-    }
-
-    $totalBaixados = (!empty($animaisIds) && is_array($animaisIds)) ? count($animaisIds) : 0;
-    flash('success', "Venda registrada com sucesso! {$totalBaixados} animal(is) baixado(s) do rebanho.");
-    redirect('/vendas');
-    exit;
+    (new ComercialController())->vendasSalvar();
 }
 if (preg_match('#^/vendas/(\d+)/excluir$#', $uri, $m) && $method === 'POST') {
-    if (!csrf_verify()) { flash('error', 'Token inválido.'); redirect('/vendas'); }
-    $id = (int)$m[1];
-    // Restaura animais vinculados para ativo
-    $db->prepare("
-        UPDATE animais 
-        SET status = 'ativo',
-            venda_id = NULL,
-            valor_venda_individual = NULL,
-            peso_venda = NULL,
-            data_venda = NULL
-        WHERE venda_id = ?
-    ")->execute([$id]);
-
-    $db->prepare("DELETE FROM vendas WHERE id = ?")->execute([$id]);
-    flash('success', 'Venda estornada com sucesso! Os animais retornaram ao rebanho ativo.');
-    redirect('/vendas');
-    exit;
+    (new ComercialController())->vendasExcluir((int)$m[1]);
 }
 
 // ── RELATÓRIOS ──

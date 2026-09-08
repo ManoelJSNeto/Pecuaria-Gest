@@ -18,6 +18,7 @@ abstract class BaseController {
      */
     protected function render(string $view, string $title, string $page, array $data = [], ?string $scripts = null): void {
         renderView($view, $title, $page, $data, $scripts);
+        exit;
     }
 
     /**
