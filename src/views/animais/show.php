@@ -64,15 +64,20 @@ $desempenho = calcularDesempenhoComercial($animal, $totalCustoSaude);
 ?>
 
 <!-- Barra de Navegação Superior -->
-<div class="mb-3 d-flex justify-content-between align-items-center">
+<div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
   <a href="/animais" class="btn btn-sm btn-secondary">
     <i class="bi bi-arrow-left me-1"></i> Voltar ao Rebanho
   </a>
-  <?php if ($fotoFilhote && !$isPuppy): ?>
-    <span class="badge-status ativo" style="background:#e8f0e5; border-color:#c6dfbd;">
-      <i class="bi bi-stars text-success me-1"></i> Memória de Filhote disponível
-    </span>
-  <?php endif; ?>
+  <div class="d-flex align-items-center gap-2">
+    <a href="/animais/<?= $animal['id'] ?>/pdf" target="_blank" class="btn btn-sm btn-outline-success">
+      <i class="bi bi-file-earmark-pdf-fill me-1"></i> Ficha Cadastral (PDF)
+    </a>
+    <?php if ($fotoFilhote && !$isPuppy): ?>
+      <span class="badge-status ativo" style="background:#e8f0e5; border-color:#c6dfbd;">
+        <i class="bi bi-stars text-success me-1"></i> Memória de Filhote disponível
+      </span>
+    <?php endif; ?>
+  </div>
 </div>
 
 <!-- Ficha / Prontuário Técnico do Animal (Anti-Generic Hero Card) -->
@@ -114,6 +119,9 @@ $desempenho = calcularDesempenhoComercial($animal, $totalCustoSaude);
 
       <!-- Ações de Manejo Direto -->
       <div class="d-flex gap-2 flex-wrap">
+        <a href="/animais/<?= $animal['id'] ?>/pdf" target="_blank" class="btn btn-outline-success btn-sm">
+          <i class="bi bi-file-earmark-pdf-fill me-1"></i>Ficha PDF
+        </a>
         <a href="/animais/<?= $animal['id'] ?>/editar" class="btn btn-secondary btn-sm">
           <i class="bi bi-pencil me-1"></i>Editar
         </a>

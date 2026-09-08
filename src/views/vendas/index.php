@@ -213,6 +213,9 @@ $precoMedioArroba = $totalArrobas > 0 ? ($faturamentoTotal / $totalArrobas) : 0.
             </td>
             <td class="text-end">
               <div class="d-inline-flex align-items-center gap-1">
+                <a href="/vendas/<?= $v['id'] ?>/pdf" target="_blank" class="btn btn-sm btn-outline-success" title="Comprovante de Venda (PDF)">
+                  <i class="bi bi-file-earmark-pdf-fill"></i>
+                </a>
                 <?php if (!empty($v['arquivo_xml'])): ?>
                   <a href="<?= e($v['arquivo_xml']) ?>" download class="btn btn-sm btn-secondary" title="Baixar XML da NF-e">
                     <i class="bi bi-download"></i>

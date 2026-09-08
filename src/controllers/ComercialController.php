@@ -228,4 +228,68 @@ class ComercialController extends BaseController {
         flash('success', 'Venda estornada com sucesso! Os animais retornaram ao rebanho ativo.');
         $this->redirect('/vendas');
     }
+
+    /**
+     * Emite o Espelho Oficial de Compra de Gado em A4/PDF (GET /compras/{id}/pdf)
+     */
+    public function comprasPdf(int $id): void {
+        $this->requireLogin();
+        $stmt = $this->db->prepare("SELECT * FROM compras WHERE id = ?");
+        $stmt->execute([$id]);
+        $compra = $stmt->fetch();
+        if (!$compra) {
+            flash('error', 'Lote de compra não encontrado.');
+            $this->redirect('/compras');
+        }
+
+        $pasto = null;
+        if (!empty($compra['pasto_destino_id'])) {
+            $pst = $this->db->prepare("SELECT nome FROM pastagens WHERE id = ?");
+            $pst->execute([$compra['pasto_destino_id']]);
+            $pasto = $pst->fetch() ?: null;
+        }
+
+        $animaisStmt = $this->db->prepare("
+            SELECT id, brinco, nome, sexo, raca, status, peso_inicial, valor_compra_individual
+            FROM animais
+            WHERE compra_id = ?
+            ORDER BY brinco ASC
+        ");
+        $animaisStmt->execute([$id]);
+        $animais = $animaisStmt->fetchAll();
+
+        $this->renderPrint('compras/pdf', 'Espelho de Compra #' . $compra['numero_gta'], [
+            'c' => $compra,
+            'pasto' => $pasto,
+            'animais' => $animais,
+        ]);
+    }
+
+    /**
+     * Emite o Comprovante Oficial de Venda de Gado em A4/PDF (GET /vendas/{id}/pdf)
+     */
+    public function vendasPdf(int $id): void {
+        $this->requireLogin();
+        $stmt = $this->db->prepare("SELECT * FROM vendas WHERE id = ?");
+        $stmt->execute([$id]);
+        $venda = $stmt->fetch();
+        if (!$venda) {
+            flash('error', 'Registro de venda não encontrado.');
+            $this->redirect('/vendas');
+        }
+
+        $animaisStmt = $this->db->prepare("
+            SELECT id, brinco, nome, sexo, raca, peso_inicial, peso_venda, valor_compra_individual, valor_venda_individual
+            FROM animais
+            WHERE venda_id = ?
+            ORDER BY brinco ASC
+        ");
+        $animaisStmt->execute([$id]);
+        $animais = $animaisStmt->fetchAll();
+
+        $this->renderPrint('vendas/pdf', 'Comprovante de Venda #' . $venda['numero_gta'], [
+            'v' => $venda,
+            'animais' => $animais,
+        ]);
+    }
 }

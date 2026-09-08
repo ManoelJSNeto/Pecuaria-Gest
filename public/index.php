@@ -146,6 +146,10 @@ if (preg_match('#^/animais/(\d+)(/.*)?$#', $uri, $m)) {
         $controller->show($id);
         exit;
     }
+    if ($sub === '/pdf') {
+        $controller->pdf($id);
+        exit;
+    }
     if ($sub === '/editar') {
         $controller->editar($id);
         exit;
@@ -339,6 +343,10 @@ if ($uri === '/compras/salvar' && $method === 'POST') {
     (new ComercialController())->comprasSalvar();
     exit;
 }
+if (preg_match('#^/compras/(\d+)/pdf$#', $uri, $m)) {
+    (new ComercialController())->comprasPdf((int)$m[1]);
+    exit;
+}
 if (preg_match('#^/compras/(\d+)/excluir$#', $uri, $m) && $method === 'POST') {
     (new ComercialController())->comprasExcluir((int)$m[1]);
     exit;
@@ -356,6 +364,10 @@ if ($uri === '/vendas/salvar' && $method === 'POST') {
     (new ComercialController())->vendasSalvar();
     exit;
 }
+if (preg_match('#^/vendas/(\d+)/pdf$#', $uri, $m)) {
+    (new ComercialController())->vendasPdf((int)$m[1]);
+    exit;
+}
 if (preg_match('#^/vendas/(\d+)/excluir$#', $uri, $m) && $method === 'POST') {
     (new ComercialController())->vendasExcluir((int)$m[1]);
     exit;
@@ -364,6 +376,10 @@ if (preg_match('#^/vendas/(\d+)/excluir$#', $uri, $m) && $method === 'POST') {
 // ── MÓDULO RELATÓRIOS & SINCRONIZAÇÕES (RelatoriosController) ──
 if ($uri === '/relatorios') {
     (new RelatoriosController())->index();
+    exit;
+}
+if ($uri === '/relatorios/pdf') {
+    (new RelatoriosController())->pdf();
     exit;
 }
 if ($uri === '/sincronizacoes') {

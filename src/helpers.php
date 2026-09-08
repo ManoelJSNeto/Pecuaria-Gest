@@ -65,6 +65,10 @@ function kgParaArroba(float|int|null $pesoKg, float $rendimentoPct = 50.0): floa
     return round(($pesoKg * ($rendimentoPct / 100.0)) / 15.0, 2);
 }
 
+function pesoEmArrobas(float|int|null $pesoKg, float $rendimentoPct = 50.0): float {
+    return kgParaArroba($pesoKg, $rendimentoPct);
+}
+
 /**
  * Renderiza o peso com marcação semântica para alternância dinâmica instantânea entre kg e arrobas (@)
  */

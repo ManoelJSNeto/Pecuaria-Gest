@@ -124,6 +124,104 @@ class AnimaisController extends BaseController {
     }
 
     /**
+     * Emite a Ficha Cadastral e Prontuário Individual do Animal em A4/PDF (GET /animais/{id}/pdf)
+     */
+    public function pdf(int $id): void {
+        $this->requireLogin();
+        $animal = $this->buscarAnimal($id);
+
+        $pastoNome = 'Sem pasto definido';
+        if (!empty($animal['pasto_id'])) {
+            $pst = $this->db->prepare("SELECT nome FROM pastagens WHERE id = ?");
+            $pst->execute([$animal['pasto_id']]);
+            $pRow = $pst->fetch();
+            if ($pRow) {
+                $pastoNome = $pRow['nome'];
+            }
+        }
+
+        $mae = null;
+        if (!empty($animal['mae_id'])) {
+            $mStmt = $this->db->prepare("SELECT id, brinco, nome FROM animais WHERE id = ?");
+            $mStmt->execute([$animal['mae_id']]);
+            $mae = $mStmt->fetch() ?: null;
+        }
+
+        $pai = null;
+        if (!empty($animal['pai_brinco'])) {
+            $paiStmt = $this->db->prepare("SELECT id, brinco, nome FROM animais WHERE brinco = ?");
+            $paiStmt->execute([$animal['pai_brinco']]);
+            $pai = $paiStmt->fetch() ?: null;
+        }
+
+        $compra = null;
+        if (!empty($animal['compra_id'])) {
+            $cStmt = $this->db->prepare("SELECT * FROM compras WHERE id = ?");
+            $cStmt->execute([$animal['compra_id']]);
+            $compra = $cStmt->fetch() ?: null;
+        }
+
+        // Histórico de pesagens em ordem cronológica com cálculo de GMD
+        $pStmt = $this->db->prepare("SELECT * FROM pesagens WHERE animal_id = ? ORDER BY data ASC, id ASC");
+        $pStmt->execute([$id]);
+        $rawPesagens = $pStmt->fetchAll();
+
+        $pesagens = [];
+        $prevPeso = $animal['peso_inicial'] !== null ? (float)$animal['peso_inicial'] : null;
+        $prevData = !empty($animal['data_nascimento']) ? $animal['data_nascimento'] : null;
+
+        foreach ($rawPesagens as $p) {
+            $curPeso = (float)$p['peso'];
+            $curData = $p['data'];
+            $ganho = null;
+            $dias = null;
+            $gmd = null;
+
+            if ($prevPeso !== null && $prevData !== null) {
+                try {
+                    $d1 = new DateTime($prevData);
+                    $d2 = new DateTime($curData);
+                    $diff = (int)$d1->diff($d2)->format('%r%a');
+                    if ($diff > 0) {
+                        $ganho = $curPeso - $prevPeso;
+                        $dias = $diff;
+                        $gmd = $ganho / $diff;
+                    }
+                } catch (Exception $e) {}
+            }
+
+            $p['ganho'] = $ganho;
+            $p['dias'] = $dias;
+            $p['gmd'] = $gmd;
+            $pesagens[] = $p;
+
+            $prevPeso = $curPeso;
+            $prevData = $curData;
+        }
+
+        // Histórico sanitário
+        $sStmt = $this->db->prepare("SELECT * FROM saude WHERE animal_id = ? ORDER BY data DESC, id DESC");
+        $sStmt->execute([$id]);
+        $saude = $sStmt->fetchAll();
+
+        // Histórico reprodutivo
+        $rStmt = $this->db->prepare("SELECT * FROM reproducao WHERE animal_id = ? ORDER BY data DESC, id DESC");
+        $rStmt->execute([$id]);
+        $reproducao = $rStmt->fetchAll();
+
+        $this->renderPrint('animais/pdf', 'Ficha Cadastral #' . $animal['brinco'], [
+            'a' => $animal,
+            'pastoNome' => $pastoNome,
+            'mae' => $mae,
+            'pai' => $pai,
+            'compra' => $compra,
+            'pesagens' => $pesagens,
+            'saude' => $saude,
+            'reproducao' => $reproducao,
+        ]);
+    }
+
+    /**
      * Formulário de edição cadastral (GET /animais/{id}/editar)
      */
     public function editar(int $id): void {

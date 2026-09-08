@@ -1,7 +1,7 @@
 # 📊 PecuáriaGest — Status do Projeto & Roteiro do TCC
 
-> **Data da Última Atualização:** 28/08/2026  
-> **Status Geral do Sistema:** Painel Web 100% Funcional e estável; App Mobile Nativo Android (APK via Capacitor) totalmente implementado, testado e validado em campo com funcionamento offline fluido, Auto-Sync e notificações automáticas por e-mail e painel para o proprietário.
+> **Data da Última Atualização:** 08/09/2026  
+> **Status Geral do Sistema:** Painel Web 100% Funcional e estável em arquitetura PostgreSQL nativa com suíte de documentos oficiais e relatórios em PDF (A4); App Mobile Nativo Android (APK via Capacitor) totalmente implementado, testado e validado em campo com funcionamento offline fluido, Auto-Sync e notificações automáticas por e-mail e painel para o proprietário.
 
 ---
 
@@ -156,7 +156,13 @@ Para elevar o padrão visual para a apresentação acadêmica formal do TCC, foi
 1. **Validação Estrita de Mãe / Pai no Cadastro de Filhotes & Reprodução: [CONCLUÍDO]**
    - **Mãe:** Impedido estritamente que machos/bois sejam selecionados como mãe biológica. Apenas fêmeas ativas e vivas (`sexo = 'F'`) figuram como opção de mãe, com validação de consistência no backend.
    - **Pai / Touro:** Sugestão de touros machos ativos (`sexo = 'M'`) via datalist e digitação livre de sêmen/inseminação. Bloqueio contra atribuição de fêmeas como touro reprodutor.
-2. **Ciclo de Venda e Saída de Animais: [PENDENTE]**
-   - Tela/modal para registro de venda formal: comprador, valor por kg/total, peso de saída e baixa do rebanho ativo com cálculo de receita.
-3. **Relatórios Gerenciais para Impressão (PDF / Laudo): [PENDENTE]**
-   - Exportação em PDF formatado (ficha do animal e balanço do rebanho para veterinário ou proprietário).
+2. **Ciclo de Compra, Venda e Saída de Animais: [CONCLUÍDO]**
+   - Módulo Comercial completo (`/compras` e `/vendas`) com importador de XML da SEFAZ, chave de acesso da NF-e (44 dígitos), Guia de Trânsito Animal (GTA), precificação por arroba (@) ou cabeça, desdobramento de lotes e baixa automática de animais no rebanho com cálculo de faturamento e margem de retorno comercial.
+3. **Relatórios Gerenciais & Documentos Oficiais para Impressão (PDF / A4): [CONCLUÍDO]**
+   - Motor de impressão e exportação em PDF de alta fidelidade zootécnica e fiscal (`@media print` com geometria A4 ISO 216), compatível com navegadores desktop e dispositivos móveis (PDF / Print Spooler).
+   - Documentos homologados:
+     1. **Ficha Cadastral & Prontuário Zootécnico Individual (`/animais/{id}/pdf`)**: Dados cadastrais, foto, genealogia biológica (mãe e touro), histórico biométrico com cálculo automático de GMD (kg/dia), manejo sanitário e reprodutivo.
+     2. **Espelho de Compra de Gado & Lote de Entrada (`/compras/{id}/pdf`)**: GTA, NF-e de 44 dígitos, fornecedor, volume, peso total, custo da arroba e romaneio de animais ingressados.
+     3. **Comprovante Oficial de Venda & Desinvestimento (`/vendas/{id}/pdf`)**: GTA de saída, NF-e, comprador/frigorífico, modalidade de precificação, peso, arrobas, apuração de lucro bruto e lista de animais baixados.
+     4. **Inventário Geral do Rebanho & Balanço de Pastagens (`/relatorios/pdf?tipo=rebanho`)**: Posição consolidada do rebanho, alocação por pasto/piquete, taxa de ocupação (%), densidade de lotação (cab/ha) e romaneio individual.
+     5. **Laudo Sanitário & Manejo Clínico (`/relatorios/pdf?tipo=saude`)**: Auditoria clínica do rebanho, distribuição por tipo de ocorrência (vacinações, vermifugações, tratamentos), custo acumulado com fármacos e histórico detalhado por veterinário.

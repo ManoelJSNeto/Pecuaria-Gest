@@ -22,6 +22,20 @@ abstract class BaseController {
     }
 
     /**
+     * Renderiza um documento oficial para impressão ou exportação em PDF A4.
+     */
+    protected function renderPrint(string $view, string $title, array $data = []): void {
+        global $db;
+        $pageTitle = $title;
+        extract($data);
+        ob_start();
+        require __DIR__ . "/../views/{$view}.php";
+        $content = ob_get_clean();
+        require __DIR__ . '/../views/print_layout.php';
+        exit;
+    }
+
+    /**
      * Retorna uma resposta padronizada em JSON (para APIs ou chamadas AJAX).
      */
     protected function json(array $data, int $statusCode = 200): void {

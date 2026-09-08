@@ -128,6 +128,72 @@ $racaReport    = $db->query("SELECT raca, COUNT(*) as total FROM animais GROUP B
   </div>
 </div>
 
+<!-- Emissão de Relatórios Oficiais em PDF (A4) -->
+<div class="card mb-4 border-0 shadow-sm" style="background: linear-gradient(135deg, #f0f7f2 0%, #ffffff 100%); border: 1px solid var(--border) !important;">
+  <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+    <div>
+      <h6 class="mb-0 fw-bold" style="color: var(--primary);">
+        <i class="bi bi-file-earmark-pdf-fill text-danger me-2"></i>Relatórios Oficiais em PDF (A4 para Impressão)
+      </h6>
+      <small class="text-muted">Documentos técnicos formatados com cabeçalho institucional, indicadores zootécnicos e assinatura</small>
+    </div>
+    <span class="badge bg-success" style="font-size: 0.72rem;">Pronto para Impressão / PDF</span>
+  </div>
+  <div class="card-body">
+    <div class="row g-3">
+      <!-- Card Inventário Geral do Rebanho -->
+      <div class="col-md-6">
+        <div class="p-3 bg-white border rounded h-100 d-flex flex-column justify-content-between shadow-xs">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <div class="p-2 rounded" style="background: #eef7f0; color: var(--primary);">
+                <i class="bi bi-clipboard2-data-fill fs-5"></i>
+              </div>
+              <div>
+                <strong class="d-block" style="color: var(--earth-green-950);">Inventário Geral do Rebanho & Lotação</strong>
+                <span class="badge-status ativo" style="font-size: 0.68rem;">Zootécnico & Pastoreio</span>
+              </div>
+            </div>
+            <p class="small text-muted mb-3">
+              Consolidação de animais ativos, balanço de ocupação por pastagem/piquete, densidade (cab/ha), categorias zootécnicas e médias de peso em kg e arrobas (@).
+            </p>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="/relatorios/pdf?tipo=rebanho" target="_blank" class="btn btn-outline-success btn-sm w-100 fw-600">
+              <i class="bi bi-printer me-1"></i> Visualizar & Imprimir PDF
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Laudo Sanitário -->
+      <div class="col-md-6">
+        <div class="p-3 bg-white border rounded h-100 d-flex flex-column justify-content-between shadow-xs">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <div class="p-2 rounded" style="background: #fdf2e9; color: #d35400;">
+                <i class="bi bi-heart-pulse-fill fs-5"></i>
+              </div>
+              <div>
+                <strong class="d-block" style="color: var(--earth-green-950);">Laudo Sanitário & Manejo Clínico</strong>
+                <span class="badge-status ativo" style="font-size: 0.68rem; background: #fdf2e9; color: #d35400; border-color: #f5cba7;">Sanitário & Fármacos</span>
+              </div>
+            </div>
+            <p class="small text-muted mb-3">
+              Prontuário sanitário consolidado com histórico cronológico de aplicações, custos com vacinas e medicamentos, distribuição por tipo e controle por veterinário.
+            </p>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="/relatorios/pdf?tipo=saude" target="_blank" class="btn btn-outline-success btn-sm w-100 fw-600">
+              <i class="bi bi-printer me-1"></i> Visualizar & Imprimir PDF
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Exportação de Dados em CSV -->
 <div class="card">
   <div class="card-header">
