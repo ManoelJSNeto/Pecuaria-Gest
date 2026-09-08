@@ -22,6 +22,10 @@ try {
 
 $statusReport  = $db->query("SELECT status, COUNT(*) as total FROM animais GROUP BY status ORDER BY total DESC")->fetchAll();
 $racaReport    = $db->query("SELECT raca, COUNT(*) as total FROM animais GROUP BY raca ORDER BY total DESC")->fetchAll();
+
+$pastos = $pastos ?? $db->query("SELECT id, nome FROM pastagens ORDER BY nome ASC")->fetchAll();
+$racas = $racas ?? $db->query("SELECT DISTINCT raca FROM animais WHERE raca IS NOT NULL AND raca != '' ORDER BY raca ASC")->fetchAll(PDO::FETCH_COLUMN);
+$tiposSaude = $tiposSaude ?? $db->query("SELECT DISTINCT tipo FROM saude WHERE tipo IS NOT NULL AND tipo != '' ORDER BY tipo ASC")->fetchAll(PDO::FETCH_COLUMN);
 ?>
 
 <div class="mb-3">
@@ -159,9 +163,12 @@ $racaReport    = $db->query("SELECT raca, COUNT(*) as total FROM animais GROUP B
             </p>
           </div>
           <div class="d-flex gap-2">
-            <a href="/relatorios/pdf?tipo=rebanho" target="_blank" class="btn btn-outline-success btn-sm w-100 fw-600">
-              <i class="bi bi-printer me-1"></i> Visualizar & Imprimir PDF
+            <a href="/relatorios/pdf?tipo=rebanho" target="_blank" class="btn btn-outline-success btn-sm flex-grow-1 fw-600">
+              <i class="bi bi-printer me-1"></i> PDF Completo
             </a>
+            <button type="button" class="btn btn-success btn-sm fw-600" data-bs-toggle="modal" data-bs-target="#modalFiltroRebanho" title="Filtrar por pasto, sexo, raça ou categoria">
+              <i class="bi bi-sliders me-1"></i> Personalizar...
+            </button>
           </div>
         </div>
       </div>
@@ -184,9 +191,12 @@ $racaReport    = $db->query("SELECT raca, COUNT(*) as total FROM animais GROUP B
             </p>
           </div>
           <div class="d-flex gap-2">
-            <a href="/relatorios/pdf?tipo=saude" target="_blank" class="btn btn-outline-success btn-sm w-100 fw-600">
-              <i class="bi bi-printer me-1"></i> Visualizar & Imprimir PDF
+            <a href="/relatorios/pdf?tipo=saude" target="_blank" class="btn btn-outline-success btn-sm flex-grow-1 fw-600">
+              <i class="bi bi-printer me-1"></i> PDF Completo
             </a>
+            <button type="button" class="btn btn-success btn-sm fw-600" data-bs-toggle="modal" data-bs-target="#modalFiltroSaude" title="Filtrar por tipo de manejo, período ou veterinário">
+              <i class="bi bi-sliders me-1"></i> Personalizar...
+            </button>
           </div>
         </div>
       </div>
@@ -278,6 +288,148 @@ $racaReport    = $db->query("SELECT raca, COUNT(*) as total FROM animais GROUP B
           </a>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Personalização do Inventário do Rebanho (PDF) -->
+<div class="modal fade" id="modalFiltroRebanho" tabindex="-1" aria-labelledby="modalFiltroRebanhoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title fw-bold" id="modalFiltroRebanhoLabel">
+          <i class="bi bi-funnel-fill text-success me-2"></i>Personalizar Inventário do Rebanho (PDF)
+        </h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <form action="/relatorios/pdf" method="GET" target="_blank">
+        <input type="hidden" name="tipo" value="rebanho">
+        <div class="modal-body">
+          <p class="small text-muted mb-3">Escolha os critérios para filtrar os animais e os blocos incluídos no relatório oficial:</p>
+          
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Pastagem / Piquete</label>
+            <select name="pasto_id" class="form-select form-select-sm">
+              <option value="">Todas as pastagens</option>
+              <?php foreach ($pastos as $p): ?>
+                <option value="<?= $p['id'] ?>"><?= e($p['nome']) ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-bold">Sexo Biológico</label>
+              <select name="sexo" class="form-select form-select-sm">
+                <option value="">Todos (Machos e Fêmeas)</option>
+                <option value="M">Apenas Machos ♂</option>
+                <option value="F">Apenas Fêmeas ♀</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">Categoria de Idade</label>
+              <select name="categoria" class="form-select form-select-sm">
+                <option value="">Todas as categorias</option>
+                <option value="bezerro">Bezerros / Filhotes (≤ 12 meses)</option>
+                <option value="adulto">Adultos (> 12 meses)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-bold">Raça Predominante</label>
+              <select name="raca" class="form-select form-select-sm">
+                <option value="">Todas as raças</option>
+                <?php foreach ($racas as $r): ?>
+                  <option value="<?= e($r) ?>"><?= e($r) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">Status dos Animais</label>
+              <select name="status" class="form-select form-select-sm">
+                <option value="ativo">Apenas Ativos (Padrão)</option>
+                <option value="vendido">Apenas Vendidos</option>
+                <option value="morto">Apenas Óbitos</option>
+                <option value="todos">Todos (Ativos e Baixados)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-check p-2 rounded bg-light border">
+            <input class="form-check-input ms-1" type="checkbox" name="sem_animais" value="1" id="checkSemAnimais">
+            <label class="form-check-label small fw-600 ms-2" for="checkSemAnimais">
+              Ocultar romaneio individual de animais
+              <span class="d-block text-muted" style="font-size: 0.72rem; font-weight: normal;">Gera apenas o resumo executivo, indicadores e o balanço de pastagens (ideal para reuniões e impressões sucintas).</span>
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-sm btn-success fw-600">
+            <i class="bi bi-file-earmark-pdf-fill me-1"></i> Gerar PDF Personalizado
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Personalização do Laudo Sanitário (PDF) -->
+<div class="modal fade" id="modalFiltroSaude" tabindex="-1" aria-labelledby="modalFiltroSaudeLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title fw-bold" id="modalFiltroSaudeLabel">
+          <i class="bi bi-funnel-fill text-warning me-2"></i>Personalizar Laudo Sanitário (PDF)
+        </h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <form action="/relatorios/pdf" method="GET" target="_blank">
+        <input type="hidden" name="tipo" value="saude">
+        <div class="modal-body">
+          <p class="small text-muted mb-3">Defina os filtros clínicos e o período para emissão do laudo veterinário oficial:</p>
+          
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Classificação do Manejo Sanitário</label>
+            <select name="tipo_manejo" class="form-select form-select-sm">
+              <option value="">Todos os manejos e procedimentos</option>
+              <?php foreach ($tiposSaude as $ts): ?>
+                <option value="<?= e($ts) ?>"><?= e($ts) ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-bold">Data Inicial</label>
+              <input type="date" name="data_inicio" class="form-control form-control-sm">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">Data Final</label>
+              <input type="date" name="data_fim" class="form-control form-control-sm">
+            </div>
+          </div>
+
+          <div class="row g-2 mb-2">
+            <div class="col-6">
+              <label class="form-label small fw-bold">Veterinário Responsável</label>
+              <input type="text" name="veterinario" class="form-control form-control-sm" placeholder="Ex: Dr. Silva">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">Brinco Específico (Opcional)</label>
+              <input type="text" name="brinco" class="form-control form-control-sm" placeholder="Ex: BR0001">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-sm btn-success fw-600">
+            <i class="bi bi-file-earmark-pdf-fill me-1"></i> Gerar Laudo Filtrado
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </div>

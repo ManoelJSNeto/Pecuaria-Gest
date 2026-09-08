@@ -84,7 +84,15 @@ class RelatoriosController extends BaseController {
             exit;
         }
 
-        $this->render('relatorios/index', 'Relatórios Gerenciais', 'relatorios');
+        $pastos = $this->db->query("SELECT id, nome FROM pastagens ORDER BY nome ASC")->fetchAll();
+        $racas = $this->db->query("SELECT DISTINCT raca FROM animais WHERE raca IS NOT NULL AND raca != '' ORDER BY raca ASC")->fetchAll(PDO::FETCH_COLUMN);
+        $tiposSaude = $this->db->query("SELECT DISTINCT tipo FROM saude WHERE tipo IS NOT NULL AND tipo != '' ORDER BY tipo ASC")->fetchAll(PDO::FETCH_COLUMN);
+
+        $this->render('relatorios/index', 'Relatórios Gerenciais', 'relatorios', [
+            'pastos' => $pastos,
+            'racas' => $racas,
+            'tiposSaude' => $tiposSaude,
+        ]);
     }
 
     /**
@@ -97,76 +105,184 @@ class RelatoriosController extends BaseController {
 
     /**
      * Emite Relatórios Oficiais Consolidados em A4/PDF (GET /relatorios/pdf?tipo=rebanho|saude)
+     * Suporta filtragem granular por pasto, sexo, raça, categoria, status e período.
      */
     public function pdf(): void {
         $this->requireLogin();
         $tipo = $_GET['tipo'] ?? 'rebanho';
 
         if ($tipo === 'saude') {
-            // Totais e KPIs Sanitários
-            $totaisStmt = $this->db->query("
-                SELECT 
-                    COUNT(*) as total_eventos,
-                    COALESCE(SUM(custo), 0) as custo_total,
-                    COUNT(DISTINCT animal_id) as animais_atendidos
-                FROM saude
-            ");
-            $totais = $totaisStmt->fetch();
+            $where = [];
+            $params = [];
+            $filtrosTxt = [];
 
-            // Por tipo de manejo
-            $porTipoStmt = $this->db->query("
-                SELECT tipo, COUNT(*) as qtd, COALESCE(SUM(custo), 0) as total_custo
-                FROM saude
-                GROUP BY tipo
-                ORDER BY qtd DESC
-            ");
-            $porTipo = $porTipoStmt->fetchAll();
+            // Tipo de manejo
+            $tipoManejo = trim($_GET['tipo_manejo'] ?? '') ?: null;
+            if ($tipoManejo) {
+                $where[] = "s.tipo = ?";
+                $params[] = $tipoManejo;
+                $filtrosTxt[] = "Tipo: " . $tipoManejo;
+            }
 
-            // Lista completa de ocorrências com brinco e nome do animal
-            $eventosStmt = $this->db->query("
+            // Período
+            $dataInicio = trim($_GET['data_inicio'] ?? '') ?: null;
+            if ($dataInicio) {
+                $where[] = "s.data >= ?";
+                $params[] = $dataInicio;
+                $filtrosTxt[] = "De: " . formatDate($dataInicio);
+            }
+
+            $dataFim = trim($_GET['data_fim'] ?? '') ?: null;
+            if ($dataFim) {
+                $where[] = "s.data <= ?";
+                $params[] = $dataFim;
+                $filtrosTxt[] = "Até: " . formatDate($dataFim);
+            }
+
+            // Veterinário
+            $vet = trim($_GET['veterinario'] ?? '') ?: null;
+            if ($vet) {
+                $where[] = "LOWER(s.veterinario) LIKE LOWER(?)";
+                $params[] = "%$vet%";
+                $filtrosTxt[] = "Veterinário: " . $vet;
+            }
+
+            // Animal / Brinco
+            $brinco = trim($_GET['brinco'] ?? '') ?: null;
+            if ($brinco) {
+                $where[] = "a.brinco LIKE ?";
+                $params[] = "%$brinco%";
+                $filtrosTxt[] = "Brinco: " . $brinco;
+            }
+
+            $whereSql = !empty($where) ? ('WHERE ' . implode(' AND ', $where)) : '';
+
+            // Lista completa de ocorrências filtradas
+            $eventosStmt = $this->db->prepare("
                 SELECT s.*, a.brinco, a.nome as animal_nome, a.raca
                 FROM saude s
                 JOIN animais a ON s.animal_id = a.id
+                $whereSql
                 ORDER BY s.data DESC, s.id DESC
             ");
+            $eventosStmt->execute($params);
             $eventos = $eventosStmt->fetchAll();
+
+            // Totais e KPIs calculados a partir dos dados filtrados
+            $custoTotal = 0.0;
+            $animaisIds = [];
+            $contagemPorTipo = [];
+            foreach ($eventos as $ev) {
+                $custoTotal += (float)($ev['custo'] ?? 0);
+                $animaisIds[$ev['animal_id']] = true;
+                $tNome = $ev['tipo'] ?: 'Outros';
+                if (!isset($contagemPorTipo[$tNome])) {
+                    $contagemPorTipo[$tNome] = ['tipo' => $tNome, 'qtd' => 0, 'total_custo' => 0.0];
+                }
+                $contagemPorTipo[$tNome]['qtd']++;
+                $contagemPorTipo[$tNome]['total_custo'] += (float)($ev['custo'] ?? 0);
+            }
+            usort($contagemPorTipo, fn($a, $b) => $b['qtd'] <=> $a['qtd']);
+
+            $totais = [
+                'total_eventos' => count($eventos),
+                'custo_total' => $custoTotal,
+                'animais_atendidos' => count($animaisIds),
+            ];
 
             $this->renderPrint('relatorios/pdf_saude', 'Laudo Sanitário & Manejo Clínico', [
                 'totais' => $totais,
-                'porTipo' => $porTipo,
+                'porTipo' => $contagemPorTipo,
                 'eventos' => $eventos,
+                'filtrosAplicados' => $filtrosTxt,
             ]);
             return;
         }
 
-        // Tipo Padrão: Rebanho (Inventário Geral & Lotação)
-        $totaisStmt = $this->db->query("
-            SELECT 
-                COUNT(*) as total_animais,
-                COUNT(CASE WHEN status = 'ativo' THEN 1 END) as ativos,
-                COUNT(CASE WHEN status = 'vendido' THEN 1 END) as vendidos,
-                COUNT(CASE WHEN status = 'morto' THEN 1 END) as mortos,
-                COUNT(CASE WHEN sexo = 'M' AND status = 'ativo' THEN 1 END) as machos,
-                COUNT(CASE WHEN sexo = 'F' AND status = 'ativo' THEN 1 END) as femeas,
-                COALESCE(AVG(CASE WHEN status = 'ativo' THEN peso_inicial END), 0) as peso_medio
-            FROM animais
-        ");
-        $totais = $totaisStmt->fetch();
+        // ── Tipo Padrão: Rebanho (Inventário Geral & Lotação) ──
+        $where = [];
+        $params = [];
+        $filtrosTxt = [];
 
-        // Ocupação por Pastagem
-        $pastagensStmt = $this->db->query("
-            SELECT 
-                p.id, p.nome, p.area_ha, p.capacidade, p.status,
-                COUNT(a.id) as total_alocados
-            FROM pastagens p
-            LEFT JOIN animais a ON a.pasto_id = p.id AND a.status = 'ativo'
-            GROUP BY p.id, p.nome, p.area_ha, p.capacidade, p.status
-            ORDER BY p.nome ASC
-        ");
+        // Status
+        $statusF = trim($_GET['status'] ?? 'ativo');
+        if ($statusF !== 'todos') {
+            $where[] = "a.status = ?";
+            $params[] = $statusF;
+            if ($statusF !== 'ativo') {
+                $filtrosTxt[] = "Status: " . ucfirst($statusF);
+            }
+        } else {
+            $filtrosTxt[] = "Status: Todos (Ativos, Vendidos e Baixados)";
+        }
+
+        // Pasto
+        $pastoId = !empty($_GET['pasto_id']) ? (int)$_GET['pasto_id'] : null;
+        if ($pastoId) {
+            $where[] = "a.pasto_id = ?";
+            $params[] = $pastoId;
+            $pstQuery = $this->db->prepare("SELECT nome FROM pastagens WHERE id = ?");
+            $pstQuery->execute([$pastoId]);
+            $pNome = $pstQuery->fetchColumn();
+            $filtrosTxt[] = "Pasto: " . ($pNome ?: "#$pastoId");
+        }
+
+        // Sexo
+        $sexo = in_array($_GET['sexo'] ?? '', ['M', 'F']) ? $_GET['sexo'] : null;
+        if ($sexo) {
+            $where[] = "a.sexo = ?";
+            $params[] = $sexo;
+            $filtrosTxt[] = "Sexo: " . ($sexo === 'F' ? 'Fêmeas ♀' : 'Machos ♂');
+        }
+
+        // Raça
+        $raca = trim($_GET['raca'] ?? '') ?: null;
+        if ($raca) {
+            $where[] = "a.raca = ?";
+            $params[] = $raca;
+            $filtrosTxt[] = "Raça: " . $raca;
+        }
+
+        // Categoria (Bezerro <= 12 meses vs Adulto)
+        $categoria = trim($_GET['categoria'] ?? '') ?: null;
+        $dataLimite12m = date('Y-m-d', strtotime('-12 months'));
+        if ($categoria === 'bezerro') {
+            $where[] = "a.data_nascimento IS NOT NULL AND a.data_nascimento >= ?";
+            $params[] = $dataLimite12m;
+            $filtrosTxt[] = "Categoria: Bezerros / Filhotes (≤ 12 meses)";
+        } elseif ($categoria === 'adulto') {
+            $where[] = "(a.data_nascimento IS NULL OR a.data_nascimento < ?)";
+            $params[] = $dataLimite12m;
+            $filtrosTxt[] = "Categoria: Adultos (> 12 meses)";
+        }
+
+        $whereSql = !empty($where) ? ('WHERE ' . implode(' AND ', $where)) : '';
+
+        // Pastagens: se filtrou por pasto, lista apenas aquele; senão lista todas
+        if ($pastoId) {
+            $pastagensStmt = $this->db->prepare("
+                SELECT p.id, p.nome, p.area_ha, p.capacidade, p.status,
+                       COUNT(a.id) as total_alocados
+                FROM pastagens p
+                LEFT JOIN animais a ON a.pasto_id = p.id AND a.status = 'ativo'
+                WHERE p.id = ?
+                GROUP BY p.id, p.nome, p.area_ha, p.capacidade, p.status
+            ");
+            $pastagensStmt->execute([$pastoId]);
+        } else {
+            $pastagensStmt = $this->db->query("
+                SELECT p.id, p.nome, p.area_ha, p.capacidade, p.status,
+                       COUNT(a.id) as total_alocados
+                FROM pastagens p
+                LEFT JOIN animais a ON a.pasto_id = p.id AND a.status = 'ativo'
+                GROUP BY p.id, p.nome, p.area_ha, p.capacidade, p.status
+                ORDER BY p.nome ASC
+            ");
+        }
         $pastagens = $pastagensStmt->fetchAll();
 
-        // Lista de animais ativos com último peso
-        $animaisStmt = $this->db->query("
+        // Animais filtrados com peso mais recente
+        $animaisStmt = $this->db->prepare("
             SELECT a.*, p.nome as pasto_nome,
                    COALESCE(
                        (SELECT peso FROM pesagens WHERE animal_id = a.id ORDER BY data DESC, id DESC LIMIT 1),
@@ -174,30 +290,53 @@ class RelatoriosController extends BaseController {
                    ) as peso_atual
             FROM animais a
             LEFT JOIN pastagens p ON a.pasto_id = p.id
-            WHERE a.status = 'ativo'
+            $whereSql
             ORDER BY p.nome ASC NULLS LAST, a.brinco ASC
         ");
+        $animaisStmt->execute($params);
         $animais = $animaisStmt->fetchAll();
 
-        // Recalcular peso médio com o peso_atual real se houver animais
-        if (!empty($animais)) {
-            $somaPesos = 0.0;
-            $countPesos = 0;
-            foreach ($animais as $an) {
-                if (!empty($an['peso_atual'])) {
-                    $somaPesos += (float)$an['peso_atual'];
-                    $countPesos++;
-                }
-            }
-            if ($countPesos > 0) {
-                $totais['peso_medio'] = $somaPesos / $countPesos;
+        // KPIs consolidados com base nos animais filtrados
+        $somaPesos = 0.0;
+        $countPesos = 0;
+        $machos = 0;
+        $femeas = 0;
+        $ativos = 0;
+        $vendidos = 0;
+        $mortos = 0;
+
+        foreach ($animais as $an) {
+            if ($an['status'] === 'ativo') $ativos++;
+            elseif ($an['status'] === 'vendido') $vendidos++;
+            elseif ($an['status'] === 'morto') $mortos++;
+
+            if ($an['sexo'] === 'M') $machos++;
+            elseif ($an['sexo'] === 'F') $femeas++;
+
+            if (!empty($an['peso_atual']) && (float)$an['peso_atual'] > 0) {
+                $somaPesos += (float)$an['peso_atual'];
+                $countPesos++;
             }
         }
+
+        $totais = [
+            'total_animais' => count($animais),
+            'ativos' => $ativos,
+            'vendidos' => $vendidos,
+            'mortos' => $mortos,
+            'machos' => $machos,
+            'femeas' => $femeas,
+            'peso_medio' => $countPesos > 0 ? ($somaPesos / $countPesos) : 0,
+        ];
+
+        $semAnimais = !empty($_GET['sem_animais']);
 
         $this->renderPrint('relatorios/pdf_rebanho', 'Inventário Geral do Rebanho & Lotação', [
             'totais' => $totais,
             'pastagens' => $pastagens,
             'animais' => $animais,
+            'filtrosAplicados' => $filtrosTxt,
+            'semAnimais' => $semAnimais,
         ]);
     }
 }

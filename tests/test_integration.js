@@ -73,7 +73,10 @@ async function run() {
     { path: '/alertas/novo', name: 'Novo Alerta' },
     { path: '/relatorios', name: 'Relatórios Gerenciais' },
     { path: '/relatorios/pdf?tipo=rebanho', name: 'Inventário Geral do Rebanho PDF' },
+    { path: '/relatorios/pdf?tipo=rebanho&sexo=F', name: 'Inventário Granular (Apenas Fêmeas)' },
+    { path: '/relatorios/pdf?tipo=rebanho&categoria=bezerro&sem_animais=1', name: 'Inventário Granular (Bezerros sem lista)' },
     { path: '/relatorios/pdf?tipo=saude', name: 'Laudo Sanitário PDF' },
+    { path: '/relatorios/pdf?tipo=saude&tipo_manejo=Vacina%C3%A7%C3%A3o', name: 'Laudo Granular (Apenas Vacinações)' },
     { path: '/sincronizacoes', name: 'Histórico de Sincronizações' },
     { path: '/usuarios', name: 'Gestão de Usuários (RBAC)' },
     { path: '/configuracoes', name: 'Configurações do Sistema' }

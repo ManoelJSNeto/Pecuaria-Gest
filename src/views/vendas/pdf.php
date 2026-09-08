@@ -41,6 +41,7 @@ $margemEstimada = ($custoTotalAquisicao > 0 && $lucroEstimado !== null) ? (($luc
 </div>
 
 <!-- Grid de Indicadores e Metadados da Venda -->
+<div id="sec-dados-venda" data-printable-section="Dados & Métricas da Venda">
 <div class="info-grid" style="grid-template-columns: repeat(4, 1fr);">
   <div class="info-box">
     <div class="info-label">Comprador / Destino</div>
@@ -142,8 +143,10 @@ $margemEstimada = ($custoTotalAquisicao > 0 && $lucroEstimado !== null) ? (($luc
     <strong>Observações da Operação:</strong> <?= nl2br(e($v['descricao'])) ?>
   </div>
 <?php endif; ?>
+</div> <!-- /#sec-dados-venda -->
 
 <!-- Tabela de Animais Baixados do Rebanho -->
+<div id="sec-animais-venda" data-printable-section="Animais Baixados">
 <div class="section-title">
   <i class="bi bi-box-arrow-up-right"></i> Romaneio de Animais Baixados do Rebanho (<?= count($animais) ?> cabeças)
 </div>
@@ -202,3 +205,4 @@ $margemEstimada = ($custoTotalAquisicao > 0 && $lucroEstimado !== null) ? (($luc
     </tbody>
   </table>
 <?php endif; ?>
+</div> <!-- /#sec-animais-venda -->

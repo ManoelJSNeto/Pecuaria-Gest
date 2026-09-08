@@ -29,6 +29,7 @@ $custoArroba = $totalArrobas > 0 ? ($valorTotal / $totalArrobas) : 0;
 </div>
 
 <!-- Grid de Indicadores e Metadados do Lote -->
+<div id="sec-dados-compra" data-printable-section="Dados & Métricas do Lote">
 <div class="info-grid" style="grid-template-columns: repeat(4, 1fr);">
   <div class="info-box">
     <div class="info-label">Fornecedor / Origem</div>
@@ -104,8 +105,10 @@ $custoArroba = $totalArrobas > 0 ? ($valorTotal / $totalArrobas) : 0;
     <strong>Observações da Operação:</strong> <?= nl2br(e($c['descricao'])) ?>
   </div>
 <?php endif; ?>
+</div> <!-- /#sec-dados-compra -->
 
 <!-- Tabela de Animais Vinculados ao Lote -->
+<div id="sec-animais-compra" data-printable-section="Romaneio de Animais">
 <div class="section-title">
   <i class="bi bi-list-check"></i> Romaneio de Animais Ingressados no Rebanho (<?= count($animais) ?> cadastrados individualmente)
 </div>
@@ -154,3 +157,4 @@ $custoArroba = $totalArrobas > 0 ? ($valorTotal / $totalArrobas) : 0;
     </tbody>
   </table>
 <?php endif; ?>
+</div> <!-- /#sec-animais-compra -->

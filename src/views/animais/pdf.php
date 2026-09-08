@@ -38,6 +38,7 @@ if (!empty($a['data_nascimento'])) {
 </div>
 
 <!-- Bloco Principal: Foto & Dados Cadastrais -->
+<div id="sec-biometria" data-printable-section="Identificação & Biometria">
 <div style="display: flex; gap: 18px; margin-bottom: 16px;">
   <!-- Coluna da Foto -->
   <div style="width: 140px; flex-shrink: 0; text-align: center;">
@@ -101,8 +102,10 @@ if (!empty($a['data_nascimento'])) {
     </div>
   </div>
 </div>
+</div> <!-- /#sec-biometria -->
 
 <!-- Genealogia & Rastreabilidade -->
+<div id="sec-genealogia" data-printable-section="Genealogia">
 <div class="section-title">
   <i class="bi bi-diagram-3-fill"></i> Genealogia Biológica & Rastreabilidade de Origem
 </div>
@@ -146,8 +149,10 @@ if (!empty($a['data_nascimento'])) {
     <strong>Observações Gerais:</strong> <?= nl2br(e($a['observacao'])) ?>
   </div>
 <?php endif; ?>
+</div> <!-- /#sec-genealogia -->
 
 <!-- Histórico de Pesagens & GMD -->
+<div id="sec-pesagens" data-printable-section="Pesagens & GMD">
 <div class="section-title">
   <i class="bi bi-speedometer2"></i> Histórico Biométrico & Ganho Médio Diário (GMD)
 </div>
@@ -174,7 +179,7 @@ if (!empty($a['data_nascimento'])) {
         <tr>
           <td><?= formatDate($p['data']) ?></td>
           <td class="tabular-nums" style="font-weight: 700;"><?= number_format($p['peso'], 1, ',', '.') ?> kg</td>
-          <td class="tabular-nums"><?= pesoEmArrobas($p['peso']) ?> @</td>
+          <td class="tabular-nums"><?= number_format(kgParaArroba($p['peso']), 2, ',', '.') ?> @</td>
           <td class="tabular-nums">
             <?php if ($p['ganho'] !== null): ?>
               <span style="color: <?= $p['ganho'] >= 0 ? 'var(--primary)' : '#c0392b' ?>; font-weight: 600;">
@@ -201,8 +206,10 @@ if (!empty($a['data_nascimento'])) {
     </tbody>
   </table>
 <?php endif; ?>
+</div> <!-- /#sec-pesagens -->
 
 <!-- Histórico Sanitário -->
+<div id="sec-saude" data-printable-section="Manejo Sanitário">
 <div class="section-title">
   <i class="bi bi-heart-pulse-fill"></i> Manejo Sanitário & Medicamentos Aplicados
 </div>
@@ -238,9 +245,11 @@ if (!empty($a['data_nascimento'])) {
     </tbody>
   </table>
 <?php endif; ?>
+</div> <!-- /#sec-saude -->
 
 <!-- Manejo Reprodutivo (se fêmea) -->
 <?php if ($a['sexo'] === 'F'): ?>
+  <div id="sec-reproducao" data-printable-section="Histórico Reprodutivo">
   <div class="section-title">
     <i class="bi bi-gender-female"></i> Histórico Reprodutivo da Matriz
   </div>
@@ -276,4 +285,5 @@ if (!empty($a['data_nascimento'])) {
       </tbody>
     </table>
   <?php endif; ?>
+  </div> <!-- /#sec-reproducao -->
 <?php endif; ?>

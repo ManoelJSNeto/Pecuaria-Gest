@@ -126,6 +126,16 @@
       gap: 12px;
     }
 
+    .doc-logo-img {
+      width: 44px;
+      height: 44px;
+      border-radius: 9px;
+      object-fit: contain;
+      background: var(--primary);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+      flex-shrink: 0;
+    }
+
     .doc-logo-badge {
       width: 44px;
       height: 44px;
@@ -137,6 +147,56 @@
       justify-content: center;
       font-size: 22px;
       font-weight: 800;
+    }
+
+    /* Personalizador de Impressão Granular */
+    .toolbar-customizer {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .customizer-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-right: 2px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .customizer-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+      background: #f4f6f4;
+      padding: 4px 9px;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+
+    .customizer-toggle:hover {
+      background: #e8ede9;
+    }
+
+    .customizer-toggle input {
+      accent-color: var(--primary);
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .hide-print-section {
+      display: none !important;
     }
 
     .doc-brand-title {
@@ -332,9 +392,13 @@
   <!-- Barra de Ações na Tela -->
   <div class="print-toolbar no-print">
     <div class="toolbar-title">
-      <i class="bi bi-file-earmark-pdf-fill text-danger"></i>
-      <span>Visualizador de Relatório & Impressão Oficial</span>
+      <img src="/favicon.svg" alt="PecuáriaGest" style="width: 24px; height: 24px; border-radius: 5px; flex-shrink: 0;">
+      <span>Visualizador Oficial & Impressão</span>
     </div>
+
+    <!-- Seletor Granular Dinâmico de Seções -->
+    <div class="toolbar-customizer" id="toolbarCustomizer"></div>
+
     <div class="toolbar-actions">
       <button onclick="window.print()" class="btn-action btn-print">
         <i class="bi bi-printer-fill"></i> Imprimir / Salvar como PDF
@@ -350,7 +414,7 @@
     <!-- Cabeçalho Oficial -->
     <header class="doc-header">
       <div class="doc-brand">
-        <div class="doc-logo-badge">PG</div>
+        <img src="/favicon.svg" alt="Logo PecuáriaGest" class="doc-logo-img">
         <div>
           <div class="doc-brand-title">PecuáriaGest</div>
           <div class="doc-brand-sub">Sistema de Gestão Agropecuária & Rastreabilidade Zootécnica</div>
@@ -381,6 +445,36 @@
   </div>
 
   <script>
+    // Auto-descoberta de seções com data-printable-section para personalização granular
+    document.addEventListener('DOMContentLoaded', () => {
+      const sections = document.querySelectorAll('[data-printable-section]');
+      const customizer = document.getElementById('toolbarCustomizer');
+      if (sections.length > 0 && customizer) {
+        customizer.innerHTML = '<span class="customizer-label"><i class="bi bi-sliders"></i> Exibir:</span>';
+        sections.forEach((sec, idx) => {
+          const name = sec.getAttribute('data-printable-section');
+          const id = sec.id || ('printable-sec-' + idx);
+          sec.id = id;
+
+          const isDefaultHidden = sec.hasAttribute('data-default-hidden');
+          if (isDefaultHidden) {
+            sec.classList.add('hide-print-section');
+          }
+
+          const label = document.createElement('label');
+          label.className = 'customizer-toggle';
+          label.title = 'Marque ou desmarque para incluir/remover este bloco do PDF';
+          label.innerHTML = `<input type="checkbox" ${isDefaultHidden ? '' : 'checked'} data-target="${id}"> <span>${name}</span>`;
+
+          const cb = label.querySelector('input');
+          cb.addEventListener('change', (e) => {
+            sec.classList.toggle('hide-print-section', !e.target.checked);
+          });
+          customizer.appendChild(label);
+        });
+      }
+    });
+
     // Se requisitado auto_print via query string, dispara imediatamente
     if (window.location.search.includes('auto_print=1')) {
       window.addEventListener('load', () => {
