@@ -59,6 +59,9 @@ if ($pastoF) {
     </small>
   </div>
   <div class="d-flex gap-2">
+    <a href="/relatorios/pdf?tipo=rebanho<?= $statusF ? '&status='.urlencode($statusF) : '' ?><?= $sexoF ? '&sexo='.urlencode($sexoF) : '' ?><?= $pastoF ? '&pasto_id='.$pastoF : '' ?><?= $search ? '&prefixo='.urlencode($search) : '' ?>" target="_blank" class="btn btn-outline-success btn-sm fw-600" title="Imprimir listagem filtrada em PDF (A4)">
+      <i class="bi bi-file-earmark-pdf-fill me-1"></i> Imprimir / PDF
+    </a>
     <a href="/animais/novo" class="btn btn-primary btn-sm">
       <i class="bi bi-plus-lg me-1"></i> Novo Animal
     </a>
@@ -180,6 +183,9 @@ if ($pastoF) {
           </td>
           <td class="text-end">
             <div class="btn-group btn-group-sm">
+              <a href="/animais/<?= $a['id'] ?>/pdf" target="_blank" class="btn btn-secondary btn-sm text-danger" title="Baixar / Imprimir Ficha Individual em PDF">
+                <i class="bi bi-file-earmark-pdf"></i>
+              </a>
               <a href="/animais/<?= $a['id'] ?>" class="btn btn-secondary btn-sm" title="Ver Prontuário">
                 <i class="bi bi-eye"></i>
               </a>

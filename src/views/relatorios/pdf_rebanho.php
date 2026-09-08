@@ -183,7 +183,10 @@ $lotacaoMediaHa = $areaTotalHa > 0 ? round($alocadosTotal / $areaTotalHa, 2) : 0
         ?>
           <tr>
             <td style="text-align: center; color: var(--text-muted); font-size: 10px;"><?= $idx + 1 ?></td>
-            <td style="font-weight: 700;"><?= e($a['brinco']) ?></td>
+            <td style="font-weight: 700;">
+              <a href="/animais/<?= $a['id'] ?>/pdf" target="_blank" style="text-decoration: none; color: inherit;" title="Abrir Ficha Individual deste Animal"><?= e($a['brinco']) ?></a>
+              <a href="/animais/<?= $a['id'] ?>/pdf" target="_blank" class="no-print doc-badge" style="font-size: 8px; padding: 1px 4px; margin-left: 4px; text-decoration: none; vertical-align: middle;" title="Abrir Ficha Individual em PDF"><i class="bi bi-file-earmark-pdf" style="color: #c0392b;"></i> PDF</a>
+            </td>
             <td><?= e($a['nome'] ?: '—') ?></td>
             <td><?= $a['sexo'] === 'F' ? 'Fêmea ♀' : 'Macho ♂' ?></td>
             <td><?= e($a['raca'] ?: 'Nelore') ?></td>

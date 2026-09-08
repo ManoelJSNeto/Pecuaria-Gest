@@ -75,8 +75,12 @@ async function run() {
     { path: '/relatorios/pdf?tipo=rebanho', name: 'Inventário Geral do Rebanho PDF' },
     { path: '/relatorios/pdf?tipo=rebanho&sexo=F', name: 'Inventário Granular (Apenas Fêmeas)' },
     { path: '/relatorios/pdf?tipo=rebanho&categoria=bezerro&sem_animais=1', name: 'Inventário Granular (Bezerros sem lista)' },
+    { path: '/relatorios/pdf?tipo=rebanho&prefixo=T001', name: 'Inventário Granular (Prefixo T001)' },
+    { path: '/relatorios/pdf?tipo=rebanho&prefixo=T001,T002', name: 'Inventário Granular (Múltiplos Prefixos T001,T002)' },
+    { path: '/relatorios/pdf?tipo=rebanho&animais_ids[]=1', name: 'Inventário Granular (Seleção Vaca por Vaca)' },
     { path: '/relatorios/pdf?tipo=saude', name: 'Laudo Sanitário PDF' },
     { path: '/relatorios/pdf?tipo=saude&tipo_manejo=Vacina%C3%A7%C3%A3o', name: 'Laudo Granular (Apenas Vacinações)' },
+    { path: '/relatorios/pdf?tipo=saude&prefixo=T001', name: 'Laudo Granular (Saúde Prefixo T001)' },
     { path: '/sincronizacoes', name: 'Histórico de Sincronizações' },
     { path: '/usuarios', name: 'Gestão de Usuários (RBAC)' },
     { path: '/configuracoes', name: 'Configurações do Sistema' }

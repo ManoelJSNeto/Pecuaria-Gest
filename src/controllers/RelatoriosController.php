@@ -87,11 +87,19 @@ class RelatoriosController extends BaseController {
         $pastos = $this->db->query("SELECT id, nome FROM pastagens ORDER BY nome ASC")->fetchAll();
         $racas = $this->db->query("SELECT DISTINCT raca FROM animais WHERE raca IS NOT NULL AND raca != '' ORDER BY raca ASC")->fetchAll(PDO::FETCH_COLUMN);
         $tiposSaude = $this->db->query("SELECT DISTINCT tipo FROM saude WHERE tipo IS NOT NULL AND tipo != '' ORDER BY tipo ASC")->fetchAll(PDO::FETCH_COLUMN);
+        $todosAnimais = $this->db->query("
+            SELECT a.id, a.brinco, a.nome, a.raca, a.sexo, p.nome as pasto_nome
+            FROM animais a
+            LEFT JOIN pastagens p ON a.pasto_id = p.id
+            WHERE a.status = 'ativo'
+            ORDER BY a.brinco ASC
+        ")->fetchAll();
 
         $this->render('relatorios/index', 'Relatórios Gerenciais', 'relatorios', [
             'pastos' => $pastos,
             'racas' => $racas,
             'tiposSaude' => $tiposSaude,
+            'todosAnimais' => $todosAnimais,
         ]);
     }
 
@@ -147,12 +155,13 @@ class RelatoriosController extends BaseController {
                 $filtrosTxt[] = "Veterinário: " . $vet;
             }
 
-            // Animal / Brinco
-            $brinco = trim($_GET['brinco'] ?? '') ?: null;
+            // Animal / Brinco / Prefixo
+            $brinco = trim($_GET['brinco'] ?? $_GET['prefixo'] ?? '') ?: null;
             if ($brinco) {
-                $where[] = "a.brinco LIKE ?";
-                $params[] = "%$brinco%";
-                $filtrosTxt[] = "Brinco: " . $brinco;
+                $where[] = "(UPPER(a.brinco) LIKE ? OR UPPER(a.nome) LIKE ?)";
+                $params[] = '%' . strtoupper($brinco) . '%';
+                $params[] = '%' . strtoupper($brinco) . '%';
+                $filtrosTxt[] = "Brinco/Prefixo: " . $brinco;
             }
 
             $whereSql = !empty($where) ? ('WHERE ' . implode(' AND ', $where)) : '';
@@ -254,6 +263,37 @@ class RelatoriosController extends BaseController {
             $where[] = "(a.data_nascimento IS NULL OR a.data_nascimento < ?)";
             $params[] = $dataLimite12m;
             $filtrosTxt[] = "Categoria: Adultos (> 12 meses)";
+        }
+
+        // Prefixo / Início do Brinco ou Nome (ex: T001, T002, PG)
+        $prefixoInput = trim($_GET['prefixo'] ?? $_GET['busca'] ?? '');
+        if ($prefixoInput !== '') {
+            $tokens = array_filter(array_map('trim', explode(',', $prefixoInput)));
+            if (!empty($tokens)) {
+                $orClauses = [];
+                foreach ($tokens as $tk) {
+                    $orClauses[] = "(UPPER(a.brinco) LIKE ? OR UPPER(a.nome) LIKE ?)";
+                    $params[] = strtoupper($tk) . '%';
+                    $params[] = strtoupper($tk) . '%';
+                }
+                $where[] = '(' . implode(' OR ', $orClauses) . ')';
+                $filtrosTxt[] = "Prefixo/Início: " . implode(', ', $tokens);
+            }
+        }
+
+        // Seleção Manual Vaca por Vaca (animais_ids)
+        $animaisIds = $_GET['animais_ids'] ?? [];
+        if (is_string($animaisIds)) {
+            $animaisIds = explode(',', $animaisIds);
+        }
+        $animaisIds = array_filter(array_map('intval', (array)$animaisIds));
+        if (!empty($animaisIds)) {
+            $placeholders = implode(',', array_fill(0, count($animaisIds), '?'));
+            $where[] = "a.id IN ($placeholders)";
+            foreach ($animaisIds as $aid) {
+                $params[] = $aid;
+            }
+            $filtrosTxt[] = count($animaisIds) . " animal(is) selecionado(s) manualmente";
         }
 
         $whereSql = !empty($where) ? ('WHERE ' . implode(' AND ', $where)) : '';

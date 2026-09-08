@@ -294,7 +294,7 @@ $tiposSaude = $tiposSaude ?? $db->query("SELECT DISTINCT tipo FROM saude WHERE t
 
 <!-- Modal de Personalização do Inventário do Rebanho (PDF) -->
 <div class="modal fade" id="modalFiltroRebanho" tabindex="-1" aria-labelledby="modalFiltroRebanhoLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h6 class="modal-title fw-bold" id="modalFiltroRebanhoLabel">
@@ -307,46 +307,28 @@ $tiposSaude = $tiposSaude ?? $db->query("SELECT DISTINCT tipo FROM saude WHERE t
         <div class="modal-body">
           <p class="small text-muted mb-3">Escolha os critérios para filtrar os animais e os blocos incluídos no relatório oficial:</p>
           
-          <div class="mb-3">
-            <label class="form-label small fw-bold">Pastagem / Piquete</label>
-            <select name="pasto_id" class="form-select form-select-sm">
-              <option value="">Todas as pastagens</option>
-              <?php foreach ($pastos as $p): ?>
-                <option value="<?= $p['id'] ?>"><?= e($p['nome']) ?></option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-
-          <div class="row g-2 mb-3">
-            <div class="col-6">
-              <label class="form-label small fw-bold">Sexo Biológico</label>
-              <select name="sexo" class="form-select form-select-sm">
-                <option value="">Todos (Machos e Fêmeas)</option>
-                <option value="M">Apenas Machos ♂</option>
-                <option value="F">Apenas Fêmeas ♀</option>
-              </select>
-            </div>
-            <div class="col-6">
-              <label class="form-label small fw-bold">Categoria de Idade</label>
-              <select name="categoria" class="form-select form-select-sm">
-                <option value="">Todas as categorias</option>
-                <option value="bezerro">Bezerros / Filhotes (≤ 12 meses)</option>
-                <option value="adulto">Adultos (> 12 meses)</option>
-              </select>
+          <!-- Filtro por Prefixo / Início de Brinco ou Nome -->
+          <div class="mb-3 p-2 rounded border bg-light">
+            <label class="form-label small fw-bold mb-1">
+              <i class="bi bi-tag-fill text-success me-1"></i>Filtrar por Prefixo / Início do Brinco ou Nome
+            </label>
+            <input type="text" name="prefixo" class="form-control form-control-sm" placeholder="Ex: T001, T002, T00, PG_ (ou separe por vírgula: T001, T002)" autocomplete="off">
+            <div class="form-text" style="font-size: 0.72rem;">
+              Filtra animais cujo brinco ou nome comece com o termo digitado (ex: <code>T001</code>, <code>T002</code>, <code>T00</code>).
             </div>
           </div>
 
           <div class="row g-2 mb-3">
-            <div class="col-6">
-              <label class="form-label small fw-bold">Raça Predominante</label>
-              <select name="raca" class="form-select form-select-sm">
-                <option value="">Todas as raças</option>
-                <?php foreach ($racas as $r): ?>
-                  <option value="<?= e($r) ?>"><?= e($r) ?></option>
+            <div class="col-md-6">
+              <label class="form-label small fw-bold">Pastagem / Piquete</label>
+              <select name="pasto_id" class="form-select form-select-sm">
+                <option value="">Todas as pastagens</option>
+                <?php foreach ($pastos as $p): ?>
+                  <option value="<?= $p['id'] ?>"><?= e($p['nome']) ?></option>
                 <?php endforeach; ?>
               </select>
             </div>
-            <div class="col-6">
+            <div class="col-md-6">
               <label class="form-label small fw-bold">Status dos Animais</label>
               <select name="status" class="form-select form-select-sm">
                 <option value="ativo">Apenas Ativos (Padrão)</option>
@@ -357,11 +339,80 @@ $tiposSaude = $tiposSaude ?? $db->query("SELECT DISTINCT tipo FROM saude WHERE t
             </div>
           </div>
 
+          <div class="row g-2 mb-3">
+            <div class="col-md-4">
+              <label class="form-label small fw-bold">Sexo Biológico</label>
+              <select name="sexo" class="form-select form-select-sm">
+                <option value="">Todos (Machos e Fêmeas)</option>
+                <option value="M">Apenas Machos ♂</option>
+                <option value="F">Apenas Fêmeas ♀</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-bold">Categoria de Idade</label>
+              <select name="categoria" class="form-select form-select-sm">
+                <option value="">Todas as categorias</option>
+                <option value="bezerro">Bezerros / Filhotes (≤ 12 meses)</option>
+                <option value="adulto">Adultos (> 12 meses)</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-bold">Raça Predominante</label>
+              <select name="raca" class="form-select form-select-sm">
+                <option value="">Todas as raças</option>
+                <?php foreach ($racas as $r): ?>
+                  <option value="<?= e($r) ?>"><?= e($r) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+          </div>
+
+          <!-- Sub-aba Retrátil: Seleção Vaca por Vaca (Específica) -->
+          <div class="card border rounded mb-3" style="background: #fafbfa;">
+            <div class="card-header py-2 bg-light d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#subAbaVacas" role="button" aria-expanded="false" style="cursor: pointer;">
+              <span class="small fw-bold text-dark">
+                <i class="bi bi-check2-square text-success me-1"></i> Seleção Específica de Animais (Vaca por Vaca)
+              </span>
+              <span class="badge bg-secondary" id="badgeVacasCount" style="font-size: 0.65rem;">Opcional</span>
+            </div>
+            <div class="collapse" id="subAbaVacas">
+              <div class="card-body p-2 bg-white">
+                <p class="text-muted mb-2" style="font-size:0.75rem;">
+                  Selecione exatamente quais vacas/animais devem constar no relatório. Se nenhuma for marcada, todos os animais do rebanho serão considerados conforme os filtros gerais.
+                </p>
+                <div class="d-flex gap-2 mb-2">
+                  <input type="text" class="form-control form-control-sm" id="filtroRapidoVacas" placeholder="Buscar por brinco, nome, raça..." oninput="filtrarListaVacasModal(this.value)">
+                  <button type="button" class="btn btn-outline-secondary btn-sm text-nowrap" onclick="toggleTodosAnimaisModal(true)">Marcar Visíveis</button>
+                  <button type="button" class="btn btn-outline-secondary btn-sm text-nowrap" onclick="toggleTodosAnimaisModal(false)">Limpar</button>
+                </div>
+                <div id="listaVacasScroll" style="max-height: 180px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px; padding: 4px; background: #fff;">
+                  <?php if (empty($todosAnimais)): ?>
+                    <div class="text-muted small p-2 text-center">Nenhum animal ativo cadastrado.</div>
+                  <?php else: ?>
+                    <?php foreach ($todosAnimais as $an): ?>
+                      <div class="form-check py-1 px-4 border-bottom item-vaca-check" data-busca="<?= strtolower(e($an['brinco'] . ' ' . ($an['nome'] ?? '') . ' ' . ($an['raca'] ?? '') . ' ' . ($an['pasto_nome'] ?? ''))) ?>">
+                        <input class="form-check-input check-animal-id" type="checkbox" name="animais_ids[]" value="<?= $an['id'] ?>" id="chk_vaca_<?= $an['id'] ?>" onchange="atualizarContadorVacas()">
+                        <label class="form-check-label small d-flex justify-content-between cursor-pointer w-100" for="chk_vaca_<?= $an['id'] ?>">
+                          <span>
+                            <strong><?= e($an['brinco']) ?></strong>
+                            <?= $an['nome'] ? ' — ' . e($an['nome']) : '' ?>
+                            <span class="text-muted">(<?= e($an['raca'] ?? 'Nelore') ?>)</span>
+                          </span>
+                          <span class="text-secondary" style="font-size:0.72rem;"><?= e($an['pasto_nome'] ?? 'Sem pasto') ?></span>
+                        </label>
+                      </div>
+                    <?php endforeach; ?>
+                  <?php endif; ?>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="form-check p-2 rounded bg-light border">
             <input class="form-check-input ms-1" type="checkbox" name="sem_animais" value="1" id="checkSemAnimais">
             <label class="form-check-label small fw-600 ms-2" for="checkSemAnimais">
               Ocultar romaneio individual de animais
-              <span class="d-block text-muted" style="font-size: 0.72rem; font-weight: normal;">Gera apenas o resumo executivo, indicadores e o balanço de pastagens (ideal para reuniões e impressões sucintas).</span>
+              <span class="d-block text-muted" style="font-size: 0.72rem; font-weight: normal;">Gera apenas o resumo executivo, indicadores e o balanço de pastagens (ideal para impressões sucintas de 1 página).</span>
             </label>
           </div>
         </div>
@@ -418,8 +469,8 @@ $tiposSaude = $tiposSaude ?? $db->query("SELECT DISTINCT tipo FROM saude WHERE t
               <input type="text" name="veterinario" class="form-control form-control-sm" placeholder="Ex: Dr. Silva">
             </div>
             <div class="col-6">
-              <label class="form-label small fw-bold">Brinco Específico (Opcional)</label>
-              <input type="text" name="brinco" class="form-control form-control-sm" placeholder="Ex: BR0001">
+              <label class="form-label small fw-bold">Brinco / Prefixo</label>
+              <input type="text" name="brinco" class="form-control form-control-sm" placeholder="Ex: T001, BR001, PG_">
             </div>
           </div>
         </div>
@@ -433,3 +484,43 @@ $tiposSaude = $tiposSaude ?? $db->query("SELECT DISTINCT tipo FROM saude WHERE t
     </div>
   </div>
 </div>
+
+<script>
+function filtrarListaVacasModal(termo) {
+  const query = termo.toLowerCase().trim();
+  const itens = document.querySelectorAll('#listaVacasScroll .item-vaca-check');
+  itens.forEach(it => {
+    const texto = it.getAttribute('data-busca') || '';
+    if (!query || texto.includes(query)) {
+      it.style.display = 'block';
+    } else {
+      it.style.display = 'none';
+    }
+  });
+}
+
+function toggleTodosAnimaisModal(marcar) {
+  const visiveis = document.querySelectorAll('#listaVacasScroll .item-vaca-check');
+  visiveis.forEach(it => {
+    if (it.style.display !== 'none') {
+      const chk = it.querySelector('.check-animal-id');
+      if (chk) chk.checked = marcar;
+    }
+  });
+  atualizarContadorVacas();
+}
+
+function atualizarContadorVacas() {
+  const selecionados = document.querySelectorAll('.check-animal-id:checked').length;
+  const badge = document.getElementById('badgeVacasCount');
+  if (badge) {
+    if (selecionados > 0) {
+      badge.className = 'badge bg-success';
+      badge.textContent = selecionados + ' selecionada(s)';
+    } else {
+      badge.className = 'badge bg-secondary';
+      badge.textContent = 'Opcional';
+    }
+  }
+}
+</script>
