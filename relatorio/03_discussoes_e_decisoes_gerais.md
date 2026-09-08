@@ -50,3 +50,27 @@ Como a sincronização de campo transmite pacotes contendo dezenas de pesagens e
 
 ### 4.2 Privacidade e Apresentação Visual Respeitosa
 * **Desfoque de Imagens Clínicas/Óbito:** O sistema aplica automaticamente desfoque visual forte (`blur`) em fotos associadas a ferimentos, tratamentos cirúrgicos ou animais mortos. Isso evita choques visuais desnecessários no painel gerencial, mantendo o acesso ao laudo fotográfico disponível mediante um clique de confirmação.
+
+---
+
+## 5. Blindagem de Autenticação e Proteção contra Força Bruta
+
+### 5.1 O Risco de Ataques de Dicionário em Ambientes Web
+Como o painel centralizado fica exposto para acesso remoto do proprietário na cidade, tornou-se imperativo blindar a rota de login contra tentativas automatizadas de adivinhação de senhas:
+* **Rate Limiting e Bloqueio Temporário (Lockout):** O sistema monitora as tentativas falhas consecutivas. Ao atingir a **5ª tentativa errada**, a aplicação congela novos acessos por **3 minutos**, desestimulando ataques automatizados de força bruta.
+* **Proteção de Credenciais em Produção:** As senhas padrão de primeiro acesso só são aceitas caso o ambiente esteja expressamente declarado como `development`, forçando a troca de senhas na implantação real.
+* **Proteção contra Timing Attacks na API:** As rotas consumidas pelo aplicativo móvel (`/api/sync` e `/api/animais`) passaram a comparar as chaves de API utilizando `hash_equals()`, eliminando qualquer vazamento de tempo em nanossegundos que pudesse permitir a dedução da chave secreta.
+
+---
+
+## 6. Arquitetura de Software: Monólito Pragmático vs SPA e a Transição para Controladores
+
+### 6.1 Por que não separar o Front-End Web em uma SPA (React/Vue)?
+No meio acadêmico e no mercado corporativo, é comum adotar como "padrão" a separação total entre uma Single Page Application (SPA) em JavaScript e uma API REST no back-end. Para o PecuáriaGest, no entanto, a decisão consciente foi manter o **Painel Web em Server-Side Rendering (SSR) com PHP 8.3 e Nginx**:
+* **Desempenho Instantâneo:** O servidor entrega o HTML sem exigir que o dispositivo do usuário faça download de pesados bundles de JavaScript de centenas de megabytes.
+* **Simplicidade de Manutenção:** Evita a duplicação de regras de validação (uma no front e outra no back), elimina problemas de CORS e complexidade de tokens JWT com expiração e refresh.
+* **Separação Onde Importa:** A separação de responsabilidades existe com clareza entre o **Aplicativo Android Nativo** (que coleta no campo) e o **Painel Central** (que consolida e exibe no escritório).
+
+### 6.2 O Próximo Passo Evolutivo: Modularização em Controladores Dedicados
+Com o amadurecimento dos módulos de Animais, Pesagens, Manejo Sanitário, Reprodução, Pastagens, Alertas e o novo Cockpit Comercial (Compras e Vendas), o arquivo `public/index.php` atingiu seu limite saudável como Front Controller + Roteador. 
+* **A Estratégia de Transição:** Para manter o código limpo e sustentável para futuras equipes, foi planejado o desacoplamento do roteamento em **Controladores Dedicados** (`src/controllers/`), permitindo que cada recurso de negócio tenha sua própria classe especializada (`AnimaisController`, `ComercialController`, `AuthController`, etc.), mantendo o `index.php` apenas como despachante de requisições de poucas dezenas de linhas.

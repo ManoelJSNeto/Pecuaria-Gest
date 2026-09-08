@@ -55,3 +55,37 @@ Em propriedades rurais, é comum que colaboradores do campo possuam diferentes g
 * **Design de Alto Contraste:** Cores calibradas (paleta verde terroso `#26441F` e contrastes escuros) para garantir legibilidade sob incidência solar direta.
 * **Toque Amplo (Glove-Friendly):** Botões com altura mínima de **68px** e campos com 50px de altura para permitir acionamento preciso mesmo com luvas de manejo ou mãos calejadas.
 * **Confirmação Tátil Nativa:** Ao salvar uma pesagem ou manejo, o hardware do celular vibra com pulso firme (`@capacitor/haptics`), dispensando a necessidade de o vaqueiro parar a lida para conferir visualmente a tela.
+
+---
+
+## 4. Módulo Comercial de Compra e Venda de Gado com Chaves Mestras
+
+### 4.1 Rastreabilidade Oficial e Controle Fiscal (GTA e NF-e)
+Para além do controle zootécnico interno, a comercialização de bovinos exige rigor sanitário e fiscal perante os órgãos de defesa agropecuária (como o IMA, Defesa Agropecuária estadual e Receita Federal).
+* **As Chaves Mestras:** O sistema estabeleceu a obrigatoriedade/rastreabilidade do Número da **GTA (Guia de Trânsito Animal)** e da **Chave de Acesso da NF-e (44 dígitos numéricos)** como identificadores soberanos de cada operação comercial.
+* **Importação Inteligente de XML da NF-e:**
+  * Para eliminar erros humanos de digitação e poupar tempo do produtor, foi desenvolvido um componente de importação inteligente de arquivos XML padrão SEFAZ.
+  * O leitor extrai diretamente dos nós do XML a chave de 44 dígitos, número da nota, emitente/destinatário, data de emissão, quantidade de cabeças, peso total e valor total da nota, preenchendo automaticamente os formulários em tempo real.
+* **Cálculo de Precificação Dual:** Suporte a negociação tanto por **cabeça fixa (R$/cab)** quanto por **peso vivo / arroba (@)** com taxa de rendimento de carcaça configurável (ex: 50% a 54%).
+
+---
+
+## 5. Engenharia de Performance, Diagnóstico de Latência e Otimização
+
+### 5.1 Diagnóstico de Gargalos Reais no Ambiente Docker
+Atendendo a queixas de lentidão no navegador, foi realizada uma auditoria profunda de latência com medições comparativas (tempo de banco, tempo de CPU PHP e tempo de entrega Nginx):
+1. **O Gargalo do `initDb()` repetitivo:**
+   * Constatou-se que a cada requisição HTTP, a aplicação executava 25 comandos DDL (`CREATE TABLE IF NOT EXISTS`, `ALTER TABLE` e `COUNT`), somando de **15ms a 35ms de atraso desnecessário por clique**.
+   * **Solução:** Implementação de um arquivo sentinela de trava (`.db_ready`), garantindo que o PostgreSQL execute as migrações apenas na primeira inicialização.
+2. **Purga Inadvertida de Cache:**
+   * Identificou-se um script herdado no layout web que executava `caches.delete()` a cada navegação, forçando o navegador a baixar novamente todos os assets a cada página visitada.
+   * **Solução:** Remoção do expurgo e configuração de cabeçalhos de cache imutáveis de 30 dias no Nginx.
+3. **Ativação da Compressão Gzip:**
+   * O servidor web Nginx foi reconfigurado com compressão Gzip (nível 5), reduzindo a carga de transferência de CSS e scripts de **~500 KB para ~85 KB** (redução de 83% no tráfego de rede).
+4. **Criação de Índices B-Tree Estratégicos:**
+   * Foram adicionados índices em `pesagens(animal_id, data DESC)`, `animais(pasto_id, status)`, `saude`, `compras` e `vendas`, acelerando relatórios e consultas filtradas.
+
+### 5.2 A Decisão Técnica de Não Adoção do Redis (Evitando Overengineering)
+Durante os estudos de otimização, avaliou-se a introdução de uma camada de cache em memória com **Redis**. 
+* **A Conclusão Metodológica:** Após a aplicação das correções estruturais descritas acima, a latência média das páginas do PostgreSQL caiu para **25ms a 35ms**, e as consultas individuais responderam em menos de **2ms**.
+* **Princípio da Simplicidade:** Introduzir um quarto contêiner Docker apenas para cache traria complexidade desnecessária de invalidação de dados, consumo de memória RAM e ponto adicional de falha no servidor da fazenda, sem trazer ganho perceptível para o usuário final. Concluiu-se que o banco relacional PostgreSQL com índices adequados é mais do que suficiente para suportar rebanhos de milhares de cabeças com folga extrema de performance.
