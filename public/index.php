@@ -369,357 +369,129 @@ if (preg_match('#^/pesagens/(\d+)(/.*)?$#', $uri, $m)) {
     }
 }
 
-// ── SAÚDE ──
+// ── MÓDULO SAÚDE (SaudeController) ──
 if ($uri === '/saude') {
-    renderView('saude/index', 'Saúde', 'saude');
+    (new SaudeController())->index();
     exit;
 }
 if ($uri === '/saude/novo') {
-    renderView('saude/form', 'Registrar Evento de Saúde', 'saude');
+    (new SaudeController())->novo();
     exit;
 }
 if ($uri === '/saude/salvar' && $method === 'POST') {
-    if (!csrf_verify()) { flash('error','Token inválido.'); redirect('/saude/novo'); }
-    $aid = (int)($_POST['animal_id'] ?? 0);
-    $tipo = (string)($_POST['tipo'] ?? '');
-    $db->prepare("INSERT INTO saude (animal_id,tipo,descricao,data,proxima_data,custo,medicamento,dose,veterinario,observacao,origem) VALUES (?,?,?,?,?,?,?,?,?,?,'web')")
-       ->execute([
-           $aid,
-           $tipo,
-           $_POST['descricao'],
-           $_POST['data'],
-           $_POST['proxima_data'] ?: null,
-           $_POST['custo'] ?: null,
-           $_POST['medicamento'] ?: null,
-           $_POST['dose'] ?: null,
-           $_POST['veterinario'] ?: null,
-           trim($_POST['observacao'] ?? '') ?: null,
-       ]);
-
-    // Atualização automática de status (óbito -> morto, tratamento -> doente, alta -> ativo, parto -> ativo)
-    atualizarStatusAnimalPorSaude($db, $aid, $tipo);
-
-    flash('success','Evento de saúde registrado!');
-    $back = !empty($aid) ? "/animais/{$aid}" : '/saude';
-    redirect($back);
+    (new SaudeController())->salvar();
     exit;
 }
 if (preg_match('#^/saude/(\d+)(/.*)?$#', $uri, $m)) {
     $id  = (int)$m[1];
     $sub = $m[2] ?? '';
-    $sStmt = $db->prepare("SELECT * FROM saude WHERE id=?");
-    $sStmt->execute([$id]);
-    $saude = $sStmt->fetch() ?: null;
-    if (!$saude) { flash('error','Registro de saúde não encontrado.'); redirect('/saude'); }
+    $controller = new SaudeController();
+
     if ($sub === '/editar') {
-        renderView('saude/form', 'Editar Evento de Saúde', 'saude', ['saude' => $saude]);
+        $controller->editar($id);
         exit;
     }
     if ($sub === '/atualizar' && $method === 'POST') {
-        if (!csrf_verify()) { flash('error','Token inválido.'); redirect("/saude/$id/editar"); }
-        $aid = (int)($_POST['animal_id'] ?? 0);
-        $tipo = (string)($_POST['tipo'] ?? '');
-        $db->prepare("UPDATE saude SET animal_id=?,tipo=?,descricao=?,data=?,proxima_data=?,custo=?,medicamento=?,dose=?,veterinario=?,observacao=? WHERE id=?")
-           ->execute([
-               $aid,
-               $tipo,
-               $_POST['descricao'],
-               $_POST['data'],
-               $_POST['proxima_data'] ?: null,
-               $_POST['custo'] ?: null,
-               $_POST['medicamento'] ?: null,
-               $_POST['dose'] ?: null,
-               $_POST['veterinario'] ?: null,
-               trim($_POST['observacao'] ?? '') ?: null,
-               $id,
-           ]);
-
-        // Atualização automática de status
-        atualizarStatusAnimalPorSaude($db, $aid, $tipo);
-
-        flash('success','Evento de saúde atualizado!');
-        $back = !empty($aid) ? "/animais/{$aid}" : '/saude';
-        redirect($back);
+        $controller->atualizar($id);
         exit;
     }
     if ($sub === '/excluir' && $method === 'POST') {
-        if (!csrf_verify()) { flash('error','Token inválido.'); redirect('/saude'); }
-        $db->prepare("DELETE FROM saude WHERE id=?")->execute([$id]);
-        flash('success','Registro excluído.');
-        redirect($saude['animal_id'] ? "/animais/{$saude['animal_id']}" : '/saude');
+        $controller->excluir($id);
         exit;
     }
 }
 
-// ── REPRODUÇÃO ──
-if ($uri === '/reproducao') {
-    requirePermission('ver_reproducao');
-    renderView('reproducao/index', 'Manejo Reprodutivo', 'reproducao');
-    exit;
-}
-if ($uri === '/reproducao/novo') {
-    requirePermission('ver_reproducao');
-    renderView('reproducao/form', 'Registrar Evento Reprodutivo', 'reproducao');
-    exit;
-}
-if ($uri === '/reproducao/salvar' && $method === 'POST') {
-    requirePermission('ver_reproducao');
-    if (!csrf_verify()) { flash('error','Token inválido.'); redirect('/reproducao/novo'); }
-    $aid = (int)($_POST['animal_id'] ?? 0);
-    $tipo = trim($_POST['tipo'] ?? '');
-    $data = $_POST['data'] ?? date('Y-m-d');
-    $touro = trim($_POST['touro_brinco'] ?? '') ?: null;
-    $resultado = trim($_POST['resultado'] ?? '') ?: null;
-    $obs = trim($_POST['observacao'] ?? '') ?: null;
-
-    $db->prepare("INSERT INTO reproducao (animal_id,tipo,data,touro_brinco,resultado,observacao) VALUES (?,?,?,?,?,?)")
-       ->execute([$aid, $tipo, $data, $touro, $resultado, $obs]);
-
-    atualizarStatusAnimalPorReproducao($db, $aid, $tipo, $resultado);
-
-    flash('success','Evento reprodutivo registrado com sucesso!');
-    $back = !empty($aid) ? "/animais/{$aid}" : '/reproducao';
-    redirect($back);
-    exit;
-}
-if (preg_match('#^/reproducao/(\d+)(/.*)?$#', $uri, $m)) {
-    requirePermission('ver_reproducao');
-    $id  = (int)$m[1];
-    $sub = $m[2] ?? '';
-    $rStmt = $db->prepare("SELECT * FROM reproducao WHERE id=?");
-    $rStmt->execute([$id]);
-    $reproducao = $rStmt->fetch() ?: null;
-    if (!$reproducao) { flash('error','Registro reprodutivo não encontrado.'); redirect('/reproducao'); }
-
-    if ($sub === '/editar') {
-        renderView('reproducao/form', 'Editar Evento Reprodutivo', 'reproducao', ['reproducao' => $reproducao]);
-        exit;
-    }
-    if ($sub === '/atualizar' && $method === 'POST') {
-        if (!csrf_verify()) { flash('error','Token inválido.'); redirect("/reproducao/$id/editar"); }
-        $aid = (int)($_POST['animal_id'] ?? 0);
-        $tipo = trim($_POST['tipo'] ?? '');
-        $data = $_POST['data'] ?? date('Y-m-d');
-        $touro = trim($_POST['touro_brinco'] ?? '') ?: null;
-        $resultado = trim($_POST['resultado'] ?? '') ?: null;
-        $obs = trim($_POST['observacao'] ?? '') ?: null;
-
-        $db->prepare("UPDATE reproducao SET animal_id=?,tipo=?,data=?,touro_brinco=?,resultado=?,observacao=? WHERE id=?")
-           ->execute([$aid, $tipo, $data, $touro, $resultado, $obs, $id]);
-
-        atualizarStatusAnimalPorReproducao($db, $aid, $tipo, $resultado);
-
-        flash('success','Evento reprodutivo atualizado com sucesso!');
-        $back = !empty($aid) ? "/animais/{$aid}" : '/reproducao';
-        redirect($back);
-        exit;
-    }
-    if ($sub === '/excluir' && $method === 'POST') {
-        if (!csrf_verify()) { flash('error','Token inválido.'); redirect('/reproducao'); }
-        $db->prepare("DELETE FROM reproducao WHERE id=?")->execute([$id]);
-        flash('success','Evento reprodutivo excluído.');
-        redirect($reproducao['animal_id'] ? "/animais/{$reproducao['animal_id']}" : '/reproducao');
-        exit;
-    }
-}
-
-// ── PASTAGENS ──
+// ── MÓDULO PASTAGENS (PastagensController) ──
 if ($uri === '/pastagens') {
-    renderView('pastagens/index', 'Pastagens', 'pastagens');
+    (new PastagensController())->index();
     exit;
 }
 if ($uri === '/pastagens/novo') {
-    renderView('pastagens/form', 'Cadastrar Pastagem', 'pastagens');
+    (new PastagensController())->novo();
     exit;
 }
 if ($uri === '/pastagens/salvar' && $method === 'POST') {
-    if (!csrf_verify()) { flash('error','Token inválido.'); redirect('/pastagens/novo'); }
-    $db->prepare("INSERT INTO pastagens (nome,area_ha,capacidade,status,observacao) VALUES (?,?,?,?,?)")
-       ->execute([trim($_POST['nome']),$_POST['area_ha']?:null,$_POST['capacidade']?:null,$_POST['status']??'ativa',trim($_POST['observacao']??'')?:null]);
-    flash('success','Pastagem cadastrada!');
-    redirect('/pastagens');
+    (new PastagensController())->salvar();
     exit;
 }
 if (preg_match('#^/pastagens/(\d+)(/.*)?$#', $uri, $m)) {
     $id  = (int)$m[1];
     $sub = $m[2] ?? '';
-    $pStmt = $db->prepare("SELECT * FROM pastagens WHERE id=?");
-    $pStmt->execute([$id]);
-    $pastagem = $pStmt->fetch() ?: null;
-    if (!$pastagem) { flash('error','Pastagem não encontrada.'); redirect('/pastagens'); }
+    $controller = new PastagensController();
+
     if ($sub === '' || $sub === '/') {
-        redirect('/animais?pasto_id=' . $id);
+        $controller->show($id);
         exit;
     }
-    if ($sub === '/editar') { renderView('pastagens/form', 'Editar Pastagem', 'pastagens', ['pastagem' => $pastagem]); exit; }
+    if ($sub === '/editar') {
+        $controller->editar($id);
+        exit;
+    }
     if ($sub === '/atualizar' && $method === 'POST') {
-        if (!csrf_verify()) { flash('error','Token inválido.'); redirect("/pastagens/$id/editar"); }
-        $db->prepare("UPDATE pastagens SET nome=?,area_ha=?,capacidade=?,status=?,observacao=? WHERE id=?")
-           ->execute([trim($_POST['nome']),$_POST['area_ha']?:null,$_POST['capacidade']?:null,$_POST['status']??'ativa',trim($_POST['observacao']??'')?:null,$id]);
-        flash('success','Pastagem atualizada!');
-        redirect('/pastagens');
+        $controller->atualizar($id);
         exit;
     }
     if ($sub === '/excluir' && $method === 'POST') {
-        if (!csrf_verify()) { flash('error','Token inválido.'); redirect('/pastagens'); }
-        $db->prepare("DELETE FROM pastagens WHERE id=?")->execute([$id]);
-        flash('success','Pastagem removida.');
-        redirect('/pastagens');
+        $controller->excluir($id);
         exit;
     }
 }
 
-// ── REPRODUÇÃO ──
+// ── MÓDULO REPRODUÇÃO (ReproducaoController) ──
 if ($uri === '/reproducao') {
-    renderView('reproducao/index', 'Reprodução', 'reproducao');
+    (new ReproducaoController())->index();
     exit;
 }
 if ($uri === '/reproducao/novo') {
-    renderView('reproducao/form', 'Registrar Evento Reprodutivo', 'reproducao');
+    (new ReproducaoController())->novo();
     exit;
 }
 if ($uri === '/reproducao/salvar' && $method === 'POST') {
-    if (!csrf_verify()) { flash('error','Token inválido.'); redirect('/reproducao/novo'); }
-    
-    $animalId = (int)($_POST['animal_id'] ?? 0);
-    $touroBrinco = trim($_POST['touro_brinco'] ?? '') ?: null;
-
-    $matrizStmt = $db->prepare("SELECT id, brinco, sexo FROM animais WHERE id = ?");
-    $matrizStmt->execute([$animalId]);
-    $matriz = $matrizStmt->fetch();
-    if (!$matriz) {
-        flash('error', 'Animal não encontrado para o manejo reprodutivo.');
-        redirect('/reproducao/novo');
-    }
-    if ($matriz['sexo'] !== 'F') {
-        flash('error', 'Inconsistência zootécnica: A matriz reprodutiva selecionada deve ser obrigatoriamente uma FÊMEA.');
-        redirect('/reproducao/novo');
-    }
-
-    if ($touroBrinco) {
-        if (strtoupper($matriz['brinco']) === strtoupper($touroBrinco)) {
-            flash('error', 'Inconsistência: A matriz reprodutiva não pode ser o próprio touro da cobertura.');
-            redirect('/reproducao/novo');
-        }
-        $tStmt = $db->prepare("SELECT id, sexo FROM animais WHERE UPPER(brinco) = UPPER(?)");
-        $tStmt->execute([$touroBrinco]);
-        $touro = $tStmt->fetch();
-        if ($touro && $touro['sexo'] === 'F') {
-            flash('error', 'Inconsistência zootécnica: O animal com brinco "'.$touroBrinco.'" é uma FÊMEA e não pode ser informado como touro reprodutor.');
-            redirect('/reproducao/novo');
-        }
-    }
-
-    $db->prepare("INSERT INTO reproducao (animal_id,tipo,data,resultado,touro_brinco,observacao) VALUES (?,?,?,?,?,?)")
-       ->execute([$animalId,$_POST['tipo'],$_POST['data'],$_POST['resultado']?:null,$touroBrinco,trim($_POST['observacao']??'')?:null]);
-    
-    // Atualização automática de status da fêmea (prenha / parto / aborto / desmame)
-    atualizarStatusAnimalPorReproducao($db, $animalId, $_POST['tipo'] ?? '', $_POST['resultado'] ?? null);
-
-    flash('success','Evento registrado!');
-    $back = !empty($_POST['animal_id']) ? "/animais/{$_POST['animal_id']}" : '/reproducao';
-    redirect($back);
+    (new ReproducaoController())->salvar();
     exit;
 }
 if (preg_match('#^/reproducao/(\d+)(/.*)?$#', $uri, $m)) {
     $id  = (int)$m[1];
     $sub = $m[2] ?? '';
-    $rStmt = $db->prepare("SELECT * FROM reproducao WHERE id=?");
-    $rStmt->execute([$id]);
-    $reproducao = $rStmt->fetch() ?: null;
-    if (!$reproducao) { flash('error','Registro reprodutivo não encontrado.'); redirect('/reproducao'); }
+    $controller = new ReproducaoController();
+
     if ($sub === '/editar') {
-        renderView('reproducao/form', 'Editar Evento Reprodutivo', 'reproducao', ['reproducao' => $reproducao]);
+        $controller->editar($id);
         exit;
     }
     if ($sub === '/atualizar' && $method === 'POST') {
-        if (!csrf_verify()) { flash('error','Token inválido.'); redirect("/reproducao/$id/editar"); }
-        
-        $animalId = (int)($_POST['animal_id'] ?? 0);
-        $touroBrinco = trim($_POST['touro_brinco'] ?? '') ?: null;
-
-        $matrizStmt = $db->prepare("SELECT id, brinco, sexo FROM animais WHERE id = ?");
-        $matrizStmt->execute([$animalId]);
-        $matriz = $matrizStmt->fetch();
-        if (!$matriz) {
-            flash('error', 'Animal não encontrado para o manejo reprodutivo.');
-            redirect("/reproducao/$id/editar");
-        }
-        if ($matriz['sexo'] !== 'F') {
-            flash('error', 'Inconsistência zootécnica: A matriz reprodutiva selecionada deve ser obrigatoriamente uma FÊMEA.');
-            redirect("/reproducao/$id/editar");
-        }
-
-        if ($touroBrinco) {
-            if (strtoupper($matriz['brinco']) === strtoupper($touroBrinco)) {
-                flash('error', 'Inconsistência: A matriz reprodutiva não pode ser o próprio touro da cobertura.');
-                redirect("/reproducao/$id/editar");
-            }
-            $tStmt = $db->prepare("SELECT id, sexo FROM animais WHERE UPPER(brinco) = UPPER(?)");
-            $tStmt->execute([$touroBrinco]);
-            $touro = $tStmt->fetch();
-            if ($touro && $touro['sexo'] === 'F') {
-                flash('error', 'Inconsistência zootécnica: O animal com brinco "'.$touroBrinco.'" é uma FÊMEA e não pode ser informado como touro reprodutor.');
-                redirect("/reproducao/$id/editar");
-            }
-        }
-
-        $db->prepare("UPDATE reproducao SET animal_id=?,tipo=?,data=?,resultado=?,touro_brinco=?,observacao=? WHERE id=?")
-           ->execute([$animalId,$_POST['tipo'],$_POST['data'],$_POST['resultado']?:null,$touroBrinco,trim($_POST['observacao']??'')?:null,$id]);
-
-        // Atualização automática de status da fêmea
-        atualizarStatusAnimalPorReproducao($db, $animalId, $_POST['tipo'] ?? '', $_POST['resultado'] ?? null);
-
-        flash('success','Registro reprodutivo atualizado!');
-        $back = !empty($_POST['animal_id']) ? "/animais/{$_POST['animal_id']}" : '/reproducao';
-        redirect($back);
+        $controller->atualizar($id);
         exit;
     }
     if ($sub === '/excluir' && $method === 'POST') {
-        if (!csrf_verify()) { flash('error','Token inválido.'); redirect('/reproducao'); }
-        $db->prepare("DELETE FROM reproducao WHERE id=?")->execute([$id]);
-        flash('success','Registro excluído.');
-        redirect($reproducao['animal_id'] ? "/animais/{$reproducao['animal_id']}" : '/reproducao');
+        $controller->excluir($id);
         exit;
     }
 }
 
-// ── ALERTAS ──
+// ── MÓDULO ALERTAS (AlertasController) ──
 if ($uri === '/alertas') {
-    renderView('alertas/index', 'Alertas', 'alertas');
+    (new AlertasController())->index();
     exit;
 }
 if ($uri === '/alertas/ler-todos' && $method === 'POST') {
-    if (!csrf_verify()) { flash('error', 'Token inválido.'); redirect('/alertas'); }
-    $db->exec("UPDATE alertas SET lido=1 WHERE lido=0");
-    flash('success','Todos os alertas foram marcados como lidos.');
-    redirect('/alertas');
+    (new AlertasController())->lerTodos();
     exit;
 }
 if ($uri === '/alertas/novo') {
-    renderView('alertas/form', 'Criar Alerta', 'alertas');
+    (new AlertasController())->novo();
     exit;
 }
 if ($uri === '/alertas/salvar' && $method === 'POST') {
-    if (!csrf_verify()) { flash('error','Token inválido.'); redirect('/alertas/novo'); }
-    $db->prepare("INSERT INTO alertas (animal_id,tipo,mensagem) VALUES (?,?,?)")
-       ->execute([$_POST['animal_id']?:null,$_POST['tipo'],$_POST['mensagem']]);
-    flash('success','Alerta criado!');
-    redirect('/alertas');
+    (new AlertasController())->salvar();
     exit;
 }
 if (preg_match('#^/alertas/(\d+)/ler$#', $uri, $m) && $method === 'POST') {
-    if (!csrf_verify()) { flash('error', 'Token inválido.'); redirect('/alertas'); }
-    $db->prepare("UPDATE alertas SET lido=1 WHERE id=?")->execute([$m[1]]);
-    flash('success','Alerta marcado como lido.');
-    redirect('/alertas');
+    (new AlertasController())->marcarLido((int)$m[1]);
     exit;
 }
 if (preg_match('#^/alertas/(\d+)/excluir$#', $uri, $m) && $method === 'POST') {
-    if (!csrf_verify()) { flash('error','Token inválido.'); redirect('/alertas'); }
-    $db->prepare("DELETE FROM alertas WHERE id=?")->execute([$m[1]]);
-    flash('success','Alerta excluído.');
-    redirect('/alertas');
+    (new AlertasController())->excluir((int)$m[1]);
     exit;
 }
 
