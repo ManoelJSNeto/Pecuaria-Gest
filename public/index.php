@@ -39,13 +39,37 @@ if (str_starts_with($uri, '/uploads/')) {
 if ($uri === '/' || $uri === '/login') {
     if (isLoggedIn()) { redirect('/dashboard'); }
     $error = '';
-    if ($method === 'POST') {
-        if (!csrf_verify()) { $error = 'Token inválido. Recarregue a página.'; }
-        else {
+
+    // Proteção de Rate Limiting contra Força Bruta
+    $lockoutUntil = $_SESSION['login_lockout_until'] ?? 0;
+    if ($lockoutUntil > time()) {
+        $tempoRestante = ceil(($lockoutUntil - time()) / 60);
+        $error = "Muitas tentativas incorretas consecutivas. Por segurança, aguarde {$tempoRestante} minuto(s) antes de tentar novamente.";
+    } elseif ($method === 'POST') {
+        if (!csrf_verify()) { 
+            $error = 'Token de segurança expirado ou inválido. Recarregue a página.'; 
+        } else {
             $email = trim($_POST['email'] ?? '');
-            $senha = $_POST['senha'] ?? '';
-            if (attemptLogin($email, $senha)) { redirect('/dashboard'); }
-            else { $error = 'E-mail ou senha incorretos.'; }
+            $senha = (string)($_POST['senha'] ?? '');
+
+            if (empty($email) || empty($senha)) {
+                $error = 'Por favor, preencha o e-mail e a senha.';
+            } elseif (attemptLogin($email, $senha)) {
+                // Zera tentativas após sucesso
+                unset($_SESSION['login_attempts'], $_SESSION['login_lockout_until']);
+                redirect('/dashboard');
+            } else {
+                $attempts = ($_SESSION['login_attempts'] ?? 0) + 1;
+                $_SESSION['login_attempts'] = $attempts;
+
+                if ($attempts >= 5) {
+                    $_SESSION['login_lockout_until'] = time() + 180; // 3 minutos de bloqueio
+                    $error = 'Limite de tentativas incorretas atingido. Acesso bloqueado temporariamente por 3 minutos.';
+                } else {
+                    $restantes = 5 - $attempts;
+                    $error = "E-mail ou senha incorretos. ({$restantes} tentativa(s) restante(s))";
+                }
+            }
         }
     }
     require __DIR__ . '/../src/views/login.php';

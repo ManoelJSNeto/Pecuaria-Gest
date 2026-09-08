@@ -52,11 +52,13 @@
       </button>
     </form>
 
-    <hr class="my-3" style="border-color: var(--border-subtle);">
-    <div class="text-center text-muted small">
-      <i class="bi bi-info-circle me-1"></i>
-      Padrão: <code>admin@fazenda.com</code> / <code>admin123</code>
-    </div>
+    <?php if (defined('APP_ENV') && APP_ENV === 'development'): ?>
+      <hr class="my-3" style="border-color: var(--border-subtle);">
+      <div class="text-center text-muted small">
+        <i class="bi bi-info-circle me-1"></i>
+        Ambiente Dev: <code>admin@fazenda.com</code> / <code>admin123</code>
+      </div>
+    <?php endif; ?>
   </div>
 </div>
 </body>

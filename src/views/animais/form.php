@@ -2,7 +2,9 @@
 $isEdit    = isset($animal);
 $a         = $animal ?? [];
 $currPasto = (int)($a['pasto_id'] ?? 0);
-$pastagens = $db->query("SELECT id, nome, status FROM pastagens WHERE status='ativa' OR id = $currPasto ORDER BY nome")->fetchAll();
+$stmtPastos = $db->prepare("SELECT id, nome, status FROM pastagens WHERE status='ativa' OR id = ? ORDER BY nome");
+$stmtPastos->execute([$currPasto]);
+$pastagens  = $stmtPastos->fetchAll();
 // Filtro estrito: Apenas fêmeas ativas para Mãe biológica
 $animaisF  = $db->query("SELECT id, brinco, nome, status FROM animais WHERE sexo = 'F' AND status != 'morto' ORDER BY brinco")->fetchAll();
 // Touros/Reprodutores machos da propriedade para sugestão de Pai
