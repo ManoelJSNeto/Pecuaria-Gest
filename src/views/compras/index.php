@@ -32,7 +32,7 @@ $stmt = $db->prepare("
 $stmt->execute($params);
 $compras = $stmt->fetchAll();
 
-// Métricas Consolidadas de Compras
+// Métricas Consolidadas do Cockpit
 $metricStmt = $db->query("
     SELECT 
         COALESCE(SUM(valor_total), 0) as total_investido,
@@ -51,140 +51,179 @@ $totalArrobas = kgParaArroba($totalKg);
 $custoMedioArroba = $totalArrobas > 0 ? ($totalInvestido / $totalArrobas) : 0.0;
 ?>
 
+<!-- Header Superior da Página -->
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
   <div>
     <h5 class="mb-0 fw-bold">Compras & Entradas de Gado</h5>
-    <small class="text-muted tabular-nums">Registro de aquisição por lote com chaves fiscais (NF-e) e sanitárias (GTA)</small>
+    <small class="text-muted tabular-nums">
+      Registro de aquisição por lote com chaves fiscais (NF-e/XML) e sanitárias (GTA)
+    </small>
   </div>
   <a href="/compras/novo" class="btn btn-primary btn-sm">
     <i class="bi bi-plus-lg me-1"></i> Registrar Nova Compra
   </a>
 </div>
 
-<!-- Cockpit de Indicadores de Compra -->
-<div class="metric-cockpit mb-4">
+<!-- Cockpit de Indicadores Unificado (Anti-Card Soup) -->
+<div class="metric-cockpit">
   <div class="metric-cell">
-    <span class="metric-label">Total Investido em Gado</span>
-    <div class="metric-value">R$ <?= number_format($totalInvestido, 2, ',', '.') ?></div>
-    <span class="metric-sub"><i class="bi bi-wallet2 text-success me-1"></i>Capital alocado em reposição</span>
-  </div>
-  <div class="metric-cell">
-    <span class="metric-label">Cabeças Adquiridas</span>
-    <div class="metric-value"><?= number_format($totalCabecas, 0, ',', '.') ?> <span style="font-size:0.9rem;font-weight:600;color:var(--text-muted);">cab</span></div>
-    <span class="metric-sub">Total acumulado de entradas</span>
-  </div>
-  <div class="metric-cell">
-    <span class="metric-label">Custo Médio por Cabeça</span>
-    <div class="metric-value">R$ <?= number_format($custoMedioCab, 2, ',', '.') ?></div>
-    <span class="metric-sub">Média ponderada por animal</span>
-  </div>
-  <div class="metric-cell">
-    <span class="metric-label">Peso Médio & Custo/@</span>
-    <div class="metric-value">
-      <span class="peso-hero-kg"><?= number_format($pesoMedioCab, 1, ',', '.') ?> <small class="text-muted" style="font-size:0.85rem;">kg</small></span>
-      <span class="peso-hero-arr" style="display:none;"><?= number_format(kgParaArroba($pesoMedioCab), 2, ',', '.') ?> <small class="text-success fw-bold" style="font-size:0.85rem;">@</small></span>
+    <span class="metric-label">Capital Investido</span>
+    <div class="metric-value tabular-nums" style="color: var(--earth-green-900);">
+      R$ <?= number_format($totalInvestido, 2, ',', '.') ?>
     </div>
-    <span class="metric-sub">
-      Custo Arroba: <strong>R$ <?= $custoMedioArroba > 0 ? number_format($custoMedioArroba, 2, ',', '.') : '—' ?>/@</strong>
-    </span>
+    <span class="metric-sub">Total alocado em reposição</span>
+  </div>
+
+  <div class="metric-cell">
+    <span class="metric-label">Rebanho Adquirido</span>
+    <div class="metric-value tabular-nums">
+      <?= number_format($totalCabecas, 0, ',', '.') ?> <span style="font-size:0.9rem;font-weight:600;color:var(--text-muted);">cab</span>
+    </div>
+    <span class="metric-sub">Média: R$ <?= number_format($custoMedioCab, 2, ',', '.') ?>/cab</span>
+  </div>
+
+  <div class="metric-cell">
+    <span class="metric-label">Volume de Entrada</span>
+    <div class="metric-value tabular-nums">
+      <?= number_format($totalArrobas, 1, ',', '.') ?> <span style="font-size:0.9rem;font-weight:600;color:var(--text-muted);">@</span>
+    </div>
+    <span class="metric-sub"><?= number_format($totalKg, 0, ',', '.') ?> kg aferidos na balança</span>
+  </div>
+
+  <div class="metric-cell">
+    <span class="metric-label">Custo Médio da Arroba</span>
+    <div class="metric-value tabular-nums" style="color: var(--earth-green-700);">
+      R$ <?= number_format($custoMedioArroba, 2, ',', '.') ?> <span style="font-size:0.85rem;font-weight:600;color:var(--text-muted);">/@</span>
+    </div>
+    <span class="metric-sub">Preço médio de aquisição</span>
   </div>
 </div>
 
-<!-- Barra de Filtros -->
-<div class="filter-toolbar mb-3">
-  <form method="GET" class="d-flex align-items-center gap-2 w-100" style="max-width: 500px;">
+<!-- Barra de Filtros e Pesquisa -->
+<div class="filter-toolbar">
+  <form method="GET" action="/compras" class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 480px;">
     <div class="input-group input-group-sm">
-      <input type="text" name="q" class="form-control form-control-sm" placeholder="Buscar por GTA, NF-e ou Fornecedor..." value="<?= e($search) ?>" autocomplete="off">
-      <button class="btn btn-secondary btn-sm" type="submit">
-        <i class="bi bi-search"></i>
-      </button>
+      <span class="input-group-text"><i class="bi bi-search"></i></span>
+      <input type="text" name="q" class="form-control" placeholder="Buscar por GTA, Chave NF-e, fornecedor ou lote..." value="<?= e($search) ?>" autocomplete="off">
       <?php if ($search): ?>
-        <a href="/compras" class="btn btn-outline-secondary btn-sm" title="Limpar Busca">
-          <i class="bi bi-x-lg"></i>
-        </a>
+        <a href="/compras" class="btn btn-outline-secondary" title="Limpar busca"><i class="bi bi-x-lg"></i></a>
       <?php endif; ?>
     </div>
   </form>
+
+  <div class="text-muted small tabular-nums ms-auto">
+    <?= (int)$total ?> lote(s) registrado(s)
+  </div>
 </div>
 
-<!-- Tabela de Lotes Comprados -->
+<!-- Tabela de Alta Densidade -->
 <div class="table-responsive">
   <table class="table">
     <thead>
       <tr>
-        <th>Data</th>
-        <th>Descrição / Lote</th>
-        <th>Documentos (GTA & NF-e)</th>
+        <th style="width: 100px;">Data</th>
+        <th>Lote / Identificação</th>
+        <th>Origem / Vendedor</th>
+        <th>Chaves Mestras (GTA / NF-e)</th>
         <th class="text-center">Cabeças</th>
-        <th>Peso Médio Entrada</th>
-        <th>Valor Total (R$)</th>
-        <th>Pasto de Entrada</th>
-        <th class="text-end" style="width: 100px;">Ações</th>
+        <th class="text-end">Peso Total</th>
+        <th class="text-end">Valor Total</th>
+        <th class="text-end">Custo/@</th>
+        <th>Pasto</th>
+        <th class="text-end" style="width: 90px;">Ações</th>
       </tr>
     </thead>
     <tbody>
       <?php if (empty($compras)): ?>
         <tr>
-          <td colspan="8" class="text-center text-muted py-5">
-            <i class="bi bi-truck fs-3 d-block mb-2 text-muted"></i>
-            Nenhuma compra de gado registrada até o momento.
-            <div class="mt-2">
-              <a href="/compras/novo" class="btn btn-sm btn-primary">Registrar Primeira Compra</a>
-            </div>
+          <td colspan="10" class="text-center py-5 text-muted">
+            <i class="bi bi-truck fs-1 d-block mb-2 opacity-50"></i>
+            <strong>Nenhum lote de compra registrado.</strong>
+            <p class="small mb-3 text-secondary">Comece importando o XML da NF-e ou registrando a GTA de entrada.</p>
+            <a href="/compras/novo" class="btn btn-primary btn-sm">
+              <i class="bi bi-plus-lg me-1"></i> Registrar Primeira Compra
+            </a>
           </td>
         </tr>
       <?php else: ?>
         <?php foreach ($compras as $c): ?>
-          <?php 
-            $mediaKg = $c['quantidade_cabecas'] > 0 ? ($c['peso_total_kg'] / $c['quantidade_cabecas']) : 0;
-            $custoCab = $c['quantidade_cabecas'] > 0 ? ($c['valor_total'] / $c['quantidade_cabecas']) : 0;
+          <?php
+            $cab = (int)$c['quantidade_cabecas'];
+            $val = (float)$c['valor_total'];
+            $peso = (float)$c['peso_total_kg'];
+            $arr = kgParaArroba($peso);
+            $custoArr = $arr > 0 ? ($val / $arr) : 0;
           ?>
           <tr>
-            <td class="tabular-nums small text-secondary">
+            <td class="tabular-nums fw-600 text-secondary">
               <?= formatDate($c['data_compra']) ?>
             </td>
             <td>
-              <strong class="d-block text-primary"><?= e($c['descricao'] ?: 'Lote de Compra #'.$c['id']) ?></strong>
-              <small class="text-muted"><?= e($c['fornecedor_origem'] ?: 'Origem não informada') ?></small>
-            </td>
-            <td>
-              <?php if (!empty($c['numero_gta'])): ?>
-                <span class="badge bg-light text-dark border me-1" title="Guia de Trânsito Animal">
-                  <i class="bi bi-file-earmark-medical text-success me-1"></i>GTA: <?= e($c['numero_gta']) ?>
-                </span>
-              <?php endif; ?>
-              <?php if (!empty($c['chave_nfe'])): ?>
-                <span class="badge bg-light text-secondary border tabular-nums" style="font-size: 0.68rem;" title="<?= e($c['chave_nfe']) ?>">
-                  <i class="bi bi-receipt me-1"></i>NF-e: <?= substr($c['chave_nfe'], 0, 10) ?>...
-                </span>
-              <?php endif; ?>
-              <?php if (empty($c['numero_gta']) && empty($c['chave_nfe'])): ?>
-                <span class="text-muted small">Sem docs</span>
-              <?php endif; ?>
-            </td>
-            <td class="text-center tabular-nums">
-              <span class="badge bg-primary px-2 py-1"><?= (int)$c['quantidade_cabecas'] ?> cab</span>
+              <strong class="text-primary d-block">
+                <?= e($c['descricao'] ?: 'Lote #' . $c['id']) ?>
+              </strong>
               <?php if ($c['animais_cadastrados'] > 0): ?>
-                <br><small class="text-muted" style="font-size:0.7rem;"><?= $c['animais_cadastrados'] ?> brincos vinculados</small>
+                <span class="badge-filhote" style="font-size: 0.68rem;">
+                  <i class="bi bi-tags"></i> <?= (int)$c['animais_cadastrados'] ?> brincos gerados
+                </span>
               <?php endif; ?>
             </td>
+            <td class="text-secondary small">
+              <?= e($c['fornecedor_origem'] ?: 'Não especificado') ?>
+            </td>
             <td>
-              <?= renderPesoBadge($mediaKg) ?>
+              <div class="d-flex flex-column gap-1">
+                <?php if ($c['numero_gta']): ?>
+                  <span class="d-inline-flex align-items-center gap-1 small text-dark fw-600">
+                    <i class="bi bi-file-earmark-medical text-success"></i> GTA: <?= e($c['numero_gta']) ?>
+                  </span>
+                <?php endif; ?>
+                <?php if ($c['chave_nfe']): ?>
+                  <span class="text-muted tabular-nums" style="font-size: 0.72rem;" title="<?= e($c['chave_nfe']) ?>">
+                    <i class="bi bi-receipt me-1"></i><?= substr($c['chave_nfe'], 0, 14) ?>...
+                  </span>
+                <?php endif; ?>
+                <?php if (!empty($c['arquivo_xml'])): ?>
+                  <a href="<?= e($c['arquivo_xml']) ?>" download class="badge bg-light text-success border d-inline-flex align-items-center gap-1" style="font-size:0.68rem; width: fit-content;" title="Baixar XML da NF-e">
+                    <i class="bi bi-file-earmark-code"></i> Baixar XML
+                  </a>
+                <?php endif; ?>
+              </div>
             </td>
-            <td class="tabular-nums">
-              <span class="fw-bold text-dark">R$ <?= number_format($c['valor_total'], 2, ',', '.') ?></span>
-              <br><small class="text-muted" style="font-size:0.72rem;">R$ <?= number_format($custoCab, 2, ',', '.') ?>/cab</small>
+            <td class="text-center tabular-nums fw-bold">
+              <?= $cab ?> cab
             </td>
-            <td class="small text-secondary">
-              <?= !empty($c['pasto_nome']) ? '<i class="bi bi-tree text-success me-1"></i>'.e($c['pasto_nome']) : '—' ?>
+            <td class="text-end tabular-nums">
+              <?php if ($peso > 0): ?>
+                <strong><?= number_format($peso, 1, ',', '.') ?> kg</strong>
+                <small class="text-muted d-block" style="font-size:0.75rem;"><?= number_format($arr, 1, ',', '.') ?> @</small>
+              <?php else: ?>
+                <span class="text-muted">—</span>
+              <?php endif; ?>
+            </td>
+            <td class="text-end tabular-nums fw-bold" style="color: var(--earth-green-900);">
+              R$ <?= number_format($val, 2, ',', '.') ?>
+            </td>
+            <td class="text-end tabular-nums text-secondary small">
+              <?= $custoArr > 0 ? 'R$ ' . number_format($custoArr, 2, ',', '.') . '/@' : '—' ?>
+            </td>
+            <td>
+              <?= $c['pasto_nome'] ? '<span class="badge-status ativo">' . e($c['pasto_nome']) . '</span>' : '<span class="badge-status neutro">Sem pasto</span>' ?>
             </td>
             <td class="text-end">
-              <form method="POST" action="/compras/<?= $c['id'] ?>/excluir" style="display:inline;" onsubmit="return confirm('Deseja excluir o registro desta compra? Os animais cadastrados permanecerão no sistema desvinculados.')">
-                <?= csrf_field() ?>
-                <button type="submit" class="btn btn-sm btn-outline-danger" title="Excluir Compra">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </form>
+              <div class="d-inline-flex align-items-center gap-1">
+                <?php if (!empty($c['arquivo_xml'])): ?>
+                  <a href="<?= e($c['arquivo_xml']) ?>" download class="btn btn-sm btn-secondary" title="Baixar XML da NF-e">
+                    <i class="bi bi-download"></i>
+                  </a>
+                <?php endif; ?>
+                <form method="POST" action="/compras/<?= $c['id'] ?>/excluir" style="display:inline;" onsubmit="return confirm('Deseja excluir o registro desta compra? Os animais cadastrados permanecerão no sistema desvinculados.')">
+                  <?= csrf_field() ?>
+                  <button type="submit" class="btn btn-sm btn-outline-secondary text-danger" title="Excluir Compra">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </div>
             </td>
           </tr>
         <?php endforeach; ?>
@@ -196,13 +235,13 @@ $custoMedioArroba = $totalArrobas > 0 ? ($totalInvestido / $totalArrobas) : 0.0;
 <!-- Paginação -->
 <?php if ($totalPages > 1): ?>
   <div class="d-flex justify-content-between align-items-center mt-3">
-    <small class="text-muted">Página <?= $page ?> de <?= $totalPages ?></small>
+    <small class="text-muted tabular-nums">Página <?= $page ?> de <?= $totalPages ?></small>
     <div class="btn-group btn-group-sm">
       <?php if ($page > 1): ?>
-        <a href="/compras?page=<?= $page - 1 ?>&q=<?= urlencode($search) ?>" class="btn btn-outline-secondary">&laquo; Anterior</a>
+        <a href="?page=<?= $page - 1 ?><?= $search ? '&q='.urlencode($search) : '' ?>" class="btn btn-secondary">Anterior</a>
       <?php endif; ?>
       <?php if ($page < $totalPages): ?>
-        <a href="/compras?page=<?= $page + 1 ?>&q=<?= urlencode($search) ?>" class="btn btn-outline-secondary">Próxima &raquo;</a>
+        <a href="?page=<?= $page + 1 ?><?= $search ? '&q='.urlencode($search) : '' ?>" class="btn btn-secondary">Próxima</a>
       <?php endif; ?>
     </div>
   </div>

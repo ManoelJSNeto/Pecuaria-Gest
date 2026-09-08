@@ -277,6 +277,35 @@ function salvarBase64Foto(string $base64Data, string $subfolder = 'fotos'): ?str
     return null;
 }
 
+function salvarUploadDocumento(?array $file, string $subfolder = 'documentos'): ?string {
+    if (!$file || empty($file['tmp_name']) || $file['error'] !== UPLOAD_ERR_OK) {
+        return null;
+    }
+
+    $origName = $file['name'] ?? 'doc';
+    $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
+    $allowedExts = ['xml', 'pdf', 'jpg', 'jpeg', 'png'];
+    if (!in_array($ext, $allowedExts)) {
+        return null;
+    }
+
+    $cleanBase = preg_replace('/[^a-zA-Z0-9_\-]/', '_', pathinfo($origName, PATHINFO_FILENAME));
+    $cleanBase = substr($cleanBase, 0, 30);
+    $filename = uniqid('doc_', true) . '_' . $cleanBase . '.' . $ext;
+
+    $targetDir = UPLOADS_PATH . '/' . trim($subfolder, '/');
+    if (!is_dir($targetDir)) {
+        @mkdir($targetDir, 0775, true);
+    }
+
+    $targetFile = $targetDir . '/' . $filename;
+    if (move_uploaded_file($file['tmp_name'], $targetFile)) {
+        return '/uploads/' . trim($subfolder, '/') . '/' . $filename;
+    }
+
+    return null;
+}
+
 // ── Configurações do Sistema e Notificações ──
 
 function getSysConfig(string $chave, ?string $default = null): ?string {

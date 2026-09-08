@@ -953,11 +953,13 @@ if ($uri === '/compras/salvar' && $method === 'POST') {
         redirect('/compras/novo');
     }
 
+    $arquivoXml = salvarUploadDocumento($_FILES['arquivo_xml'] ?? null, 'documentos');
+
     $stmt = $db->prepare("
-        INSERT INTO compras (numero_gta, chave_nfe, fornecedor_origem, data_compra, quantidade_cabecas, peso_total_kg, valor_total, descricao, pasto_destino_id, criado_em)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        INSERT INTO compras (numero_gta, chave_nfe, arquivo_xml, fornecedor_origem, data_compra, quantidade_cabecas, peso_total_kg, valor_total, descricao, pasto_destino_id, criado_em)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
     ");
-    $stmt->execute([$numeroGta, $chaveNfe ?: null, $fornecedor, $dataCompra, $qtdCabecas, $pesoTotal, $valorTotal, $descricao, $pastoDestinoId]);
+    $stmt->execute([$numeroGta, $chaveNfe ?: null, $arquivoXml, $fornecedor, $dataCompra, $qtdCabecas, $pesoTotal, $valorTotal, $descricao, $pastoDestinoId]);
     $compraId = (int)$db->lastInsertId();
 
     // Cadastro automático de animais do lote se habilitado
@@ -1039,13 +1041,14 @@ if ($uri === '/vendas/salvar' && $method === 'POST') {
         redirect('/vendas/novo');
     }
 
+    $arquivoXml = salvarUploadDocumento($_FILES['arquivo_xml'] ?? null, 'documentos');
     $qtdCabecas = (!empty($animaisIds) && is_array($animaisIds)) ? count($animaisIds) : max(1, (int)($_POST['quantidade_cabecas'] ?? 1));
 
     $stmt = $db->prepare("
-        INSERT INTO vendas (numero_gta, chave_nfe, comprador_destino, data_venda, quantidade_cabecas, peso_total_kg, valor_total, preco_unitario, tipo_precificacao, descricao, criado_em)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        INSERT INTO vendas (numero_gta, chave_nfe, arquivo_xml, comprador_destino, data_venda, quantidade_cabecas, peso_total_kg, valor_total, preco_unitario, tipo_precificacao, descricao, criado_em)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
     ");
-    $stmt->execute([$numeroGta, $chaveNfe ?: null, $comprador, $dataVenda, $qtdCabecas, $pesoTotal, $valorTotal, $precoUnitario, $tipoPrecificacao, $descricao]);
+    $stmt->execute([$numeroGta, $chaveNfe ?: null, $arquivoXml, $comprador, $dataVenda, $qtdCabecas, $pesoTotal, $valorTotal, $precoUnitario, $tipoPrecificacao, $descricao]);
     $vendaId = (int)$db->lastInsertId();
 
     // Baixa comercial dos animais selecionados

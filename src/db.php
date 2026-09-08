@@ -135,6 +135,8 @@ function initDb(PDO $db): void {
             descricao TEXT,
             numero_gta TEXT,
             chave_nfe TEXT,
+            arquivo_xml TEXT,
+            arquivo_gta TEXT,
             quantidade_cabecas INTEGER NOT NULL DEFAULT 1,
             peso_total_kg REAL,
             valor_total REAL NOT NULL DEFAULT 0.0,
@@ -150,6 +152,8 @@ function initDb(PDO $db): void {
             descricao TEXT,
             numero_gta TEXT,
             chave_nfe TEXT,
+            arquivo_xml TEXT,
+            arquivo_gta TEXT,
             quantidade_cabecas INTEGER NOT NULL DEFAULT 1,
             peso_total_kg REAL,
             tipo_precificacao TEXT DEFAULT 'arroba',
@@ -164,6 +168,10 @@ function initDb(PDO $db): void {
     // Migrações dinâmicas para bases já existentes
     try { $db->exec("ALTER TABLE usuarios ADD COLUMN cargo TEXT DEFAULT 'Colaborador'"); } catch (Exception $e) {}
     try { $db->exec("ALTER TABLE usuarios ADD COLUMN permissoes TEXT DEFAULT '{}'"); } catch (Exception $e) {}
+    try { $db->exec("ALTER TABLE compras ADD COLUMN arquivo_xml TEXT"); } catch (Exception $e) {}
+    try { $db->exec("ALTER TABLE compras ADD COLUMN arquivo_gta TEXT"); } catch (Exception $e) {}
+    try { $db->exec("ALTER TABLE vendas ADD COLUMN arquivo_xml TEXT"); } catch (Exception $e) {}
+    try { $db->exec("ALTER TABLE vendas ADD COLUMN arquivo_gta TEXT"); } catch (Exception $e) {}
     try { $db->exec("ALTER TABLE animais ADD COLUMN compra_id INTEGER REFERENCES compras(id) ON DELETE SET NULL"); } catch (Exception $e) {}
     try { $db->exec("ALTER TABLE animais ADD COLUMN venda_id INTEGER REFERENCES vendas(id) ON DELETE SET NULL"); } catch (Exception $e) {}
     try { $db->exec("ALTER TABLE animais ADD COLUMN valor_compra_individual REAL"); } catch (Exception $e) {}
