@@ -329,28 +329,36 @@ if (preg_match('#^/alertas/(\d+)/excluir$#', $uri, $m) && $method === 'POST') {
 // ── MÓDULO COMERCIAL: COMPRAS & VENDAS (ComercialController) ──
 if ($uri === '/compras') {
     (new ComercialController())->comprasIndex();
+    exit;
 }
 if ($uri === '/compras/novo') {
     (new ComercialController())->comprasNovo();
+    exit;
 }
 if ($uri === '/compras/salvar' && $method === 'POST') {
     (new ComercialController())->comprasSalvar();
+    exit;
 }
 if (preg_match('#^/compras/(\d+)/excluir$#', $uri, $m) && $method === 'POST') {
     (new ComercialController())->comprasExcluir((int)$m[1]);
+    exit;
 }
 
 if ($uri === '/vendas') {
     (new ComercialController())->vendasIndex();
+    exit;
 }
 if ($uri === '/vendas/novo') {
     (new ComercialController())->vendasNovo();
+    exit;
 }
 if ($uri === '/vendas/salvar' && $method === 'POST') {
     (new ComercialController())->vendasSalvar();
+    exit;
 }
 if (preg_match('#^/vendas/(\d+)/excluir$#', $uri, $m) && $method === 'POST') {
     (new ComercialController())->vendasExcluir((int)$m[1]);
+    exit;
 }
 
 // ── MÓDULO RELATÓRIOS & SINCRONIZAÇÕES (RelatoriosController) ──
