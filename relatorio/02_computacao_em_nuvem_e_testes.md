@@ -61,18 +61,128 @@ Para além da performance de rede, o projeto implementa padrões corporativos de
 
 ---
 
-## 5. Protocolo Experimental com Apache JMeter
+## 5. Dicionário Técnico e Metodológico das Métricas de Benchmark
 
-### 5.1 O Cenário de Carga
-Simulação de múltiplos trabalhadores de campo retornando simultaneamente do pasto para o alcance do sinal (Wi-Fi da sede ou 4G) e disparando o descarregamento de lotes pendentes no endpoint `/api/sync`.
+Para assegurar rigor analítico e compreensão incontestável na avaliação da banca de TCC, todas as grandezas monitoradas no experimento são formalmente conceituadas abaixo:
 
-### 5.2 Níveis de Concorrência
-* **Cenário A (Rotina Normal):** 20 usuários concorrentes sincronizando lotes de 10 pesagens cada.
-* **Cenário B (Pico de Manejo):** 50 usuários concorrentes simulando múltiplos vaqueiros fechando o lote do dia.
-* **Cenário C (Ponto de Estresse):** 100 conexões simultâneas com payload completo (dados alfanuméricos + imagens comprimidas em Base64).
+### 5.1 Métricas de Experiência e Tempo de Resposta (Latência)
+1. **Latência Média (Response Time / Mean — ms):**
+   * **Conceito Matemático:** Média aritmética dos tempos decorridos entre o envio do primeiro byte da requisição pelo cliente e o recebimento do último byte de resposta do servidor ($\bar{x} = \frac{1}{n}\sum_{i=1}^n t_i$).
+   * **Papel no TCC:** Oferece uma visão panorâmica inicial da rapidez do ambiente, embora seja estatisticamente vulnerável a distorções causadas por poucos valores atípicos (*outliers*).
+2. **Mediana / 50º Percentil (P50 — ms):**
+   * **Conceito Matemático:** Ponto central da distribuição ordenada de tempos. Exatamente 50% de todas as sincronizações foram processadas em tempo igual ou inferior ao P50.
+   * **Papel no TCC:** Representa a experiência real vivenciada pelo vaqueiro/operador no dia a dia da fazenda sob fluxo típico de trabalho.
+3. **90º e 95º Percentis (P90 e P95 — ms):**
+   * **Conceito Matemático:** O tempo máximo no qual 90% e 95% das requisições foram concluídas. Os 5% restantes representam o comportamento em momentos de pico ou saturação.
+   * **Papel no TCC:** É o padrão de ouro da indústria para definição de **SLA (Service Level Agreement)** e **SLO (Service Level Objective)** em arquiteturas distribuídas. No agronegócio, demonstra o comportamento do sistema quando vários operadores chegam ao curral simultaneamente para descarregar dados.
+4. **99º Percentil / Cauda Longa (P99 / Tail Latency — ms):**
+   * **Conceito Matemático:** O tempo máximo para 99% das requisições, isolando o pior 1% dos casos.
+   * **Papel no TCC:** Revela gargalos microscópicos severos de infraestrutura, como pausas de coleta de lixo (*garbage collection*), bloqueios de escrita concorrente em tabelas do PostgreSQL (*table/row lock contention*), esgotamento de conexões ou atrasos de rede (*TCP retransmission*).
 
-### 5.3 Métricas Monitoradas e Coletadas
-1. **Latência / Tempo Médio de Resposta (ms):** Média, Mediana, P90 e P95.
-2. **Vazão (Throughput / RPS):** Quantidade de lotes processados por segundo.
-3. **Taxa de Erro (%):** Falhas de conexão, timeouts ou erros HTTP 500.
-4. **Estresse Computacional:** Consumo de CPU (%) e Memória (MB) monitorados via `docker stats` (Local) e **Amazon CloudWatch** (AWS).
+### 5.2 Métricas de Produtividade e Confiabilidade do Servidor
+5. **Vazão / Produtividade Efetiva (Throughput / RPS — req/s):**
+   * **Conceito Matemático:** Quantidade de requisições de sincronização completadas e persistidas com sucesso por segundo ($RPS = \frac{\text{Requisições Válidas}}{\text{Tempo Total de Teste}}$).
+   * **Papel no TCC:** Mede a capacidade bruta de processamento da infraestrutura. Demonstra o teto de escalabilidade de cada ambiente antes de sofrer estrangulamento.
+6. **Taxa Real de Erro (%):**
+   * **Conceito Matemático:** Percentual de requisições que resultaram em códigos de erro HTTP (como 500 Internal Server Error, 502 Bad Gateway, 504 Gateway Timeout) ou falhas de conexão (*socket timeout/connection reset*).
+   * **Papel no TCC:** Uma vazão alta não tem valor se os dados forem descartados. A taxa de erro atesta se o sistema manteve a **consistência transacional (ACID)** e resiliência sob pressão extrema.
+
+### 5.3 Métricas de Consumo Computacional de Hardware
+7. **Consumo de CPU (% de Utilização, User vs System e Throttling):**
+   * **Conceito Técnico:** Percentual de ciclos de processador consumidos.
+     * *CPU User:* Tempo gasto executando o código PHP 8.3 e parsing do JSON de sincronização.
+     * *CPU System:* Tempo gasto pelo kernel do Linux, Nginx e pilha de rede TCP/IP.
+     * *CPU Steal / Throttling:* Fenômeno crítico em instâncias elásticas (*burstable* como `t3.micro` da AWS, `B1s` da Azure ou `e2-micro` do GCP). Quando a aplicação consome todos os créditos de CPU acumulados, a nuvem estrangula compulsoriamente a CPU para o nível basal (baseline de 10% a 20%), aumentando a latência de forma drástica.
+8. **Consumo de Memória RAM (MB / GB e % Utilizada):**
+   * **Conceito Técnico:** Memória residente física (*Resident Set Size — RSS*) alocada pelos processos *workers* do PHP-FPM e pelo buffer compartilhado do PostgreSQL (*shared_buffers* e *work_mem*).
+   * **Papel no TCC:** Avalia o risco de esgotamento de memória (*Out-Of-Memory Killer*) e a estabilidade da pilha ao longo do tempo.
+9. **Tráfego de Rede (Network I/O — Ingress/Egress em KB/s):**
+   * **Conceito Técnico:** Volume de dados transferidos para dentro (*Ingress*) e fora (*Egress*) do servidor, medindo a eficiência da compressão Gzip e o impacto de uploads de imagens de campo.
+10. **Eficiência Econômica / Custo por Mil Requisições (R$ ou US$ / 1.000 reqs):**
+    * **Conceito Técnico:** Métrica original de Engenharia de Software que correlaciona a capacidade de entrega com o custo financeiro mensal da nuvem, permitindo ao produtor rural calcular o custo exato de TI por cabeça de gado manejada.
+
+---
+
+## 6. Histórico da Primeira Bateria Experimental (Baseline Preliminar N=3)
+
+Para efeito de registro histórico e comparação com as novas rodadas de teste, os dados originais da primeira bateria executada (avaliando o ambiente Local versus a AWS) foram preservados no repositório.
+
+### 6.1 Resultados Consolidados da 1ª Rodada (N=3 Repetições Simétricas)
+
+| Ambiente | Concorrência | N (Runs) | Vazão Média (req/s) | Desvio Padrão | Latência Média (ms) | Desvio Padrão | Mediana (P50) | Percentil 95 (P95) | Taxa Erro HTTP |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| 🏠 **Local (SQLite WAL)** | **20 users** | 3 | **101.55 req/s** | ±2.64 | **188.6 ms** | ±5.0 | 189.2 ms | 253.5 ms | **0.00%** |
+| 🏠 **Local (SQLite WAL)** | **50 users** | 3 | **72.36 req/s** | ±14.86 | **665.7 ms** | ±128.2 | 698.4 ms | 990.9 ms | **0.00%** |
+| 🏠 **Local (SQLite WAL)** | **100 users** | 3 | **49.62 req/s** | ±2.69 | **1925.5 ms** | ±112.3 | 2023.4 ms | 3042.7 ms | **0.00%** |
+| ☁️ **AWS (t3.micro + RDS)** | **20 users** | 3 | **28.26 req/s** | ±0.78 | **692.1 ms** | ±17.6 | 681.7 ms | 860.8 ms | **0.00%** |
+| ☁️ **AWS (t3.micro + RDS)** | **50 users** | 3 | **27.66 req/s** | ±0.31 | **1741.6 ms** | ±23.5 | 1776.0 ms | 2044.6 ms | **0.00%** |
+| ☁️ **AWS (t3.micro + RDS)** | **100 users** | 3 | **25.70 req/s** | ±0.92 | **3726.3 ms** | ±144.8 | 3745.3 ms | 5181.2 ms | **0.00%** |
+
+### 6.2 Preservação do Pacote de Dados Brutos dos Primeiros Testes
+Todos os arquivos de log, scripts de consolidação, planilhas CSV individuais de cada run e o dashboard comparativo interativo em HTML gerados na primeira rodada estão arquivados na pasta compactada:
+* 📁 **Arquivo:** [`relatorio/dados_primeiros_testes_benchmark.zip`](dados_primeiros_testes_benchmark.zip)
+
+### 6.3 Diagnóstico Crítico dos Primeiros Testes
+A análise dos dados do primeiro experimento revelou duas oportunidades capitais de evolução metodológica:
+1. **Assimetria de Bancos:** O ambiente local utilizava SQLite WAL e a AWS utilizava PostgreSQL RDS. Na nova rodada, ambos rodarão exatamente a mesma imagem do PostgreSQL 16 nativo.
+2. **Latência Geográfica Elevada:** O teste na AWS sofreu penalidade de tráfego de longa distância (região internacional ou rota desotimizada), atingindo ~692ms para 20 usuários.
+
+---
+
+## 7. Nova Proposta Científica: O Estudo Comparativo Multi-Cloud
+
+Em vez de limitar o TCC à clássica dicotomia "Local vs AWS", a pesquisa avança para um **Benchmarking Científico Multi-Cloud**, comparando as três maiores provedoras de computação em nuvem do mercado mundial contra a infraestrutura física local:
+
+```
+                               ┌─────────────────────────────┐
+                               │  Bateria Concorrente JMeter │
+                               │   (20, 50 e 100 Usuários)   │
+                               └──────────────┬──────────────┘
+                                              │
+               ┌──────────────────────────────┼──────────────────────────────┐
+               ▼                              ▼                              ▼
+    ┌──────────────────────┐      ┌──────────────────────┐      ┌──────────────────────┐
+    │     Amazon AWS       │      │     Google GCP       │      │   Microsoft Azure    │
+    │ • EC2 t3.micro       │      │ • Compute Engine e2  │      │ • Azure VM B1s       │
+    │ • RDS PostgreSQL     │      │ • Cloud SQL Postgres │      │ • Postgres Flexible  │
+    │ • Região São Paulo   │      │ • Região São Paulo   │      │ • Região BrazilSouth │
+    └──────────────────────┘      └──────────────────────┘      └──────────────────────┘
+               ▲                              ▲                              ▲
+               └──────────────────────────────┼──────────────────────────────┘
+                                              │
+                               ┌──────────────┴──────────────┐
+                               │     Ambiente On-Premise     │
+                               │  Docker Local PostgreSQL 16 │
+                               └─────────────────────────────┘
+```
+
+### 7.1 Por que o Comparativo Multi-Cloud Eleva o Nível do TCC?
+1. **Rigor Científico de Padrão Internacional:** Comparações multi-cloud aplicadas ao agronegócio representam estado da arte acadêmico, agregando imenso valor ao currículo da equipe e atraindo atenção destacada da banca examinadora.
+2. **Portabilidade Real de Contêineres:** Demonstra empiricamente que a arquitetura Docker construída para o PecuáriaGest é verdadeiramente agnóstica de provedor (*cloud-agnostic*), sem aprisionamento tecnológico (*vendor lock-in*).
+3. **Cenário Financeiro Real (Free Tier / Créditos de Estudante):**
+   * **AWS:** Coberta pelo Free Tier de 12 meses (EC2 `t3.micro` + RDS `db.t3.micro`).
+   * **Google Cloud (GCP):** Conta com US$ 300 em créditos de teste válidos por 90 dias, permitindo testes completos com instâncias `e2-micro`/`e2-small` e Cloud SQL na região de São Paulo (`southamerica-east1`) a custo real zero.
+   * **Microsoft Azure:** Conta com US$ 200 em créditos iniciais para 30 dias, viabilizando instâncias `Standard_B1s` e banco flexível na região de São Paulo (`brazilsouth`).
+
+---
+
+## 8. Engenharia de Otimização e Minimização de Latência na Nuvem
+
+Para que a nuvem compita em igualdade de condições de rede com a infraestrutura local, foi desenhado um pacote de otimizações de baixa latência para os testes:
+
+### 8.1 Proximidade Geográfica (Região de São Paulo)
+* **O Efeito da Distância Física:** Conexões com datacenters nos Estados Unidos (como `us-east-1` no Norte da Virgínia) impõem um atraso físico de ida e volta (*Round-Trip Time — RTT*) de **120ms a 180ms**, puramente pela velocidade da luz na fibra ótica submarina.
+* **A Implantação em São Paulo:** Ao alocar a infraestrutura na região metropolitana de São Paulo (`sa-east-1` na AWS, `southamerica-east1` no GCP e `brazilsouth` na Azure), a latência física da rota cai para **15ms a 35ms** a partir do território paulista/mineiro, reduzindo o tempo de resposta em até **80%**.
+
+### 8.2 Colocation e Baixa Latência Interna (Mesma AZ e Subnet)
+* A máquina virtual de aplicação (Nginx + PHP-FPM) e a instância de banco de dados gerenciado (PostgreSQL RDS) devem ser fixadas na **mesma Zona de Disponibilidade física** (ex: `sa-east-1a`).
+* Isso garante que a comunicação entre o PHP e o banco de dados trafegue por fibra ótica interna de altíssima velocidade do datacenter, com latência entre servidores inferior a **1 milissegundo**.
+
+### 8.3 Otimização de Conexões Persistentes do Banco de Dados
+* Em cargas elevadas de requisições concorrentes, abrir e fechar uma conexão TCP com o banco de dados a cada lote de sincronização gera um *overhead* proibitivo de handshakes.
+* **Solução:** Configuração de conexões persistentes no driver PDO (`PDO::ATTR_PERSISTENT => true`) ou ativação de *Connection Pooling*, permitindo que os processos reutilizem canais já autenticados instantaneamente.
+
+### 8.4 Ajuste Fino dos Workers do PHP-FPM e Nginx
+* Reconfiguração do gestor de processos do PHP-FPM (`pm = dynamic`, `pm.max_children = 30`, `pm.start_servers = 10`, `pm.min_spare_servers = 5`, `pm.max_spare_servers = 15`), impedindo que as requisições simultâneas dos 50 ou 100 usuários enfileirem no socket do sistema operacional.
+* Habilitação de keep-alive de longa duração (`keepalive_timeout 65;`) e buffers de conexão adequados no Nginx.
+

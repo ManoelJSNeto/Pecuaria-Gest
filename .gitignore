@@ -28,6 +28,7 @@ Thumbs.db
 
 # Backups & Archives
 *.zip
+!relatorio/*.zip
 *.tar.gz
 *.bak
 
