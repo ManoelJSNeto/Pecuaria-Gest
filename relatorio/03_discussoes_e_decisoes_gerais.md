@@ -34,11 +34,18 @@ No início do projeto, a equipe planejou a aplicação de formulários estrutura
 
 ### 3.1 Genealogia e Consistência Biológica
 * **Restrição Estrita de Maternidade:** O sistema implementou validação para que apenas fêmeas ativas e vivas (`sexo = 'F'`) possam ser selecionadas como mães biológicas de novos bezerros, eliminando incongruências de cadastro.
+* **Paternidade e Reprodutores:** Sugestão de touros machos ativos (`sexo = 'M'`) cadastrados na fazenda e suporte a digitação livre para sêmen de inseminação artificial (IA), com bloqueio contra atribuição de fêmeas como touro reprodutor.
 * **Distinção de Origem:** Separação explícita entre animais nascidos na propriedade (que geram cálculo de idade e controle de maternidade) versus animais adquiridos/comprados de terceiros (com registro de peso de entrada e valor de aquisição).
+* **Memória de Filhote / Bezerro:** Detecção automática de animais com idade $\le 12$ meses. A primeira foto de filhote é preservada permanentemente no prontuário no cartão *"Memória de Filhote"*, mantendo o registro visual de nascimento mesmo após o animal atingir a fase adulta.
 
 ### 3.2 O Ciclo de Saída (Faturamento vs Mortalidade)
-* **Baixa por Venda:** Registro formal do comprador, valor por arroba/total, peso de embarque e data, alimentando o painel financeiro do proprietário na cidade.
+* **Baixa por Venda:** Registro formal do comprador, valor por arroba/total, peso de embarque e data, alimentando o painel financeiro do proprietário na cidade e baixando o animal do rebanho ativo.
 * **Baixa por Óbito:** Exigência de motivo clínico e registro de necropsia, impactando diretamente os índices zootécnicos de taxa de mortalidade do rebanho no dashboard.
+
+### 3.3 Transição Automática e Reativa de Status
+Para eliminar intervenção manual e inconsistências de cadastro entre o aplicativo de campo e o banco central:
+* **Eventos Sanitários:** A inserção de um evento de óbito altera imediatamente o status do animal para `morto`; procedimentos de tratamento, curativo ou cirurgia alteram para `doente` ("Em Tratamento"); e altas médicas restauram para `ativo`.
+* **Eventos Reprodutivos:** O diagnóstico positivo de gestação altera a matriz para `prenha`, e o registro posterior de parto, aborto ou desmame retorna a vaca para o status `ativo`.
 
 ---
 

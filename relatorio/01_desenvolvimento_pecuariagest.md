@@ -110,5 +110,49 @@ Para elevar o projeto ao padrão esperado pela banca acadêmica e pelas boas pr�
 ### 6.3 Resultados Práticos da Refatoração
 * **Redução de Código:** O `public/index.php` foi reduzido de **~1.450 linhas para 425 linhas** (redução de 71%).
 * **Autoloading Dinâmico:** Implementado via `spl_autoload_register`, garantindo que cada requisição carregue em memória apenas o controlador demandado.
-* **Validação Contínua:** 100% das 21 rotas de tela e 2 endpoints REST validados com sucesso em suíte automatizada de testes de regressão.
+* **Validação Contínua:** 100% das rotas de tela e endpoints REST validados com sucesso em suíte automatizada de testes de regressão.
+
+---
+
+## 7. Suíte Oficial de Relatórios Gerenciais & Fichas Técnicas em PDF (A4)
+
+### 7.1 Engenharia de Impressão Nativa (CSS Paged Media vs Binários Pesados)
+Para viabilizar a geração de documentos formais para impressão física e arquivamento fiscal sem onerar a imagem Docker Alpine com dependências pesadas (como `wkhtmltopdf` ou navegadores headless de centenas de megabytes):
+* **Padronização Internacional A4:** Utilização da especificação W3C CSS Paged Media (`@page { size: A4 portrait; margin: 12mm 14mm; }`).
+* **Preservação de Cores e Gráficos:** Ativação de `-webkit-print-color-adjust: exact` e `print-color-adjust: exact`, garantindo fidelidade das cores corporativas e gráficos na impressão e na exportação em PDF.
+* **Logotipo Vetorial Institucional:** Inclusão do brasão oficial em SVG (`/favicon.svg`) com escala vetorial nítida em qualquer resolução de impressão.
+* **Barra de Ferramentas com Disparo Nativo (`.print-toolbar`):** Visualizador em tela com botão de disparo direto de `window.print()` e retorno suave, ocultado automaticamente na impressão (`@media print { .no-print { display: none !important; } }`).
+
+### 7.2 Os 5 Documentos Zootécnicos e Comerciais Homologados
+1. **Ficha Cadastral & Prontuário Zootécnico Individual (`/animais/{id}/pdf`):** Foto identificadora, biometria (peso inicial e atual em kg e @), cálculo de idade, genealogia biológica (mãe e touro), histórico de pesagens com Ganho Médio Diário (GMD em kg/dia), ocorrências sanitárias e histórico reprodutivo.
+2. **Espelho de Compra de Gado & Lote de Entrada (`/compras/{id}/pdf`):** GTA de entrada, Chave de Acesso da NF-e (44 dígitos), fornecedor de origem, peso total, arrobas totais (@), custo médio por cabeça, custo da arroba (R$/@), status do XML SEFAZ e romaneio de animais ingressados.
+3. **Comprovante Oficial de Venda & Desinvestimento (`/vendas/{id}/pdf`):** GTA de saída, NF-e de 44 dígitos, comprador/frigorífico, modalidade de precificação (@ ou cabeça), peso total, preço efetivo da arroba, apuração de lucro bruto e margem comercial (%), e lista de animais baixados do rebanho ativo.
+4. **Inventário Geral do Rebanho & Balanço de Pastagens (`/relatorios/pdf?tipo=rebanho`):** Posição consolidada do rebanho, total de ativos, machos vs fêmeas, peso médio (kg e @), balanço por pastagem/piquete (área, capacidade, lotação atual, % de ocupação e densidade cab/ha) e romaneio analítico.
+5. **Laudo Sanitário & Manejo Clínico (`/relatorios/pdf?tipo=saude`):** Auditoria clínica consolidada, investimento total acumulado em fármacos (R$), custo médio por intervenção, distribuição por tipo de manejo (vacinas, tratamentos, exames) e log cronológico detalhado por veterinário responsável.
+
+### 7.3 Customização e Filtragem Granular dos Relatórios
+Para evitar a simples emissão de documentos estáticos de todo o rebanho, implementou-se um sistema duplo de filtragem e customização:
+* **Filtros Granulares Pré-Geração (Servidor):**
+  * Modais em `/relatorios` permitindo selecionar: pastagem/piquete, sexo biológico, categoria de idade (bezerros ≤12 meses vs adultos >12 meses com cálculo dinâmico), raça, status (ativos, vendidos, mortos ou todos) e modo sintético executivo de 1 página (omissão do romaneio individual).
+  * **Filtro por Prefixo / Início do Brinco ou Nome:** Busca de lotes específicos de teste ou manejo por prefixo (ex: `T001`, `T002`, `PG_` ou múltiplos valores separados por vírgula).
+  * **Seleção Manual Individual ("Vaca por Vaca"):** Sub-aba retrátil no modal com busca instantânea em tempo real via JavaScript, botões para marcar visíveis/limpar e contador dinâmico de animais selecionados.
+* **Emissão Direta por Animal:**
+  * Botão com ícone de PDF em cada linha da tabela de animais (`/animais`), permitindo baixar a ficha técnica de qualquer vaca com 1 clique direto.
+  * Botão de impressão no topo de `/animais` preservando os filtros ativos da tela.
+  * Link e botão interativo no brinco de cada animal na tabela analítica do PDF consolidado.
+* **Alternância Dinâmica de Seções (Live Section Toggles):**
+  * Na própria barra de ferramentas de impressão (`.print-toolbar`), o menu *"Personalizar Seções"* detecta elementos com `[data-printable-section]` e permite que o usuário desmarque blocos inteiros em tempo real, sumindo da tela e da impressão física/PDF sem necessidade de nova requisição ao servidor.
+
+---
+
+## 8. Padronização Visual e Sobriedade Institucional (Bootstrap Icons)
+
+### 8.1 Da Linguagem Informal à Sobriedade Acadêmica
+Nas primeiras iterações do sistema, foram utilizados emojis de navegador (como 🐄, ⚖️, ⚕️, 🐣, ⚠️) para sinalizar rapidamente as seções.
+* **O Risco Perante a Banca:** Em uma apresentação acadêmica formal de TCC, o uso de emojis pode transmitir informalidade excessiva ou causar variações indesejadas de renderização visual entre diferentes sistemas operacionais (Android, Windows, Linux e macOS).
+* **A Padronização com Bootstrap Icons:**
+  * Todos os emojis foram substituídos por ícones vetoriais puros da biblioteca **Bootstrap Icons**, integrada localmente ao projeto para não depender de CDN externa.
+  * Padronização de ícones técnicos: `<i class="bi bi-tag-fill"></i>` para animais e brincos, `<i class="bi bi-rulers"></i>` para pesagens e balanças, `<i class="bi bi-heart-pulse-fill"></i>` para manejo sanitário, `<i class="bi bi-stars"></i>` para bezerros e memória de filhote, `<i class="bi bi-exclamation-triangle-fill"></i>` para censura de fotos sensíveis e óbitos, e `<i class="bi bi-file-earmark-pdf-fill"></i>` para documentos oficiais.
+  * O resultado garantiu harmonia estética, identidade corporativa limpa e máxima sobriedade visual para a banca examinadora.
+
 
