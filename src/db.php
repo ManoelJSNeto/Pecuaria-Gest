@@ -301,6 +301,82 @@ function initDb(PDO $db): void {
         ");
     }
 
+    // Seed sample compras se tabela estiver vazia
+    try {
+        $cCount = (int)$db->query("SELECT COUNT(*) FROM compras")->fetchColumn();
+        if ($cCount === 0) {
+            $sampleXmlName = 'nfe_compra_sample.xml';
+            $sampleXmlSource = dirname(__DIR__) . '/tests/fixtures/' . $sampleXmlName;
+            $uploadDir = (defined('DATA_PATH') ? DATA_PATH : dirname(__DIR__) . '/storage') . '/uploads/documentos';
+            if (!is_dir($uploadDir)) {
+                @mkdir($uploadDir, 0777, true);
+            }
+            $xmlRelPath = null;
+            if (file_exists($sampleXmlSource)) {
+                @copy($sampleXmlSource, $uploadDir . '/' . $sampleXmlName);
+                $xmlRelPath = 'documentos/' . $sampleXmlName;
+            }
+
+            $db->prepare("
+                INSERT INTO compras (id, data_compra, descricao, numero_gta, chave_nfe, arquivo_xml, quantidade_cabecas, peso_total_kg, valor_total, fornecedor_origem, pasto_destino_id, observacao)
+                VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
+            ")->execute([
+                date('Y-m-d', strtotime('-20 days')),
+                'Lote Inicial de Garrotes Nelore PO',
+                'GTA-MS-10492',
+                '35260912345678000195550010000012341000012340',
+                $xmlRelPath,
+                40,
+                11400.0,
+                116000.0,
+                'FAZENDA AGROPECUARIA SANTA HELENA LTDA',
+                'Lote de reposição registrado com GTA e NF-e inclusos no inventário'
+            ]);
+            try { $db->exec("SELECT setval('compras_id_seq', (SELECT COALESCE(MAX(id), 1) FROM compras))"); } catch (Exception $e) {}
+        }
+    } catch (Exception $e) {
+        error_log("Erro ao semear compras: " . $e->getMessage());
+    }
+
+    // Seed sample vendas se tabela estiver vazia
+    try {
+        $vCount = (int)$db->query("SELECT COUNT(*) FROM vendas")->fetchColumn();
+        if ($vCount === 0) {
+            $sampleVendaXmlName = 'nfe_venda_sample.xml';
+            $sampleVendaXmlSource = dirname(__DIR__) . '/tests/fixtures/' . $sampleVendaXmlName;
+            $uploadDir = (defined('DATA_PATH') ? DATA_PATH : dirname(__DIR__) . '/storage') . '/uploads/documentos';
+            if (!is_dir($uploadDir)) {
+                @mkdir($uploadDir, 0777, true);
+            }
+            $vendaXmlRelPath = null;
+            if (file_exists($sampleVendaXmlSource)) {
+                @copy($sampleVendaXmlSource, $uploadDir . '/' . $sampleVendaXmlName);
+                $vendaXmlRelPath = 'documentos/' . $sampleVendaXmlName;
+            }
+
+            $db->prepare("
+                INSERT INTO vendas (id, data_venda, descricao, numero_gta, chave_nfe, arquivo_xml, quantidade_cabecas, peso_total_kg, tipo_precificacao, preco_unitario, valor_total, comprador_destino, observacao)
+                VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ")->execute([
+                date('Y-m-d', strtotime('-5 days')),
+                'Venda de Lote Terminado para Abate',
+                'GTA-MS-55821',
+                '35260998765432000188550010000056781000056789',
+                $vendaXmlRelPath,
+                10,
+                5500.0,
+                'arroba',
+                295.0,
+                54083.33,
+                'FRIGORIFICO INDUSTRIAL SAO PAULO S/A',
+                'Lote de terminação em confinamento com rendimento de carcaça padrão'
+            ]);
+            try { $db->exec("SELECT setval('vendas_id_seq', (SELECT COALESCE(MAX(id), 1) FROM vendas))"); } catch (Exception $e) {}
+        }
+    } catch (Exception $e) {
+        error_log("Erro ao semear vendas: " . $e->getMessage());
+    }
+
     // Sinaliza inicialização do banco concluída
     if (defined('DATA_PATH')) {
         @file_put_contents(DATA_PATH . '/.db_ready', date('c'));

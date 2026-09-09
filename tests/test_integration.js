@@ -90,6 +90,9 @@ async function run() {
     { path: '/configuracoes', name: 'Configurações do Sistema' }
   ];
 
+  const apiKey = process.env.API_KEY || 'pecuaria-mobile-key';
+
+  let failedViews = [];
   for (const v of views) {
     const res = await request({
       hostname: 'localhost',
@@ -102,7 +105,12 @@ async function run() {
     console.log(`3. Rota ${v.path.padEnd(16)} [${v.name}] -> HTTP ${res.statusCode} ${ok ? '✅ OK (Sem erros SQL)' : '❌ ERRO'}`);
     if (!ok) {
       console.error(`ERRO NA ROTA ${v.path}:`, res.body.slice(0, 300));
+      failedViews.push(v.path);
     }
+  }
+
+  if (failedViews.length > 0) {
+    throw new Error(`Rotas falharam (${failedViews.length}): ${failedViews.join(', ')}`);
   }
 
   // 4. Teste de API Mobile /api/sync completo
@@ -146,12 +154,16 @@ async function run() {
     headers: {
       'Content-Type': 'application/json',
       'Content-Length': Buffer.byteLength(syncPayload),
-      'X-API-KEY': 'pecuaria-mobile-key'
+      'X-API-KEY': apiKey,
+      'Cookie': authCookies
     }
   }, syncPayload);
   const syncJson = JSON.parse(resSync.body);
   const syncOk = resSync.statusCode === 200 && syncJson.status === 'ok' && syncJson.processados.animais_novos === 1;
   console.log(`4. POST /api/sync -> HTTP ${resSync.statusCode} ${syncOk ? '✅ SUCESSO' : '❌ FALHA'}`);
+  if (!syncOk) {
+    throw new Error(`POST /api/sync falhou: ${resSync.body}`);
+  }
 
   // 5. Teste GET /api/animais
   const resAnimais = await request({
@@ -159,11 +171,20 @@ async function run() {
     port: 8080,
     path: '/api/animais',
     method: 'GET',
-    headers: { 'X-API-KEY': 'pecuaria-mobile-key' }
+    headers: { 
+      'X-API-KEY': apiKey,
+      'Cookie': authCookies
+    }
   });
+  if (resAnimais.statusCode !== 200) {
+    throw new Error(`GET /api/animais falhou com status ${resAnimais.statusCode}: ${resAnimais.body}`);
+  }
   const animaisJson = JSON.parse(resAnimais.body);
-  const foundAnimal = animaisJson.animais.find(a => a.brinco === testBrinco);
-  console.log(`5. GET /api/animais -> Animal ${testBrinco} retornado com peso_atual ${foundAnimal?.peso_atual} kg ${foundAnimal ? '✅ CONFIRMADO' : '❌ NÃO ENCONTRADO'}`);
+  const foundAnimal = (animaisJson.animais || []).find(a => a.brinco === testBrinco);
+  if (!foundAnimal) {
+    throw new Error(`Animal ${testBrinco} não foi encontrado na resposta de /api/animais`);
+  }
+  console.log(`5. GET /api/animais -> Animal ${testBrinco} retornado com peso_atual ${foundAnimal?.peso_atual} kg ✅ CONFIRMADO`);
 
   console.log("=== BATERIA COMPLETA CONCLUÍDA COM 100% DE SUCESSO ===");
 }

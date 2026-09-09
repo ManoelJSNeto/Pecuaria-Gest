@@ -1,6 +1,6 @@
 const http = require('http');
 
-async function postJson(urlPath, payload, apiKey = 'pecuaria-mobile-key') {
+async function postJson(urlPath, payload, apiKey = process.env.API_KEY || 'pecuaria-mobile-key') {
   return new Promise((resolve, reject) => {
     const data = JSON.stringify(payload);
     const req = http.request({
@@ -24,7 +24,7 @@ async function postJson(urlPath, payload, apiKey = 'pecuaria-mobile-key') {
   });
 }
 
-async function getJson(urlPath, apiKey = 'pecuaria-mobile-key') {
+async function getJson(urlPath, apiKey = process.env.API_KEY || 'pecuaria-mobile-key') {
   return new Promise((resolve, reject) => {
     const req = http.request({
       hostname: 'localhost',
@@ -54,7 +54,7 @@ async function runMobileTest() {
   // 1. Simula lote offline coletado no pasto
   const mobileBatch = {
     dispositivo: "Samsung Galaxy XCover (App Nativo Campo)",
-    api_key: "pecuaria-mobile-key",
+    api_key: process.env.API_KEY || "pecuaria-mobile-key",
     auth_email: "admin@fazenda.com",
     auth_senha: "admin123",
     animais_novos: [
