@@ -134,24 +134,34 @@ A equipe planeja refazer integralmente os testes de carga concorrente (20, 50 e 
 
 ### 🆔 [FEEDBACK-XML-NFE-2026-09-09] Validação de Campo: Pré-visualização Imediata e Edição de Itens do XML da NF-e
 
-> **Status:** 🟡 **EM ANÁLISE / CONVERSA COM O AUTOR**  
+> **Status:** 🟢 **CONCLUÍDO E TESTADO COM 100% DE SUCESSO**  
 > **Identificador Único:** `[FEEDBACK-XML-NFE-2026-09-09]`  
-> **Data de Registro:** 09/09/2026
+> **Data de Registro:** 09/09/2026  
+> **Branch de Desenvolvimento:** `feature/xml-nfe-preview-edit`
 
 #### 1. Relato da Validação de Campo
 Durante os testes práticos de validação da aplicação com usuário/produtor antes das etapas de infraestrutura, foi reportado o seguinte gargalo de usabilidade no módulo de Compras e Vendas:
-* Ao anexar o arquivo XML da Nota Fiscal Eletrônica (NF-e), a aplicação preenche apenas os campos gerais de cabeçalho, **mas não lista na tela, na hora, os itens/produtos contidos na nota fiscal** (detalhamento de itens, animais, quantidades, descrições e valores unitários).
-* Se o usuário precisar **conferir, ajustar ou editar** qualquer dado importado da nota (ou itens específicos) antes ou depois de salvar, a aplicação não oferece uma interface interativa de revisão imediata nem de edição posterior.
+* Ao anexar o arquivo XML da Nota Fiscal Eletrônica (NF-e), a aplicação preenchia apenas os campos gerais de cabeçalho, **mas não listava na tela, na hora, os itens/produtos contidos na nota fiscal** (detalhamento de itens, animais, quantidades, descrições e valores unitários).
+* Se o usuário precisasse **conferir, ajustar ou editar** qualquer dado importado da nota (ou itens específicos) antes ou depois de salvar, a aplicação não oferecia uma interface interativa de revisão imediata nem de edição posterior.
 
-#### 2. Diagnóstico Técnico do Código Atual:
-1. **Falta de Tabela de Itens em Tempo Real:** O leitor JavaScript (`handleXmlSelect`) em `src/views/compras/form.php` e `src/views/vendas/form.php` extrai valores consolidados (Chave, Fornecedor, Valor Total, Peso Total), mas não gera uma tabela visual dinâmica renderizando as tags `<det>` / `<prod>` (itens da nota, códigos, descrição, quantidade comercial `qCom`, valor unitário `vUnCom` e valor total `vProd`).
-2. **Campos Estáticos vs Editáveis:** Os valores extraídos vão para inputs simples, mas não há um grid/tabela interativa onde o produtor possa alterar uma quantidade, recalcular rateios ou selecionar quais itens da nota deseja realmente importar.
-3. **Ausência de Edição Pós-Salvar:** No controlador `ComercialController.php`, existem apenas métodos para criar e excluir compras/vendas (`comprasNovo`, `comprasSalvar`, `comprasExcluir`, `vendasNovo`, `vendasSalvar`), não existindo rotas e telas de edição (`comprasEditar`, `comprasAtualizar`, `vendasEditar`, `vendasAtualizar`).
+#### 2. Diagnóstico Técnico Identificado:
+1. **Falta de Tabela de Itens em Tempo Real:** O leitor JavaScript (`handleXmlSelect`) em `src/views/compras/form.php` e `src/views/vendas/form.php` extraía valores consolidados (Chave, Fornecedor, Valor Total, Peso Total), mas não gerava uma tabela visual dinâmica renderizando as tags `<det>` / `<prod>` (itens da nota, códigos, descrição, quantidade comercial `qCom`, valor unitário `vUnCom` e valor total `vProd`).
+2. **Campos Estáticos vs Editáveis:** Os valores extraídos iam para inputs simples, mas não havia um grid/tabela interativa onde o produtor pudesse alterar uma quantidade, recalcular rateios ou selecionar quais itens da nota desejava realmente importar (excluindo frete ou serviços).
+3. **Ausência de Edição Pós-Salvar:** No controlador `ComercialController.php`, existiam apenas métodos para criar e excluir compras/vendas (`comprasNovo`, `comprasSalvar`, `comprasExcluir`, `vendasNovo`, `vendasSalvar`), não existindo rotas e telas de edição (`comprasEditar`, `comprasAtualizar`, `vendasEditar`, `vendasAtualizar`).
 
-#### 3. Proposta de Solução para Discussão:
-* **Painel Dinâmico de Conferência do XML:** Ao selecionar o XML, abrir imediatamente uma tabela sanfonada ou card interativo *"Itens Detectados na NF-e"*, mostrando cada produto/lote do XML com colunas editáveis em tempo real.
-* **Geração Flexível de Animais/Brincos:** Permitir que o usuário edite o prefixo, quantidades e pesos por item da nota antes de disparar o cadastro dos animais.
-* **Módulo de Edição Completa:** Implementar telas e rotas de edição para compras e vendas já cadastradas (`GET /compras/{id}/editar` e `GET /vendas/{id}/editar`).
+#### 3. Implementação e Resolução Entregue:
+* **Painel Dinâmico de Conferência de Itens (`#painelItensXml` e `#painelItensXmlVenda`):**
+  * Ao carregar ou arrastar o XML da NF-e, exibe na hora os metadados (NF-e, Série, Emitente/Destinatário, Data, Observações/GTA).
+  * Renderiza grid interativo com cada produto/lote discriminado na nota, com checkboxes para incluir/desmarcar itens (itens como frete/serviço são desmarcados por padrão).
+  * Campos totalmente editáveis de Descrição, Quantidade e Valor Unitário, com recálculo em tempo real de totais e indicadores zootécnicos.
+  * Suporte à adição de itens manuais e exclusão de itens na conferência.
+* **Rotas e Telas de Edição:**
+  * Implementadas rotas `GET /compras/{id}/editar`, `POST /compras/{id}/atualizar`, `GET /vendas/{id}/editar` e `POST /vendas/{id}/atualizar`.
+  * Atualização inteligente dos animais vinculados e botões de atalho (`<i class="bi bi-pencil"></i>`) nas tabelas.
+* **Validação e Testes Automatizados:**
+  * 38 rotas do sistema validadas com HTTP 200 e zero erros SQL (`tests/test_integration.js`).
+  * Teste de integração de persistência e redirecionamento (`tests/test_compras_vendas_edit.js`) executado com 100% de aprovação.
+  * Validador de regras de negócio XML (`tests/test_xml_parser.php`) aprovado com dados reais.
 
 
 

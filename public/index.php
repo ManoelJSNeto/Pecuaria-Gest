@@ -343,6 +343,14 @@ if ($uri === '/compras/salvar' && $method === 'POST') {
     (new ComercialController())->comprasSalvar();
     exit;
 }
+if (preg_match('#^/compras/(\d+)/editar$#', $uri, $m)) {
+    (new ComercialController())->comprasEditar((int)$m[1]);
+    exit;
+}
+if (preg_match('#^/compras/(\d+)/atualizar$#', $uri, $m) && $method === 'POST') {
+    (new ComercialController())->comprasAtualizar((int)$m[1]);
+    exit;
+}
 if (preg_match('#^/compras/(\d+)/pdf$#', $uri, $m)) {
     (new ComercialController())->comprasPdf((int)$m[1]);
     exit;
@@ -362,6 +370,14 @@ if ($uri === '/vendas/novo') {
 }
 if ($uri === '/vendas/salvar' && $method === 'POST') {
     (new ComercialController())->vendasSalvar();
+    exit;
+}
+if (preg_match('#^/vendas/(\d+)/editar$#', $uri, $m)) {
+    (new ComercialController())->vendasEditar((int)$m[1]);
+    exit;
+}
+if (preg_match('#^/vendas/(\d+)/atualizar$#', $uri, $m) && $method === 'POST') {
+    (new ComercialController())->vendasAtualizar((int)$m[1]);
     exit;
 }
 if (preg_match('#^/vendas/(\d+)/pdf$#', $uri, $m)) {

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nfeProc xmlns="http://www.portalfiscal.inf.br/nfe" versao="4.00">
+  <NFe>
+    <infNFe Id="NFe35260998765432000109550010000056781000056789" versao="4.00">
+      <ide>
+        <cUF>35</cUF>
+        <cNF>00005678</cNF>
+        <natOp>REMESSA DE GADO PARA ABATE</natOp>
+        <mod>55</mod>
+        <serie>1</serie>
+        <nNF>5678</nNF>
+        <dhEmi>2026-09-09T14:15:00-03:00</dhEmi>
+        <tpNF>1</tpNF>
+      </ide>
+      <emit>
+        <CNPJ>98765432000109</CNPJ>
+        <xNome>PECUARIA GEST AGROPECUARIA SA</xNome>
+        <xFant>FAZENDA AGROPECUARIA GEST</xFant>
+      </emit>
+      <dest>
+        <CNPJ>02916265000160</CNPJ>
+        <xNome>JBS S/A - UNIDADE FRIGORIFICO ANDRADINA</xNome>
+      </dest>
+      <det nItem="1">
+        <prod>
+          <cProd>ABATE01</cProd>
+          <cEAN>SEM GTIN</cEAN>
+          <xProd>BOVINO MACHO DESTINADO AO ABATE IMEDIATO</xProd>
+          <NCM>01022990</NCM>
+          <CFOP>5101</CFOP>
+          <uCom>CAB</uCom>
+          <qCom>20.0000</qCom>
+          <vUnCom>4850.0000</vUnCom>
+          <vProd>97000.00</vProd>
+        </prod>
+      </det>
+      <total>
+        <ICMSTot>
+          <vProd>97000.00</vProd>
+          <vNF>97000.00</vNF>
+        </ICMSTot>
+      </total>
+      <transp>
+        <vol>
+          <pesoL>10800.000</pesoL>
+          <pesoB>10800.000</pesoB>
+        </vol>
+      </transp>
+      <infAdic>
+        <infCpl>GTA DE SAIDA Nº 992817/SP. CARGA LACRADA PARA EMBARQUE DIRETO AO FRIGORIFICO JBS.</infCpl>
+      </infAdic>
+    </infNFe>
+  </NFe>
+</nfeProc>

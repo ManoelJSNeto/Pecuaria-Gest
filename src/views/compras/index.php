@@ -215,6 +215,9 @@ $custoMedioArroba = $totalArrobas > 0 ? ($totalInvestido / $totalArrobas) : 0.0;
                 <a href="/compras/<?= $c['id'] ?>/pdf" target="_blank" class="btn btn-sm btn-outline-success" title="Espelho de Compra (PDF)">
                   <i class="bi bi-file-earmark-pdf-fill"></i>
                 </a>
+                <a href="/compras/<?= $c['id'] ?>/editar" class="btn btn-sm btn-outline-primary" title="Editar Compra">
+                  <i class="bi bi-pencil"></i>
+                </a>
                 <?php if (!empty($c['arquivo_xml'])): ?>
                   <a href="<?= e($c['arquivo_xml']) ?>" download class="btn btn-sm btn-secondary" title="Baixar XML da NF-e">
                     <i class="bi bi-download"></i>
