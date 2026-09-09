@@ -130,4 +130,28 @@ A equipe planeja refazer integralmente os testes de carga concorrente (20, 50 e 
   * *Microsoft Azure:* Mapeamento da Azure VM `Standard_B1s` + Azure Database for PostgreSQL Flexible Server na região `brazilsouth` (São Paulo).
 * [ ] **Execução Prévia em Ambientes Locais:** Testar o novo runner com captura de CPU/RAM em duas máquinas físicas locais (Máquina A do autor e Máquina B adicional) antes de disparar os testes na nuvem.
 
+---
+
+### 🆔 [FEEDBACK-XML-NFE-2026-09-09] Validação de Campo: Pré-visualização Imediata e Edição de Itens do XML da NF-e
+
+> **Status:** 🟡 **EM ANÁLISE / CONVERSA COM O AUTOR**  
+> **Identificador Único:** `[FEEDBACK-XML-NFE-2026-09-09]`  
+> **Data de Registro:** 09/09/2026
+
+#### 1. Relato da Validação de Campo
+Durante os testes práticos de validação da aplicação com usuário/produtor antes das etapas de infraestrutura, foi reportado o seguinte gargalo de usabilidade no módulo de Compras e Vendas:
+* Ao anexar o arquivo XML da Nota Fiscal Eletrônica (NF-e), a aplicação preenche apenas os campos gerais de cabeçalho, **mas não lista na tela, na hora, os itens/produtos contidos na nota fiscal** (detalhamento de itens, animais, quantidades, descrições e valores unitários).
+* Se o usuário precisar **conferir, ajustar ou editar** qualquer dado importado da nota (ou itens específicos) antes ou depois de salvar, a aplicação não oferece uma interface interativa de revisão imediata nem de edição posterior.
+
+#### 2. Diagnóstico Técnico do Código Atual:
+1. **Falta de Tabela de Itens em Tempo Real:** O leitor JavaScript (`handleXmlSelect`) em `src/views/compras/form.php` e `src/views/vendas/form.php` extrai valores consolidados (Chave, Fornecedor, Valor Total, Peso Total), mas não gera uma tabela visual dinâmica renderizando as tags `<det>` / `<prod>` (itens da nota, códigos, descrição, quantidade comercial `qCom`, valor unitário `vUnCom` e valor total `vProd`).
+2. **Campos Estáticos vs Editáveis:** Os valores extraídos vão para inputs simples, mas não há um grid/tabela interativa onde o produtor possa alterar uma quantidade, recalcular rateios ou selecionar quais itens da nota deseja realmente importar.
+3. **Ausência de Edição Pós-Salvar:** No controlador `ComercialController.php`, existem apenas métodos para criar e excluir compras/vendas (`comprasNovo`, `comprasSalvar`, `comprasExcluir`, `vendasNovo`, `vendasSalvar`), não existindo rotas e telas de edição (`comprasEditar`, `comprasAtualizar`, `vendasEditar`, `vendasAtualizar`).
+
+#### 3. Proposta de Solução para Discussão:
+* **Painel Dinâmico de Conferência do XML:** Ao selecionar o XML, abrir imediatamente uma tabela sanfonada ou card interativo *"Itens Detectados na NF-e"*, mostrando cada produto/lote do XML com colunas editáveis em tempo real.
+* **Geração Flexível de Animais/Brincos:** Permitir que o usuário edite o prefixo, quantidades e pesos por item da nota antes de disparar o cadastro dos animais.
+* **Módulo de Edição Completa:** Implementar telas e rotas de edição para compras e vendas já cadastradas (`GET /compras/{id}/editar` e `GET /vendas/{id}/editar`).
+
+
 
