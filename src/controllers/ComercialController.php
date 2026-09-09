@@ -529,4 +529,78 @@ class ComercialController extends BaseController {
             'animais' => $animais,
         ]);
     }
+
+    /**
+     * Visualizador Completo dos Detalhes da NF-e e Itens do XML (GET /compras/{id}/nfe)
+     */
+    public function comprasNfe(int $id): void {
+        $this->requireLogin();
+        $stmt = $this->db->prepare("SELECT * FROM compras WHERE id = ?");
+        $stmt->execute([$id]);
+        $compra = $stmt->fetch();
+        if (!$compra) {
+            flash('error', 'Lote de compra não encontrado.');
+            $this->redirect('/compras');
+        }
+
+        $nfeData = null;
+        if (!empty($compra['arquivo_xml'])) {
+            $nfeData = parseNfeXml($compra['arquivo_xml']);
+        }
+
+        if (isset($_GET['format']) && $_GET['format'] === 'json') {
+            $this->json([
+                'status' => 'ok',
+                'compra' => $compra,
+                'nfe' => $nfeData
+            ]);
+            exit;
+        }
+
+        $pasto = null;
+        if (!empty($compra['pasto_destino_id'])) {
+            $pst = $this->db->prepare("SELECT nome FROM pastagens WHERE id = ?");
+            $pst->execute([$compra['pasto_destino_id']]);
+            $pasto = $pst->fetch() ?: null;
+        }
+
+        $this->render('compras/nfe', 'Detalhes da NF-e #' . ($nfeData['numero'] ?? $compra['numero_gta']), 'compras', [
+            'c' => $compra,
+            'nfe' => $nfeData,
+            'pasto' => $pasto
+        ]);
+    }
+
+    /**
+     * Visualizador Completo dos Detalhes da NF-e e Itens do XML (GET /vendas/{id}/nfe)
+     */
+    public function vendasNfe(int $id): void {
+        $this->requireLogin();
+        $stmt = $this->db->prepare("SELECT * FROM vendas WHERE id = ?");
+        $stmt->execute([$id]);
+        $venda = $stmt->fetch();
+        if (!$venda) {
+            flash('error', 'Registro de venda não encontrado.');
+            $this->redirect('/vendas');
+        }
+
+        $nfeData = null;
+        if (!empty($venda['arquivo_xml'])) {
+            $nfeData = parseNfeXml($venda['arquivo_xml']);
+        }
+
+        if (isset($_GET['format']) && $_GET['format'] === 'json') {
+            $this->json([
+                'status' => 'ok',
+                'venda' => $venda,
+                'nfe' => $nfeData
+            ]);
+            exit;
+        }
+
+        $this->render('vendas/nfe', 'Detalhes da NF-e de Venda #' . ($nfeData['numero'] ?? $venda['numero_gta']), 'vendas', [
+            'v' => $venda,
+            'nfe' => $nfeData
+        ]);
+    }
 }

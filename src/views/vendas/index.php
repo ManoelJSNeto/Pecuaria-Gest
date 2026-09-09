@@ -179,11 +179,16 @@ $precoMedioArroba = $totalArrobas > 0 ? ($faturamentoTotal / $totalArrobas) : 0.
                     <i class="bi bi-receipt me-1"></i><?= substr($v['chave_nfe'], 0, 14) ?>...
                   </span>
                 <?php endif; ?>
-                <?php if (!empty($v['arquivo_xml'])): ?>
-                  <a href="<?= e($v['arquivo_xml']) ?>" download class="badge bg-light text-success border d-inline-flex align-items-center gap-1" style="font-size:0.68rem; width: fit-content;" title="Baixar XML da NF-e">
-                    <i class="bi bi-file-earmark-code"></i> Baixar XML
+                <div class="d-flex align-items-center gap-1 mt-1">
+                  <a href="/vendas/<?= $v['id'] ?>/nfe" class="badge bg-success-subtle text-success border d-inline-flex align-items-center gap-1" style="font-size:0.68rem; width: fit-content;" title="Abrir Detalhes da NF-e e Itens do XML">
+                    <i class="bi bi-receipt-cutoff"></i> Ver NF-e
                   </a>
-                <?php endif; ?>
+                  <?php if (!empty($v['arquivo_xml'])): ?>
+                    <a href="<?= e($v['arquivo_xml']) ?>" download class="badge bg-light text-secondary border d-inline-flex align-items-center gap-1" style="font-size:0.68rem; width: fit-content;" title="Baixar Arquivo XML">
+                      <i class="bi bi-download"></i> XML
+                    </a>
+                  <?php endif; ?>
+                </div>
               </div>
             </td>
             <td class="text-center tabular-nums fw-bold">
@@ -213,17 +218,15 @@ $precoMedioArroba = $totalArrobas > 0 ? ($faturamentoTotal / $totalArrobas) : 0.
             </td>
             <td class="text-end">
               <div class="d-inline-flex align-items-center gap-1">
-                <a href="/vendas/<?= $v['id'] ?>/pdf" target="_blank" class="btn btn-sm btn-outline-success" title="Comprovante de Venda (PDF)">
+                <a href="/vendas/<?= $v['id'] ?>/nfe" class="btn btn-sm btn-outline-success" title="Visualizar Detalhes da NF-e e Itens do XML">
+                  <i class="bi bi-receipt-cutoff"></i>
+                </a>
+                <a href="/vendas/<?= $v['id'] ?>/pdf" target="_blank" class="btn btn-sm btn-outline-secondary" title="Comprovante de Venda (PDF)">
                   <i class="bi bi-file-earmark-pdf-fill"></i>
                 </a>
                 <a href="/vendas/<?= $v['id'] ?>/editar" class="btn btn-sm btn-outline-primary" title="Editar Venda">
                   <i class="bi bi-pencil"></i>
                 </a>
-                <?php if (!empty($v['arquivo_xml'])): ?>
-                  <a href="<?= e($v['arquivo_xml']) ?>" download class="btn btn-sm btn-secondary" title="Baixar XML da NF-e">
-                    <i class="bi bi-download"></i>
-                  </a>
-                <?php endif; ?>
                 <form method="POST" action="/vendas/<?= $v['id'] ?>/excluir" style="display:inline;" onsubmit="return confirm('Deseja estornar esta venda? Os animais vinculados terão o status restaurado para ATIVO no rebanho.')">
                   <?= csrf_field() ?>
                   <button type="submit" class="btn btn-sm btn-outline-secondary text-danger" title="Estornar Venda">

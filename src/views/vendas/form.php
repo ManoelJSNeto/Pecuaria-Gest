@@ -8,7 +8,6 @@ $animaisVendaIds = $animaisVendaIds ?? [];
 $preAnimalId = (int)($_GET['animal_id'] ?? 0);
 
 if (!isset($animaisDisponiveis)) {
-    // Animais ativos e vivos disponíveis para venda (ou já vinculados a esta venda se em edição)
     if ($isEdit) {
         $animaisStmt = $db->prepare("
             SELECT a.id, a.brinco, a.nome, a.sexo, a.raca, a.pasto_id, a.venda_id, p.nome as pasto_nome,
@@ -40,18 +39,28 @@ if (!isset($pastos)) {
 }
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <a href="/vendas" class="btn btn-sm btn-outline-secondary">
-    <i class="bi bi-arrow-left me-1"></i> Voltar para Vendas
-  </a>
-  <?php if ($isEdit): ?>
-    <div class="d-flex align-items-center gap-2">
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div class="d-flex align-items-center gap-2">
+    <a href="/vendas" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Voltar para Vendas
+    </a>
+    <?php if ($isEdit): ?>
       <span class="badge bg-light text-primary border px-2 py-1">
         <i class="bi bi-pencil-square me-1"></i> Modo Edição • Venda #<?= $vendaId ?>
       </span>
+    <?php endif; ?>
+  </div>
+
+  <?php if ($isEdit): ?>
+    <div class="d-flex align-items-center gap-2">
       <a href="/vendas/<?= $vendaId ?>/pdf" target="_blank" class="btn btn-sm btn-outline-success">
         <i class="bi bi-file-earmark-pdf-fill me-1"></i> Comprovante PDF
       </a>
+      <?php if (!empty($venda['arquivo_xml'])): ?>
+        <a href="/vendas/<?= $vendaId ?>/nfe" target="_blank" class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-receipt-cutoff me-1"></i> Ver NF-e Completa
+        </a>
+      <?php endif; ?>
     </div>
   <?php endif; ?>
 </div>
@@ -63,18 +72,31 @@ if (!isset($pastos)) {
     <!-- Coluna Principal: Formulário e Seleção de Gado -->
     <div class="col-lg-8">
 
+      <!-- Informação de XML existente em modo de Edição -->
       <?php if ($isEdit && !empty($venda['arquivo_xml'])): ?>
-        <div class="p-3 mb-3 bg-light rounded border d-flex justify-content-between align-items-center">
-          <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-file-earmark-code fs-4 text-success"></i>
+        <div class="p-3 mb-3 bg-white rounded border d-flex justify-content-between align-items-center flex-wrap gap-2 shadow-sm">
+          <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle p-2 bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width:42px;height:42px;">
+              <i class="bi bi-file-earmark-check-fill fs-5"></i>
+            </div>
             <div>
-              <strong class="d-block text-dark">Arquivo XML da NF-e Anexado</strong>
-              <small class="text-muted">Nota fiscal de abate/saída já salva no sistema.</small>
+              <div class="fw-bold text-dark">Nota Fiscal de Saída / Abate Anexada</div>
+              <div class="text-muted small">
+                <?php if (!empty($venda['chave_nfe'])): ?>
+                  Chave: <span class="font-monospace text-dark"><?= substr($venda['chave_nfe'], 0, 10) ?>...<?= substr($venda['chave_nfe'], -6) ?></span> •
+                <?php endif; ?>
+                Comprador: <strong><?= e($venda['comprador_destino'] ?: 'Não informado') ?></strong>
+              </div>
             </div>
           </div>
-          <a href="<?= e($venda['arquivo_xml']) ?>" download class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-download me-1"></i> Baixar XML Atual
-          </a>
+          <div class="d-flex align-items-center gap-2">
+            <a href="/vendas/<?= $vendaId ?>/nfe" target="_blank" class="btn btn-sm btn-outline-success">
+              <i class="bi bi-eye me-1"></i> Ver Detalhes da NF-e
+            </a>
+            <a href="<?= e($venda['arquivo_xml']) ?>" download class="btn btn-sm btn-secondary">
+              <i class="bi bi-download me-1"></i> Baixar XML
+            </a>
+          </div>
         </div>
       <?php endif; ?>
 
@@ -82,7 +104,7 @@ if (!isset($pastos)) {
       <div class="xml-import-zone" id="dropZoneXmlVenda" onclick="document.getElementById('inputXmlVenda').click()">
         <input type="file" name="arquivo_xml" id="inputXmlVenda" accept=".xml,text/xml" style="display: none;" onchange="handleXmlSelectVenda(this)">
         <i class="bi bi-file-earmark-arrow-up xml-import-icon"></i>
-        <h6 class="fw-bold mb-1 text-dark"><?= $isEdit ? 'Substituir / Reimportar XML da NF-e' : 'Importar XML da Nota Fiscal de Venda / Abate' ?></h6>
+        <h6 class="fw-bold mb-1 text-dark"><?= $isEdit ? 'Substituir ou Reimportar XML da NF-e' : 'Importar XML da Nota Fiscal de Venda / Abate' ?></h6>
         <p class="small text-muted mb-0">
           Selecione o arquivo <strong>.xml</strong> emitido pelo frigorífico ou comprador para conferência e preenchimento automático.
         </p>
@@ -92,80 +114,73 @@ if (!isset($pastos)) {
         </div>
       </div>
 
-      <!-- Painel Interativo de Pré-visualização & Edição de Itens da NF-e de Venda -->
-      <div id="painelItensXmlVenda" style="display: none;" class="card mb-3 border-success shadow-sm">
-        <div class="card-header bg-success-subtle text-success-emphasis d-flex justify-content-between align-items-center py-2">
-          <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-file-earmark-spreadsheet-fill text-success fs-5"></i>
+      <!-- Painel Dinâmico & Dimensionado de Pré-visualização de Itens da NF-e de Venda -->
+      <div id="painelItensXmlVenda" style="display: none;" class="nfe-preview-panel active">
+        <div class="nfe-preview-header">
+          <div class="nfe-preview-title">
+            <i class="bi bi-receipt-cutoff text-success fs-5"></i>
             <div>
-              <strong id="xmlVendaCabecalho">Nota Fiscal de Saída / Abate Carregada</strong>
-              <div class="small text-muted" id="xmlVendaSubcabecalho">Conferência e edição dos itens discriminados na NF-e</div>
+              <h6 id="xmlVendaCabecalho">Nota Fiscal de Saída Carregada</h6>
+              <small class="text-muted" id="xmlVendaSubcabecalho">Conferência dos itens discriminados na NF-e</small>
             </div>
           </div>
-          <button type="button" class="btn btn-sm btn-outline-danger" onclick="limparXmlVendaImportado()" title="Descartar importação">
-            <i class="bi bi-x-lg"></i>
-          </button>
+          <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="abrirModalNfeVendaCompleta()" title="Ver todos os detalhes da nota fiscal original">
+              <i class="bi bi-eye me-1"></i> Ver NF-e Completa
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2" onclick="limparXmlVendaImportado()" title="Descartar XML">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
         </div>
 
-        <div class="card-body p-3">
-          <!-- Observações / infCpl -->
-          <div id="xmlVendaInfCplAlert" style="display: none;" class="alert alert-info py-2 px-3 mb-3 small d-flex align-items-start gap-2">
-            <i class="bi bi-info-circle-fill mt-1 fs-6"></i>
-            <div class="flex-grow-1">
-              <strong>Observações / Inf. Complementares da NF-e:</strong>
-              <span id="xmlVendaInfCplText" class="d-block mt-1 font-monospace"></span>
-            </div>
+        <!-- Chips de Metadados -->
+        <div class="nfe-meta-chips" id="xmlVendaMetaChips"></div>
+
+        <!-- Alerta com InfCpl / GTA -->
+        <div id="xmlVendaInfCplAlert" style="display: none;" class="p-2 px-3 bg-light border-bottom small d-flex align-items-start gap-2">
+          <i class="bi bi-info-circle text-primary mt-1"></i>
+          <div class="flex-grow-1">
+            <strong class="text-secondary">Observações da NF-e:</strong>
+            <span id="xmlVendaInfCplText" class="font-monospace text-dark ms-1"></span>
+          </div>
+        </div>
+
+        <!-- Tabela Compacta de Itens -->
+        <div class="nfe-table-container">
+          <table class="nfe-table" id="tabelaItensXmlVenda">
+            <thead>
+              <tr>
+                <th style="width: 36px;" class="text-center" title="Incluir no faturamento da venda">Inc.</th>
+                <th>Produto / Descrição na NF-e</th>
+                <th style="width: 90px;" class="text-end">Qtd</th>
+                <th style="width: 110px;" class="text-end">Valor Unit.</th>
+                <th style="width: 115px;" class="text-end">Total Item</th>
+                <th style="width: 32px;" class="text-center"></th>
+              </tr>
+            </thead>
+            <tbody id="tbodyItensXmlVenda"></tbody>
+          </table>
+        </div>
+
+        <!-- Barra de Rodapé / Totais -->
+        <div class="nfe-summary-footer">
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <button type="button" class="btn btn-sm btn-light border py-0 px-2" onclick="selecionarTodosItensVendaXml(true)">Marcar Todos</button>
+            <button type="button" class="btn btn-sm btn-light border py-0 px-2" onclick="selecionarTodosItensVendaXml(false)">Desmarcar</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="adicionarItemManualVendaXml()">
+              <i class="bi bi-plus-lg me-1"></i> Adicionar Item
+            </button>
+            <span class="text-muted small ms-1" id="xmlVendaStatusIgnorados"></span>
           </div>
 
-          <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-            <div class="small fw-bold text-dark">
-              <i class="bi bi-card-checklist text-primary me-1"></i> Itens Faturados pelo Frigorífico / Comprador
+          <div class="d-flex align-items-center gap-3">
+            <div class="text-end">
+              <small class="text-muted d-block" style="font-size:0.7rem;">Faturamento dos Itens:</small>
+              <strong class="tabular-nums text-success fs-6" id="xmlVendaSomaValor">R$ 0,00</strong>
             </div>
-            <div class="d-flex gap-2">
-              <button type="button" class="btn btn-sm btn-light border" onclick="selecionarTodosItensVendaXml(true)">Marcar Todos</button>
-              <button type="button" class="btn btn-sm btn-light border" onclick="selecionarTodosItensVendaXml(false)">Desmarcar</button>
-              <button type="button" class="btn btn-sm btn-outline-secondary" onclick="adicionarItemManualVendaXml()">
-                <i class="bi bi-plus-lg me-1"></i> Adicionar Item
-              </button>
-            </div>
-          </div>
-
-          <div class="table-responsive">
-            <table class="table table-sm table-bordered align-middle mb-2" id="tabelaItensXmlVenda">
-              <thead class="table-light small">
-                <tr>
-                  <th style="width: 35px;" class="text-center" title="Incluir no faturamento da venda">Inc.</th>
-                  <th style="width: 85px;">Cód.</th>
-                  <th>Descrição do Produto / Lote</th>
-                  <th style="width: 65px;" class="text-center">Un.</th>
-                  <th style="width: 95px;" class="text-end">Qtd</th>
-                  <th style="width: 125px;" class="text-end">Valor Unit. (R$)</th>
-                  <th style="width: 130px;" class="text-end">Total Item (R$)</th>
-                  <th style="width: 40px;" class="text-center"></th>
-                </tr>
-              </thead>
-              <tbody id="tbodyItensXmlVenda">
-                <!-- Linhas preenchidas via JavaScript -->
-              </tbody>
-              <tfoot class="table-light fw-bold small">
-                <tr>
-                  <td colspan="4" class="text-end">Totais Selecionados:</td>
-                  <td class="text-end tabular-nums" id="xmlVendaSomaQtd">0</td>
-                  <td></td>
-                  <td class="text-end tabular-nums text-success" id="xmlVendaSomaValor">R$ 0,00</td>
-                  <td></td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-
-          <div class="d-flex justify-content-between align-items-center pt-2 border-top flex-wrap gap-2">
-            <small class="text-muted" style="font-size:0.75rem;">
-              <i class="bi bi-shield-check text-success me-1"></i>
-              Você pode ajustar qualquer valor unitário, arroba ou quantidade. O total de faturamento é sincronizado ao formulário.
-            </small>
-            <button type="button" class="btn btn-sm btn-success text-nowrap" onclick="aplicarItensXmlAoFormularioVenda()">
-              <i class="bi bi-check2-all me-1"></i> Aplicar Valores ao Formulário
+            <button type="button" class="btn btn-sm btn-success py-1 px-3" onclick="aplicarItensXmlAoFormularioVenda()">
+              <i class="bi bi-arrow-repeat me-1"></i> Aplicar Valores
             </button>
           </div>
         </div>
@@ -191,7 +206,7 @@ if (!isset($pastos)) {
             <label class="form-label">Chave de Acesso da NF-e (44 dígitos)</label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-receipt"></i></span>
-              <input type="text" name="chave_nfe" id="venda_chave_nfe" class="form-control tabular-nums text-uppercase" placeholder="35260900000000000000550010000000002000000000" maxlength="44" autocomplete="off" value="<?= e($venda['chave_nfe'] ?? '') ?>">
+              <input type="text" name="chave_nfe" id="venda_chave_nfe" class="form-control tabular-nums text-uppercase font-monospace" placeholder="35260900000000000000550010000000002000000000" maxlength="44" autocomplete="off" value="<?= e($venda['chave_nfe'] ?? '') ?>">
             </div>
             <small class="text-muted" style="font-size:0.72rem;">Preenchida automaticamente ao anexar o XML acima.</small>
           </div>
@@ -372,8 +387,86 @@ if (!isset($pastos)) {
   </div>
 </form>
 
+<!-- Modal com Detalhes Completos da NF-e de Venda -->
+<div class="modal fade" id="modalNfeVendaCompleta" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header py-2 bg-light">
+        <h6 class="modal-title fw-bold text-dark" id="modalNfeVendaTitulo">
+          <i class="bi bi-receipt-cutoff text-success me-1"></i> Detalhes da NF-e de Venda / Abate
+        </h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-3">
+        <div class="mb-3">
+          <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size:0.7rem;">Chave de Acesso da NF-e</small>
+          <div class="nfe-key-display">
+            <span id="modalNfeVendaChave" class="tabular-nums"></span>
+            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="copiarTextoModal('modalNfeVendaChave')">
+              <i class="bi bi-clipboard me-1"></i> Copiar Chave
+            </button>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <div class="p-3 bg-light rounded border h-100">
+              <small class="text-secondary fw-bold text-uppercase d-block mb-1" style="font-size:0.7rem;">Emitente / Origem</small>
+              <strong id="modalNfeVendaEmitNome" class="text-dark d-block"></strong>
+              <div id="modalNfeVendaEmitDoc" class="small text-muted mt-1 font-monospace"></div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="p-3 bg-light rounded border h-100">
+              <small class="text-secondary fw-bold text-uppercase d-block mb-1" style="font-size:0.7rem;">Destinatário / Frigorífico</small>
+              <strong id="modalNfeVendaDestNome" class="text-dark d-block"></strong>
+              <div id="modalNfeVendaDestDoc" class="small text-muted mt-1 font-monospace"></div>
+            </div>
+          </div>
+        </div>
+
+        <h6 class="fw-bold mb-2 text-dark" style="font-size:0.88rem;">Itens Discriminados na NF-e</h6>
+        <div class="table-responsive mb-3 border rounded">
+          <table class="table table-sm table-bordered align-middle mb-0" style="font-size:0.82rem;">
+            <thead class="table-light">
+              <tr>
+                <th style="width: 35px;" class="text-center">#</th>
+                <th style="width: 90px;">Código</th>
+                <th>Descrição do Produto</th>
+                <th style="width: 80px;">NCM</th>
+                <th style="width: 50px;" class="text-center">Un.</th>
+                <th style="width: 80px;" class="text-end">Qtd</th>
+                <th style="width: 105px;" class="text-end">Valor Unit.</th>
+                <th style="width: 110px;" class="text-end">Valor Total</th>
+              </tr>
+            </thead>
+            <tbody id="modalNfeVendaTbodyItens"></tbody>
+          </table>
+        </div>
+
+        <div id="modalNfeVendaInfCplBox" class="p-2 px-3 bg-light rounded border small mb-3">
+          <strong class="text-dark d-block mb-1">Informações Complementares da NF-e:</strong>
+          <span id="modalNfeVendaInfCpl" class="font-monospace text-secondary"></span>
+        </div>
+
+        <div>
+          <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#modalNfeVendaCollapseXml">
+            <i class="bi bi-code-slash me-1"></i> Visualizar Estrutura XML Bruta
+          </button>
+          <div class="collapse mt-2" id="modalNfeVendaCollapseXml">
+            <pre class="p-3 bg-dark text-light rounded small" style="max-height: 250px; overflow: auto; font-size:0.72rem;" id="modalNfeVendaXmlPre"></pre>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-// Estado em memória dos itens do XML de Venda
+let nfeVendaAtualObjeto = null;
 let itensXmlVendaCarregados = [];
 
 // Leitura e Parsing Inteligente de XML de Venda / Abate
@@ -404,13 +497,9 @@ function handleXmlSelectVenda(input) {
       }
       if (chave) document.getElementById('venda_chave_nfe').value = chave;
 
-      // 2. Número da NF-e e Série
-      let numNfe = '';
-      let serieNfe = '';
-      const nNF = xmlDoc.getElementsByTagName('nNF')[0];
-      if (nNF) numNfe = nNF.textContent.trim();
-      const serie = xmlDoc.getElementsByTagName('serie')[0];
-      if (serie) serieNfe = serie.textContent.trim();
+      // 2. Número e Série
+      const numNfe = xmlDoc.getElementsByTagName('nNF')[0]?.textContent?.trim() || 'S/N';
+      const serieNfe = xmlDoc.getElementsByTagName('serie')[0]?.textContent?.trim() || '1';
 
       // 3. Data de Emissão
       let dataEmi = '';
@@ -420,25 +509,30 @@ function handleXmlSelectVenda(input) {
         document.getElementById('venda_data').value = dataEmi;
       }
 
-      // 4. Comprador / Frigorífico (destinatário ou emitente no caso de emissão do próprio produtor)
+      // 4. Comprador / Destinatário
       let compradorNome = '';
+      let compradorDoc = '';
       const dest = xmlDoc.getElementsByTagName('dest')[0];
       if (dest) {
-        const xNome = dest.getElementsByTagName('xNome')[0];
-        if (xNome && xNome.textContent) compradorNome = xNome.textContent.trim();
-      }
-      if (!compradorNome) {
-        const emit = xmlDoc.getElementsByTagName('emit')[0];
-        if (emit) {
-          const xNome = emit.getElementsByTagName('xNome')[0];
-          if (xNome && xNome.textContent) compradorNome = xNome.textContent.trim();
-        }
+        compradorNome = dest.getElementsByTagName('xNome')[0]?.textContent?.trim() || '';
+        compradorDoc = dest.getElementsByTagName('CNPJ')[0]?.textContent?.trim() ||
+                       dest.getElementsByTagName('CPF')[0]?.textContent?.trim() || '';
       }
       if (compradorNome) {
         document.getElementById('venda_comprador').value = compradorNome;
       }
 
-      // 5. Peso Total da Balança
+      // 5. Emitente
+      let emitNome = '';
+      let emitDoc = '';
+      const emit = xmlDoc.getElementsByTagName('emit')[0];
+      if (emit) {
+        emitNome = emit.getElementsByTagName('xNome')[0]?.textContent?.trim() || '';
+        emitDoc = emit.getElementsByTagName('CNPJ')[0]?.textContent?.trim() ||
+                  emit.getElementsByTagName('CPF')[0]?.textContent?.trim() || '';
+      }
+
+      // 6. Peso Balança
       const pesoB = xmlDoc.getElementsByTagName('pesoB')[0] || xmlDoc.getElementsByTagName('pesoL')[0];
       if (pesoB && pesoB.textContent) {
         const pesoKg = parseFloat(pesoB.textContent) || 0;
@@ -449,67 +543,93 @@ function handleXmlSelectVenda(input) {
         }
       }
 
-      // 6. Observações / infCpl (ex: GTA de Saída)
-      const infCpl = xmlDoc.getElementsByTagName('infCpl')[0];
-      if (infCpl && infCpl.textContent) {
-        const infCplText = infCpl.textContent.trim();
+      // 7. infCpl / GTA
+      let infCplText = xmlDoc.getElementsByTagName('infCpl')[0]?.textContent?.trim() || '';
+      let gtaDetectada = '';
+      if (infCplText) {
         document.getElementById('xmlVendaInfCplText').textContent = infCplText;
         document.getElementById('xmlVendaInfCplAlert').style.display = 'flex';
-
-        // Auto-detecção de GTA no texto
         const matchGta = infCplText.match(/gta\s*[:#ºn\.\-]?\s*([0-9a-zA-Z\/\.\-]+)/i);
         if (matchGta && matchGta[1] && !document.getElementById('venda_gta').value) {
-          document.getElementById('venda_gta').value = matchGta[1].replace(/[\.\,]+$/, '');
+          gtaDetectada = matchGta[1].replace(/[\.\,]+$/, '');
+          document.getElementById('venda_gta').value = gtaDetectada;
         }
       } else {
         document.getElementById('xmlVendaInfCplAlert').style.display = 'none';
       }
 
-      // 7. Extração de Itens / Produtos da NF-e
+      // 8. Itens
       itensXmlVendaCarregados = [];
       const dets = xmlDoc.getElementsByTagName('det');
       for (let i = 0; i < dets.length; i++) {
         const det = dets[i];
-        const cProd = det.getElementsByTagName('cProd')[0]?.textContent?.trim() || `ITEM-${i+1}`;
-        const xProd = det.getElementsByTagName('xProd')[0]?.textContent?.trim() || 'BOVINO PARA ABATE';
-        const uCom = (det.getElementsByTagName('uCom')[0]?.textContent?.trim() || 'CAB').toUpperCase();
-        const qCom = parseFloat(det.getElementsByTagName('qCom')[0]?.textContent) || 1;
-        const vUnCom = parseFloat(det.getElementsByTagName('vUnCom')[0]?.textContent) || 0;
-        const vProd = parseFloat(det.getElementsByTagName('vProd')[0]?.textContent) || (qCom * vUnCom);
+        const prod = det.getElementsByTagName('prod')[0];
+        if (!prod) continue;
 
-        const xProdLower = xProd.toLowerCase();
-        const naoEhGado = xProdLower.includes('frete') || xProdLower.includes('transporte') ||
-                          xProdLower.includes('servico') || xProdLower.includes('pedagio');
+        const cProd = prod.getElementsByTagName('cProd')[0]?.textContent?.trim() || `ITEM-${i+1}`;
+        const xProd = prod.getElementsByTagName('xProd')[0]?.textContent?.trim() || 'BOVINO PARA ABATE';
+        const ncm = prod.getElementsByTagName('NCM')[0]?.textContent?.trim() || '';
+        const uCom = (prod.getElementsByTagName('uCom')[0]?.textContent?.trim() || 'CAB').toUpperCase();
+        const qCom = parseFloat(prod.getElementsByTagName('qCom')[0]?.textContent) || 1;
+        const vUnCom = parseFloat(prod.getElementsByTagName('vUnCom')[0]?.textContent) || 0;
+        const vProd = parseFloat(prod.getElementsByTagName('vProd')[0]?.textContent) || (qCom * vUnCom);
+
+        const xLower = xProd.toLowerCase();
+        const naoEhGado = xLower.includes('frete') || xLower.includes('transporte') ||
+                          xLower.includes('servico') || xLower.includes('serviço') ||
+                          xLower.includes('pedagio');
 
         itensXmlVendaCarregados.push({
+          item: i + 1,
           incluir: !naoEhGado,
           codigo: cProd,
           descricao: xProd,
+          ncm: ncm,
           unidade: uCom,
           quantidade: qCom,
           valorUnitario: vUnCom,
-          valorTotal: vProd
+          valorTotal: vProd,
+          isGado: !naoEhGado
         });
       }
 
-      document.getElementById('xmlVendaCabecalho').textContent = `NF-e Saída/Abate nº ${numNfe || 'S/N'} Série ${serieNfe || '1'}`;
-      document.getElementById('xmlVendaSubcabecalho').textContent = `Comprador/Frigorífico: ${compradorNome || 'Não informado'} • Emissão: ${dataEmi || 'Hoje'}`;
+      nfeVendaAtualObjeto = {
+        chave: chave,
+        numero: numNfe,
+        serie: serieNfe,
+        dataEmissao: dataEmi,
+        emitente: { nome: emitNome, doc: emitDoc },
+        destinatario: { nome: compradorNome, doc: compradorDoc },
+        infCpl: infCplText,
+        itens: itensXmlVendaCarregados,
+        rawXml: xmlText
+      };
+
+      const chipsEl = document.getElementById('xmlVendaMetaChips');
+      chipsEl.innerHTML = `
+        <span class="nfe-chip"><i class="bi bi-receipt text-success"></i> NF-e: <strong>${escapeHtml(numNfe)}</strong></span>
+        <span class="nfe-chip"><i class="bi bi-tag text-muted"></i> Série: <strong>${escapeHtml(serieNfe)}</strong></span>
+        <span class="nfe-chip"><i class="bi bi-calendar-event text-muted"></i> Emissão: <strong>${escapeHtml(dataEmi || 'Hoje')}</strong></span>
+        <span class="nfe-chip"><i class="bi bi-truck text-muted"></i> Comprador: <strong>${escapeHtml(compradorNome || 'Não informado')}</strong></span>
+        ${gtaDetectada ? `<span class="nfe-chip text-success border-success"><i class="bi bi-shield-check text-success"></i> GTA: <strong>${escapeHtml(gtaDetectada)}</strong></span>` : ''}
+      `;
+
+      document.getElementById('xmlVendaCabecalho').textContent = `NF-e Saída nº ${numNfe} — Série ${serieNfe}`;
+      document.getElementById('xmlVendaSubcabecalho').textContent = `${compradorNome || 'Comprador'} • ${itensXmlVendaCarregados.length} item(ns) discriminado(s)`;
 
       renderTabelaItensXmlVenda();
       aplicarItensXmlAoFormularioVenda();
 
-      // Feedback visual
+      document.getElementById('painelItensXmlVenda').style.display = 'block';
       const feedback = document.getElementById('xmlFeedbackVenda');
       const text = document.getElementById('xmlFeedbackVendaText');
       feedback.style.display = 'flex';
-      text.textContent = `XML carregado com sucesso: ${file.name} (${itensXmlVendaCarregados.length} item(ns) encontrado(s))`;
-      document.getElementById('painelItensXmlVenda').style.display = 'block';
+      text.textContent = `XML processado com sucesso: ${file.name} (${itensXmlVendaCarregados.length} itens extraídos)`;
 
-      // Sugere descrição se estiver vazia
       const descInput = document.getElementById('venda_descricao');
       if (!descInput.value && itensXmlVendaCarregados.length > 0) {
         const primeiro = itensXmlVendaCarregados.find(it => it.incluir) || itensXmlVendaCarregados[0];
-        descInput.value = `Venda NF ${numNfe} - ${primeiro.descricao.substr(0, 35)}`;
+        descInput.value = `Venda NF ${numNfe} - ${primeiro.descricao.substr(0, 32)}`;
       }
 
     } catch (err) {
@@ -520,54 +640,61 @@ function handleXmlSelectVenda(input) {
   reader.readAsText(file);
 }
 
-// Renderiza itens de venda dinamicamente
 function renderTabelaItensXmlVenda() {
   const tbody = document.getElementById('tbodyItensXmlVenda');
   tbody.innerHTML = '';
 
-  let somaQtd = 0;
   let somaValor = 0;
+  let ignoradosCount = 0;
 
   itensXmlVendaCarregados.forEach((item, idx) => {
     if (item.incluir) {
-      somaQtd += item.quantidade;
       somaValor += (item.quantidade * item.valorUnitario);
+    } else {
+      ignoradosCount++;
     }
 
     const tr = document.createElement('tr');
-    if (!item.incluir) tr.classList.add('table-secondary', 'opacity-75');
+    if (!item.incluir) tr.classList.add('row-ignored');
 
     tr.innerHTML = `
       <td class="text-center">
         <input type="checkbox" class="form-check-input" ${item.incluir ? 'checked' : ''} onchange="toggleItemVendaXml(${idx}, this.checked)">
       </td>
-      <td class="text-muted small tabular-nums">${escapeHtml(item.codigo)}</td>
       <td>
-        <input type="text" class="form-control form-control-sm" value="${escapeHtml(item.descricao)}" onchange="editarItemVendaXml(${idx}, 'descricao', this.value)">
-      </td>
-      <td class="text-center">
-        <span class="badge bg-light text-dark border">${escapeHtml(item.unidade)}</span>
-      </td>
-      <td>
-        <input type="number" step="0.1" min="0" class="form-control form-control-sm text-end tabular-nums" value="${item.quantidade}" oninput="editarItemVendaXml(${idx}, 'quantidade', parseFloat(this.value) || 0)">
+        <div class="d-flex align-items-center gap-1">
+          <span class="badge bg-light text-secondary border font-monospace" style="font-size:0.68rem;" title="Código do produto">${escapeHtml(item.codigo)}</span>
+          <span class="badge bg-light text-dark border" style="font-size:0.68rem;">${escapeHtml(item.unidade)}</span>
+          <input type="text" class="nfe-cell-input fw-600 flex-grow-1" value="${escapeHtml(item.descricao)}" onchange="editarItemVendaXml(${idx}, 'descricao', this.value)">
+        </div>
+        ${!item.incluir ? '<span class="badge bg-light text-muted border mt-1" style="font-size:0.65rem;">Ignorado na venda (Frete / Insumo)</span>' : ''}
       </td>
       <td>
-        <input type="number" step="0.01" min="0" class="form-control form-control-sm text-end tabular-nums" value="${item.valorUnitario.toFixed(2)}" oninput="editarItemVendaXml(${idx}, 'valorUnitario', parseFloat(this.value) || 0)">
+        <input type="number" step="0.1" min="0" class="nfe-cell-input text-end tabular-nums" value="${item.quantidade}" oninput="editarItemVendaXml(${idx}, 'quantidade', parseFloat(this.value) || 0)">
       </td>
-      <td class="text-end tabular-nums fw-600 ${item.incluir ? 'text-success' : 'text-muted'}">
+      <td>
+        <input type="number" step="0.01" min="0" class="nfe-cell-input text-end tabular-nums" value="${item.valorUnitario.toFixed(2)}" oninput="editarItemVendaXml(${idx}, 'valorUnitario', parseFloat(this.value) || 0)">
+      </td>
+      <td class="text-end tabular-nums fw-bold ${item.incluir ? 'text-success' : 'text-muted'}">
         R$ ${(item.quantidade * item.valorUnitario).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
       </td>
       <td class="text-center">
-        <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="removerItemVendaXml(${idx})" title="Excluir item">
-          <i class="bi bi-trash"></i>
+        <button type="button" class="btn btn-sm btn-link text-danger p-0 border-0" onclick="removerItemVendaXml(${idx})" title="Remover item">
+          <i class="bi bi-x-circle"></i>
         </button>
       </td>
     `;
     tbody.appendChild(tr);
   });
 
-  document.getElementById('xmlVendaSomaQtd').textContent = somaQtd.toLocaleString('pt-BR', { maximumFractionDigits: 1 });
   document.getElementById('xmlVendaSomaValor').textContent = 'R$ ' + somaValor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  const statusIgn = document.getElementById('xmlVendaStatusIgnorados');
+  if (ignoradosCount > 0) {
+    statusIgn.textContent = `(${ignoradosCount} item(ns) não-gado desmarcado(s))`;
+  } else {
+    statusIgn.textContent = '';
+  }
 }
 
 function toggleItemVendaXml(idx, checked) {
@@ -599,13 +726,16 @@ function removerItemVendaXml(idx) {
 
 function adicionarItemManualVendaXml() {
   itensXmlVendaCarregados.push({
+    item: itensXmlVendaCarregados.length + 1,
     incluir: true,
     codigo: 'NOVO',
     descricao: 'BOVINOS PARA ABATE',
+    ncm: '01022990',
     unidade: 'CAB',
     quantidade: 1,
     valorUnitario: 0,
-    valorTotal: 0
+    valorTotal: 0,
+    isGado: true
   });
   renderTabelaItensXmlVenda();
 }
@@ -619,6 +749,7 @@ function selecionarTodosItensVendaXml(marcar) {
 function limparXmlVendaImportado() {
   if (confirm('Deseja fechar o painel de conferência do XML?')) {
     itensXmlVendaCarregados = [];
+    nfeVendaAtualObjeto = null;
     document.getElementById('painelItensXmlVenda').style.display = 'none';
     document.getElementById('xmlFeedbackVenda').style.display = 'none';
     document.getElementById('inputXmlVenda').value = '';
@@ -640,13 +771,59 @@ function aplicarItensXmlAoFormularioVenda() {
   atualizarCalculoVenda();
 }
 
+function abrirModalNfeVendaCompleta() {
+  if (!nfeVendaAtualObjeto) return;
+  
+  document.getElementById('modalNfeVendaTitulo').innerHTML = `<i class="bi bi-receipt-cutoff text-success me-1"></i> NF-e de Saída nº ${escapeHtml(nfeVendaAtualObjeto.numero)} (Série ${escapeHtml(nfeVendaAtualObjeto.serie)})`;
+  document.getElementById('modalNfeVendaChave').textContent = nfeVendaAtualObjeto.chave ? nfeVendaAtualObjeto.chave.replace(/(.{4})/g, '$1 ').trim() : 'NÃO INFORMADA';
+  document.getElementById('modalNfeVendaEmitNome').textContent = nfeVendaAtualObjeto.emitente.nome || 'PECUÁRIA GEST';
+  document.getElementById('modalNfeVendaEmitDoc').textContent = nfeVendaAtualObjeto.emitente.doc ? `CNPJ/CPF: ${nfeVendaAtualObjeto.emitente.doc}` : '';
+  document.getElementById('modalNfeVendaDestNome').textContent = nfeVendaAtualObjeto.destinatario.nome || 'Não informado';
+  document.getElementById('modalNfeVendaDestDoc').textContent = nfeVendaAtualObjeto.destinatario.doc ? `CNPJ/CPF: ${nfeVendaAtualObjeto.destinatario.doc}` : '';
+  
+  const infCplBox = document.getElementById('modalNfeVendaInfCplBox');
+  if (nfeVendaAtualObjeto.infCpl) {
+    document.getElementById('modalNfeVendaInfCpl').textContent = nfeVendaAtualObjeto.infCpl;
+    infCplBox.style.display = 'block';
+  } else {
+    infCplBox.style.display = 'none';
+  }
+
+  const tbody = document.getElementById('modalNfeVendaTbodyItens');
+  tbody.innerHTML = '';
+  nfeVendaAtualObjeto.itens.forEach((it, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="text-center text-muted tabular-nums">${i+1}</td>
+      <td class="font-monospace small">${escapeHtml(it.codigo)}</td>
+      <td><strong>${escapeHtml(it.descricao)}</strong></td>
+      <td class="font-monospace small text-muted">${escapeHtml(it.ncm || '—')}</td>
+      <td class="text-center"><span class="badge bg-light text-dark border">${escapeHtml(it.unidade)}</span></td>
+      <td class="text-end tabular-nums">${it.quantidade}</td>
+      <td class="text-end tabular-nums">R$ ${it.valorUnitario.toFixed(2)}</td>
+      <td class="text-end tabular-nums fw-bold text-success">R$ ${(it.quantidade * it.valorUnitario).toFixed(2)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('modalNfeVendaXmlPre').textContent = nfeVendaAtualObjeto.rawXml || '';
+
+  const modal = new bootstrap.Modal(document.getElementById('modalNfeVendaCompleta'));
+  modal.show();
+}
+
+function copiarTextoModal(elementId) {
+  const txt = document.getElementById(elementId)?.textContent?.replace(/\s+/g, '') || '';
+  navigator.clipboard.writeText(txt).then(() => alert('Chave copiada para a área de transferência!'));
+}
+
 function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text || '';
   return div.innerHTML;
 }
 
-// Drag & drop no dropzone de vendas
+// Drag & drop
 const dropZoneVenda = document.getElementById('dropZoneXmlVenda');
 if (dropZoneVenda) {
   ['dragenter', 'dragover'].forEach(eventName => {

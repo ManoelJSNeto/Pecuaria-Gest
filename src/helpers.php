@@ -425,3 +425,152 @@ function notifyOwnerOnSyncEmail(array $processados, string $dispositivo): void {
 
     sendNotificationEmail($destinatario, $assunto, $corpo);
 }
+
+/**
+ * Realiza a leitura e extração estruturada de um arquivo ou conteúdo XML de NF-e da SEFAZ
+ */
+function parseNfeXml(string $source): ?array {
+    $xmlContent = '';
+    if (file_exists($source)) {
+        $xmlContent = file_get_contents($source);
+    } elseif (str_starts_with(trim($source), '/uploads/')) {
+        $fullPath = UPLOADS_PATH . '/' . substr(trim($source), strlen('/uploads/'));
+        if (file_exists($fullPath)) {
+            $xmlContent = file_get_contents($fullPath);
+        }
+    } else {
+        $xmlContent = $source;
+    }
+
+    if (empty($xmlContent) || !str_contains($xmlContent, '<')) {
+        return null;
+    }
+
+    libxml_use_internal_errors(true);
+    $dom = new DOMDocument();
+    if (!$dom->loadXML($xmlContent)) {
+        libxml_clear_errors();
+        return null;
+    }
+    libxml_clear_errors();
+
+    // 1. Chave de Acesso
+    $chave = '';
+    $infNFe = $dom->getElementsByTagName('infNFe')->item(0);
+    if ($infNFe && $infNFe->hasAttribute('Id')) {
+        $chave = preg_replace('/\D/', '', $infNFe->getAttribute('Id'));
+    }
+    if (!$chave) {
+        $chNFe = $dom->getElementsByTagName('chNFe')->item(0);
+        if ($chNFe) $chave = trim($chNFe->textContent);
+    }
+
+    // 2. Identificação
+    $nNF = $dom->getElementsByTagName('nNF')->item(0)?->textContent ?? '';
+    $serie = $dom->getElementsByTagName('serie')->item(0)?->textContent ?? '1';
+    $natOp = $dom->getElementsByTagName('natOp')->item(0)?->textContent ?? '';
+    $tpNF = $dom->getElementsByTagName('tpNF')->item(0)?->textContent ?? '1';
+    $dhEmi = $dom->getElementsByTagName('dhEmi')->item(0)?->textContent 
+          ?? $dom->getElementsByTagName('dEmi')->item(0)?->textContent ?? '';
+
+    // 3. Emitente
+    $emitEl = $dom->getElementsByTagName('emit')->item(0);
+    $emit = [
+        'nome' => $emitEl?->getElementsByTagName('xNome')->item(0)?->textContent ?? '',
+        'fantasia' => $emitEl?->getElementsByTagName('xFant')->item(0)?->textContent ?? '',
+        'doc' => $emitEl?->getElementsByTagName('CNPJ')->item(0)?->textContent 
+              ?? $emitEl?->getElementsByTagName('CPF')->item(0)?->textContent ?? '',
+        'ie' => $emitEl?->getElementsByTagName('IE')->item(0)?->textContent ?? '',
+        'mun' => $emitEl?->getElementsByTagName('xMun')->item(0)?->textContent ?? '',
+        'uf' => $emitEl?->getElementsByTagName('UF')->item(0)?->textContent ?? '',
+    ];
+
+    // 4. Destinatário
+    $destEl = $dom->getElementsByTagName('dest')->item(0);
+    $dest = [
+        'nome' => $destEl?->getElementsByTagName('xNome')->item(0)?->textContent ?? '',
+        'doc' => $destEl?->getElementsByTagName('CNPJ')->item(0)?->textContent 
+              ?? $destEl?->getElementsByTagName('CPF')->item(0)?->textContent ?? '',
+        'ie' => $destEl?->getElementsByTagName('IE')->item(0)?->textContent ?? '',
+        'mun' => $destEl?->getElementsByTagName('xMun')->item(0)?->textContent ?? '',
+        'uf' => $destEl?->getElementsByTagName('UF')->item(0)?->textContent ?? '',
+    ];
+
+    // 5. Totais
+    $vProd = (float)($dom->getElementsByTagName('vProd')->item(0)?->textContent ?? 0);
+    $vNF = (float)($dom->getElementsByTagName('vNF')->item(0)?->textContent ?? $vProd);
+    $vFrete = (float)($dom->getElementsByTagName('vFrete')->item(0)?->textContent ?? 0);
+    $vDesc = (float)($dom->getElementsByTagName('vDesc')->item(0)?->textContent ?? 0);
+
+    // 6. Transporte
+    $pesoB = (float)($dom->getElementsByTagName('pesoB')->item(0)?->textContent ?? 0);
+    $pesoL = (float)($dom->getElementsByTagName('pesoL')->item(0)?->textContent ?? 0);
+
+    // 7. Informações Complementares e GTA
+    $infCpl = $dom->getElementsByTagName('infCpl')->item(0)?->textContent ?? '';
+    $gta = '';
+    if (preg_match('/gta\s*[:#ºn\.\-]?\s*([0-9a-zA-Z\/\.\-]+)/i', $infCpl, $m)) {
+        $gta = rtrim($m[1], '., ');
+    }
+
+    // 8. Itens (<det>)
+    $itens = [];
+    $dets = $dom->getElementsByTagName('det');
+    for ($i = 0; $i < $dets->length; $i++) {
+        $det = $dets->item($i);
+        $prod = $det->getElementsByTagName('prod')->item(0);
+        if (!$prod) continue;
+
+        $cProd = $prod->getElementsByTagName('cProd')->item(0)?->textContent ?? ('ITEM-' . ($i + 1));
+        $xProd = $prod->getElementsByTagName('xProd')->item(0)?->textContent ?? '';
+        $ncm = $prod->getElementsByTagName('NCM')->item(0)?->textContent ?? '';
+        $cfop = $prod->getElementsByTagName('CFOP')->item(0)?->textContent ?? '';
+        $uCom = strtoupper($prod->getElementsByTagName('uCom')->item(0)?->textContent ?? 'CAB');
+        $qCom = (float)($prod->getElementsByTagName('qCom')->item(0)?->textContent ?? 1);
+        $vUnCom = (float)($prod->getElementsByTagName('vUnCom')->item(0)?->textContent ?? 0);
+        $vItem = (float)($prod->getElementsByTagName('vProd')->item(0)?->textContent ?? ($qCom * $vUnCom));
+
+        $xLower = mb_strtolower($xProd);
+        $naoGado = str_contains($xLower, 'frete') || str_contains($xLower, 'transporte') ||
+                   str_contains($xLower, 'servico') || str_contains($xLower, 'serviço') ||
+                   str_contains($xLower, 'pedagio') || str_contains($xLower, 'vacina');
+
+        $itens[] = [
+            'item' => $i + 1,
+            'codigo' => $cProd,
+            'descricao' => $xProd,
+            'ncm' => $ncm,
+            'cfop' => $cfop,
+            'unidade' => $uCom,
+            'quantidade' => $qCom,
+            'valor_unitario' => $vUnCom,
+            'valor_total' => $vItem,
+            'is_gado' => !$naoGado,
+        ];
+    }
+
+    return [
+        'chave' => $chave,
+        'numero' => $nNF,
+        'serie' => $serie,
+        'natureza' => $natOp,
+        'tipo' => $tpNF,
+        'data_emissao' => $dhEmi,
+        'emitente' => $emit,
+        'destinatario' => $dest,
+        'totais' => [
+            'produtos' => $vProd,
+            'total' => $vNF,
+            'frete' => $vFrete,
+            'desconto' => $vDesc,
+        ],
+        'peso_bruto' => $pesoB,
+        'peso_liquido' => $pesoL,
+        'inf_complementar' => $infCpl,
+        'gta_detectada' => $gta,
+        'itens' => $itens,
+        'total_itens' => count($itens),
+        'raw_xml' => $xmlContent
+    ];
+}
+

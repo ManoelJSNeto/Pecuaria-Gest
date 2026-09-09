@@ -150,18 +150,21 @@ Durante os testes práticos de validação da aplicação com usuário/produtor 
 3. **Ausência de Edição Pós-Salvar:** No controlador `ComercialController.php`, existiam apenas métodos para criar e excluir compras/vendas (`comprasNovo`, `comprasSalvar`, `comprasExcluir`, `vendasNovo`, `vendasSalvar`), não existindo rotas e telas de edição (`comprasEditar`, `comprasAtualizar`, `vendasEditar`, `vendasAtualizar`).
 
 #### 3. Implementação e Resolução Entregue:
-* **Painel Dinâmico de Conferência de Itens (`#painelItensXml` e `#painelItensXmlVenda`):**
-  * Ao carregar ou arrastar o XML da NF-e, exibe na hora os metadados (NF-e, Série, Emitente/Destinatário, Data, Observações/GTA).
-  * Renderiza grid interativo com cada produto/lote discriminado na nota, com checkboxes para incluir/desmarcar itens (itens como frete/serviço são desmarcados por padrão).
-  * Campos totalmente editáveis de Descrição, Quantidade e Valor Unitário, com recálculo em tempo real de totais e indicadores zootécnicos.
-  * Suporte à adição de itens manuais e exclusão de itens na conferência.
+* **Redesenho do Painel e Calibração de Dimensionamento (`.nfe-preview-panel`):**
+  * Alinhado 100% aos tokens do Design System do PecuáriaGest (`--earth-green-950`, `--border-subtle`, `--bg-surface`).
+  * Eliminação de quebras de layout e scrollbars horizontais forçadas: colunas otimizadas com inputs em estilo planilha compacta (`.nfe-cell-input`), com formatação de numerais tabulares e destaque sutil no foco.
+  * Cabeçalho moderno com chips de metadados (`.nfe-chip`) indicando NF-e, Série, Emitente, Emissão e GTA detectada.
+* **Visualizador Oficial de NF-e e Detalhes do XML Original:**
+  * **Páginas Dedicadas Danfe (`/compras/{id}/nfe` e `/vendas/{id}/nfe`):** Apresentam o espelho completo da Nota Fiscal com chave de acesso de 44 dígitos (e botão de cópia), dados cadastrais do emitente e destinatário, totais tributários/comerciais, observações (`infCpl`), tabela completa de todos os itens/produtos da nota e visualizador do código XML original na íntegra.
+  * **Modais Interativos Instantâneos (`#modalNfeCompleta` e `#modalNfeVendaCompleta`):** Permitem consultar a nota fiscal completa diretamente de dentro do formulário de compra/venda sem sair da tela.
+  * **Atalhos Rápidos nas Listagens:** Adicionados botões `"Ver NF-e"` diretamente nas colunas de Chaves Mestras e Ações em `/compras` e `/vendas`.
 * **Rotas e Telas de Edição:**
   * Implementadas rotas `GET /compras/{id}/editar`, `POST /compras/{id}/atualizar`, `GET /vendas/{id}/editar` e `POST /vendas/{id}/atualizar`.
   * Atualização inteligente dos animais vinculados e botões de atalho (`<i class="bi bi-pencil"></i>`) nas tabelas.
 * **Validação e Testes Automatizados:**
-  * 38 rotas do sistema validadas com HTTP 200 e zero erros SQL (`tests/test_integration.js`).
+  * 38 rotas do sistema validadas com HTTP 200 e zero erros SQL (`tests/test_integration.js`), incluindo as novas telas de visualização de NF-e e edição.
   * Teste de integração de persistência e redirecionamento (`tests/test_compras_vendas_edit.js`) executado com 100% de aprovação.
-  * Validador de regras de negócio XML (`tests/test_xml_parser.php`) aprovado com dados reais.
+  * Validador de regras de negócio XML (`tests/test_xml_parser.php`) aprovado com fixtures reais de compra e venda.
 
 
 

@@ -1148,3 +1148,170 @@ body.mode-arroba .peso-hero-sub-kg {
   font-weight: 700;
   color: var(--text-primary);
 }
+
+/* ============================================================
+   PAINEL DINÂMICO & VISUALIZADOR DE NF-E / XML SEFAZ
+   ============================================================ */
+.nfe-preview-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow-subtle);
+  overflow: hidden;
+  transition: border-color 150ms ease;
+}
+
+.nfe-preview-panel.active {
+  border-color: var(--earth-green-600);
+}
+
+.nfe-preview-header {
+  background: var(--earth-green-50);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0.85rem 1.15rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.nfe-preview-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.nfe-preview-title h6 {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--earth-green-950);
+}
+
+.nfe-meta-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  padding: 0.65rem 1.15rem;
+  background: #fafaf8;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 0.76rem;
+}
+
+.nfe-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-xs);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.nfe-chip strong {
+  color: var(--text-primary);
+}
+
+.nfe-table-container {
+  overflow-x: auto;
+  max-height: 380px;
+}
+
+.nfe-table {
+  width: 100%;
+  margin-bottom: 0;
+  font-size: 0.84rem;
+  border-collapse: collapse;
+}
+
+.nfe-table thead th {
+  background: #f8f8f6;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.5rem 0.65rem;
+  border-bottom: 1px solid var(--border-strong);
+  white-space: nowrap;
+}
+
+.nfe-table tbody td {
+  padding: 0.35rem 0.5rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 0.84rem;
+}
+
+.nfe-table tbody tr:hover {
+  background-color: var(--earth-green-50);
+}
+
+.nfe-table tbody tr.row-ignored {
+  opacity: 0.55;
+  background-color: #fcfbfa;
+}
+
+.nfe-cell-input {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-xs);
+  padding: 0.25rem 0.45rem;
+  font-size: 0.84rem;
+  width: 100%;
+  color: var(--text-primary);
+  font-family: inherit;
+  transition: all 120ms ease;
+}
+
+.nfe-cell-input:hover {
+  background: var(--bg-surface);
+  border-color: var(--border-strong);
+}
+
+.nfe-cell-input:focus {
+  background: var(--bg-surface);
+  border-color: var(--earth-green-700);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(51, 89, 42, 0.15);
+}
+
+.nfe-summary-footer {
+  padding: 0.75rem 1.15rem;
+  background: #fbfbf9;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.82rem;
+}
+
+.nfe-danfe-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-card);
+}
+
+.nfe-key-display {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  background: var(--bg-subtle);
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-strong);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
