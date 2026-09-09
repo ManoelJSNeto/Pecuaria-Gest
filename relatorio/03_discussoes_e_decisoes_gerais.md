@@ -97,3 +97,37 @@ A transição arquitetural foi executada e validada em 5 etapas incrementais, ca
 * **Zero impacto na latência:** Testes de benchmark comprovaram tempos médios de resposta entre 20ms e 45ms por requisição sob Docker (PHP 8.3 FPM + Nginx + PostgreSQL).
 * **Manutenibilidade Acadêmica:** A organização em classes atende plenamente aos critérios de avaliação de engenharia de software para o TCC (baixo acoplamento, alta coesão e separação nítida de camadas).
 
+---
+
+## 7. Discussões em Aberto & Próximas Decisões Arquiteturais
+
+### 🆔 [DISC-INFRA-2026-09-08] Arquitetura da Nova Bateria de Testes na Nuvem (AWS com SSM/IAM & Expansão Multi-Cloud)
+
+> **Status:** 🟡 **EM ABERTO / EM DISCUSSÃO COM O AUTOR**  
+> **Identificador Único:** `[DISC-INFRA-2026-09-08]`  
+> **Data de Registro:** 08/09/2026
+
+#### 1. Contexto e Objetivos
+A equipe planeja refazer integralmente os testes de carga concorrente (20, 50 e 100 usuários) com o sistema padronizado em PostgreSQL 16 nativo, expandindo o comparativo para além da AWS (incluindo GCP e Azure) e medindo também o consumo de CPU (%) e Memória RAM (MB).
+
+#### 2. Pontos Discutidos e Alinhados para a AWS:
+1. **Segurança Avançada com AWS Systems Manager (SSM) e IAM:**
+   * **Erradicação do SSH (Porta 22):** A porta 22 será totalmente removida dos Security Groups.
+   * **Zero Chaves Privadas `.pem`:** Autenticação gerenciada pelo IAM através de uma Role anexada à EC2 com a política `AmazonSSMManagedInstanceCore`.
+   * **Acesso Administrativo:** Conexão via AWS Systems Manager Session Manager (console web ou AWS CLI) com auditoria nativa no AWS CloudTrail.
+2. **Topologia de Rede e Isolamento em Camadas:**
+   * **Camada Pública (EC2):** Portas 80 e 443 abertas para tráfego do app móvel e painel web.
+   * **Camada Privada (RDS PostgreSQL):** Subnet group privado sem IP público, aceitando conexões na porta 5432 exclusivamente a partir do Security Group da EC2.
+3. **Empacotamento da Aplicação:**
+   * A EC2 executará os contêineres oficiais desacoplados (Nginx + PHP 8.3-FPM), enquanto a variável `DB_HOST` apontará diretamente para a instância externa do Amazon RDS PostgreSQL.
+4. **Dimensionamento Proposto (Free Tier):**
+   * EC2 `t3.micro` (2 vCPUs, 1 GB RAM, Ubuntu 24.04 LTS) + RDS `db.t3.micro` (PostgreSQL 16, 1 GB RAM, 20 GB gp3).
+
+#### 3. Tópicos Pendentes para Decisão na Próxima Sessão:
+* [ ] **Definição da Região:** Validação se a conta AWS do autor possui cotas disponíveis no Free Tier para a região de **São Paulo (`sa-east-1`)**, ou se será necessário adotar **Norte da Virgínia (`us-east-1`)** como contingência realista.
+* [ ] **Planejamento da Infraestrutura nas Outras Nuvens (GCP e Azure):**
+  * *Google Cloud:* Mapeamento do Compute Engine `e2-micro`/`e2-small` + Cloud SQL PostgreSQL na região `southamerica-east1` (São Paulo).
+  * *Microsoft Azure:* Mapeamento da Azure VM `Standard_B1s` + Azure Database for PostgreSQL Flexible Server na região `brazilsouth` (São Paulo).
+* [ ] **Execução Prévia em Ambientes Locais:** Testar o novo runner com captura de CPU/RAM em duas máquinas físicas locais (Máquina A do autor e Máquina B adicional) antes de disparar os testes na nuvem.
+
+
