@@ -162,9 +162,11 @@ Durante os testes práticos de validação da aplicação com usuário/produtor 
   * Implementadas rotas `GET /compras/{id}/editar`, `POST /compras/{id}/atualizar`, `GET /vendas/{id}/editar` e `POST /vendas/{id}/atualizar`.
   * Atualização inteligente dos animais vinculados e botões de atalho (`<i class="bi bi-pencil"></i>`) nas tabelas.
 * **Validação e Testes Automatizados:**
-  * 38 rotas do sistema validadas com HTTP 200 e zero erros SQL (`tests/test_integration.js`), incluindo as novas telas de visualização de NF-e e edição.
+  * 40 rotas do sistema validadas com HTTP 200 e zero erros SQL (`tests/test_integration.js`), incluindo as novas telas de visualização de NF-e e edição.
   * Teste de integração de persistência e redirecionamento (`tests/test_compras_vendas_edit.js`) executado com 100% de aprovação.
   * Validador de regras de negócio XML (`tests/test_xml_parser.php`) aprovado com fixtures reais de compra e venda.
+  * **Correção de CI para Ambientes Descartáveis (GitHub Actions):** Incluído seed automático com fixture de XML real para compras e vendas na função `initDb()` (`src/db.php`), assegurando que contêineres e bancos recém-inicializados do zero em pipelines de CI contenham registros de teste e arquivos de XML prontos para inspeção imediata. Alinhada a variável `API_KEY=pecuaria-mobile-key` no `.env.example` e em todos os runners automatizados.
+
 
 
 
