@@ -39,147 +39,167 @@ $animaisLote = $animaisLote ?? [];
 <form method="POST" action="<?= $actionUrl ?>" enctype="multipart/form-data" id="formCompra">
   <?= csrf_field() ?>
 
+  <!-- 1. BLOCO SUPERIOR: Importação de XML e Painel de Conferência (Largura Total) -->
+  <div class="mb-4">
+    <!-- Informação de XML existente em modo de Edição -->
+    <?php if ($isEdit && !empty($compra['arquivo_xml'])): ?>
+      <div class="p-3 mb-3 bg-white rounded border d-flex justify-content-between align-items-center flex-wrap gap-2 shadow-sm">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle p-2 bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width:42px;height:42px;">
+            <i class="bi bi-file-earmark-check-fill fs-5"></i>
+          </div>
+          <div>
+            <div class="fw-bold text-dark">Nota Fiscal Eletrônica (NF-e) Anexada</div>
+            <div class="text-muted small">
+              <?php if (!empty($compra['chave_nfe'])): ?>
+                Chave: <span class="font-monospace text-dark"><?= substr($compra['chave_nfe'], 0, 10) ?>...<?= substr($compra['chave_nfe'], -6) ?></span> •
+              <?php endif; ?>
+              Fornecedor: <strong><?= e($compra['fornecedor_origem'] ?: 'Não informado') ?></strong>
+            </div>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <a href="/compras/<?= $compraId ?>/nfe" target="_blank" class="btn btn-sm btn-outline-success">
+            <i class="bi bi-eye me-1"></i> Ver Detalhes da NF-e
+          </a>
+          <a href="<?= e($compra['arquivo_xml']) ?>" download class="btn btn-sm btn-secondary">
+            <i class="bi bi-download me-1"></i> Baixar XML
+          </a>
+        </div>
+      </div>
+    <?php endif; ?>
+
+    <!-- Zona de Importação Inteligente de XML da NF-e -->
+    <div class="xml-import-zone" id="dropZoneXml" onclick="document.getElementById('inputXmlFile').click()">
+      <input type="file" name="arquivo_xml" id="inputXmlFile" accept=".xml,text/xml" style="display: none;" onchange="handleXmlSelect(this)">
+      <i class="bi bi-file-earmark-arrow-up xml-import-icon"></i>
+      <h6 class="fw-bold mb-1 text-dark"><?= $isEdit ? 'Substituir ou Reimportar XML da NF-e' : 'Importar Arquivo XML da NF-e' ?></h6>
+      <p class="small text-muted mb-0">
+        Clique ou arraste o arquivo <strong>.xml</strong> da Nota Fiscal para inspecionar os itens na hora e preencher os dados.
+      </p>
+      <div id="xmlFeedback" style="display: none;" class="xml-badge-success justify-content-center mt-2">
+        <i class="bi bi-check-circle-fill text-success fs-6"></i>
+        <span id="xmlFeedbackText">XML lido e validado com sucesso!</span>
+      </div>
+    </div>
+
+    <!-- Painel Dinâmico & Dimensionado de Pré-visualização de Itens da NF-e -->
+    <div id="painelItensXml" style="display: none;" class="nfe-preview-panel active mt-3">
+      <div class="nfe-preview-header">
+        <div class="nfe-preview-title">
+          <i class="bi bi-receipt-cutoff text-success fs-5"></i>
+          <div>
+            <h6 id="xmlCabecalhoNota">Nota Fiscal Carregada</h6>
+            <small class="text-muted" id="xmlSubcabecalhoNota">Conferência dos itens da NF-e</small>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="abrirModalNfeCompleta()" title="Ver todos os detalhes da nota fiscal original">
+            <i class="bi bi-eye me-1"></i> Ver NF-e Completa
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2" onclick="limparXmlImportado()" title="Descartar XML">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Chips de Metadados da Nota -->
+      <div class="nfe-meta-chips" id="xmlMetaChips">
+        <!-- Inserido dinamicamente via JS -->
+      </div>
+
+      <!-- Alerta com InfCpl / GTA -->
+      <div id="xmlInfCplAlert" style="display: none;" class="p-2 px-3 bg-light border-bottom small d-flex align-items-start gap-2">
+        <i class="bi bi-info-circle text-primary mt-1"></i>
+        <div class="flex-grow-1">
+          <strong class="text-secondary">Observações da NF-e:</strong>
+          <span id="xmlInfCplText" class="font-monospace text-dark ms-1"></span>
+        </div>
+      </div>
+
+      <!-- Tabela Compacta e Dimensionada de Itens -->
+      <div class="nfe-table-container">
+        <table class="nfe-table" id="tabelaItensXml">
+          <thead>
+            <tr>
+              <th style="width: 36px;" class="text-center" title="Incluir este item no cálculo do lote">Inc.</th>
+              <th>Produto / Descrição na NF-e</th>
+              <th style="width: 90px;" class="text-end">Qtd</th>
+              <th style="width: 110px;" class="text-end">Valor Unit.</th>
+              <th style="width: 115px;" class="text-end">Total Item</th>
+              <th style="width: 32px;" class="text-center"></th>
+            </tr>
+          </thead>
+          <tbody id="tbodyItensXml">
+            <!-- Linhas geradas via JavaScript -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Barra de Rodapé / Totais -->
+      <div class="nfe-summary-footer">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <button type="button" class="btn btn-sm btn-light border py-0 px-2" onclick="selecionarTodosItensXml(true)">Marcar Todos</button>
+          <button type="button" class="btn btn-sm btn-light border py-0 px-2" onclick="selecionarTodosItensXml(false)">Desmarcar</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="adicionarItemManualXml()">
+            <i class="bi bi-plus-lg me-1"></i> Adicionar Item
+          </button>
+          <span class="text-muted small ms-1" id="xmlStatusIgnorados"></span>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+          <div class="text-end">
+            <small class="text-muted d-block" style="font-size:0.7rem;">Soma Selecionada:</small>
+            <strong class="tabular-nums" id="xmlSomaQtd">0 cab</strong>
+            <span class="text-muted">•</span>
+            <strong class="tabular-nums text-success" id="xmlSomaValor">R$ 0,00</strong>
+          </div>
+          <button type="button" class="btn btn-sm btn-success py-1 px-3" onclick="aplicarItensXmlAoFormulario()">
+            <i class="bi bi-arrow-repeat me-1"></i> Aplicar ao Lote
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. GRID PRINCIPAL: Formulário Detalhado (8) + Resumo & Ações (4) -->
   <div class="row g-3">
     <!-- Coluna Principal: Formulário & Seções Técnicas -->
     <div class="col-lg-8">
 
-      <!-- Informação de XML existente em modo de Edição -->
-      <?php if ($isEdit && !empty($compra['arquivo_xml'])): ?>
-        <div class="p-3 mb-3 bg-white rounded border d-flex justify-content-between align-items-center flex-wrap gap-2 shadow-sm">
-          <div class="d-flex align-items-center gap-3">
-            <div class="rounded-circle p-2 bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width:42px;height:42px;">
-              <i class="bi bi-file-earmark-check-fill fs-5"></i>
-            </div>
-            <div>
-              <div class="fw-bold text-dark">Nota Fiscal Eletrônica (NF-e) Anexada</div>
-              <div class="text-muted small">
-                <?php if (!empty($compra['chave_nfe'])): ?>
-                  Chave: <span class="font-monospace text-dark"><?= substr($compra['chave_nfe'], 0, 10) ?>...<?= substr($compra['chave_nfe'], -6) ?></span> •
-                <?php endif; ?>
-                Fornecedor: <strong><?= e($compra['fornecedor_origem'] ?: 'Não informado') ?></strong>
-              </div>
-            </div>
-          </div>
-          <div class="d-flex align-items-center gap-2">
-            <a href="/compras/<?= $compraId ?>/nfe" target="_blank" class="btn btn-sm btn-outline-success">
-              <i class="bi bi-eye me-1"></i> Ver Detalhes da NF-e
-            </a>
-            <a href="<?= e($compra['arquivo_xml']) ?>" download class="btn btn-sm btn-secondary">
-              <i class="bi bi-download me-1"></i> Baixar XML
-            </a>
-          </div>
-        </div>
-      <?php endif; ?>
-
-      <!-- Zona de Importação Inteligente de XML da NF-e -->
-      <div class="xml-import-zone" id="dropZoneXml" onclick="document.getElementById('inputXmlFile').click()">
-        <input type="file" name="arquivo_xml" id="inputXmlFile" accept=".xml,text/xml" style="display: none;" onchange="handleXmlSelect(this)">
-        <i class="bi bi-file-earmark-arrow-up xml-import-icon"></i>
-        <h6 class="fw-bold mb-1 text-dark"><?= $isEdit ? 'Substituir ou Reimportar XML da NF-e' : 'Importar Arquivo XML da NF-e' ?></h6>
-        <p class="small text-muted mb-0">
-          Clique ou arraste o arquivo <strong>.xml</strong> da Nota Fiscal para inspecionar os itens na hora e preencher os dados.
-        </p>
-        <div id="xmlFeedback" style="display: none;" class="xml-badge-success justify-content-center mt-2">
-          <i class="bi bi-check-circle-fill text-success fs-6"></i>
-          <span id="xmlFeedbackText">XML lido e validado com sucesso!</span>
-        </div>
-      </div>
-
-      <!-- Painel Dinâmico & Dimensionado de Pré-visualização de Itens da NF-e -->
-      <div id="painelItensXml" style="display: none;" class="nfe-preview-panel active">
-        <div class="nfe-preview-header">
-          <div class="nfe-preview-title">
-            <i class="bi bi-receipt-cutoff text-success fs-5"></i>
-            <div>
-              <h6 id="xmlCabecalhoNota">Nota Fiscal Carregada</h6>
-              <small class="text-muted" id="xmlSubcabecalhoNota">Conferência dos itens da NF-e</small>
-            </div>
-          </div>
-          <div class="d-flex align-items-center gap-2">
-            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="abrirModalNfeCompleta()" title="Ver todos os detalhes da nota fiscal original">
-              <i class="bi bi-eye me-1"></i> Ver NF-e Completa
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2" onclick="limparXmlImportado()" title="Descartar XML">
-              <i class="bi bi-x-lg"></i>
-            </button>
-          </div>
-        </div>
-
-        <!-- Chips de Metadados da Nota -->
-        <div class="nfe-meta-chips" id="xmlMetaChips">
-          <!-- Inserido dinamicamente via JS -->
-        </div>
-
-        <!-- Alerta com InfCpl / GTA -->
-        <div id="xmlInfCplAlert" style="display: none;" class="p-2 px-3 bg-light border-bottom small d-flex align-items-start gap-2">
-          <i class="bi bi-info-circle text-primary mt-1"></i>
-          <div class="flex-grow-1">
-            <strong class="text-secondary">Observações da NF-e:</strong>
-            <span id="xmlInfCplText" class="font-monospace text-dark ms-1"></span>
-          </div>
-        </div>
-
-        <!-- Tabela Compacta e Dimensionada de Itens -->
-        <div class="nfe-table-container">
-          <table class="nfe-table" id="tabelaItensXml">
-            <thead>
-              <tr>
-                <th style="width: 36px;" class="text-center" title="Incluir este item no cálculo do lote">Inc.</th>
-                <th>Produto / Descrição na NF-e</th>
-                <th style="width: 90px;" class="text-end">Qtd</th>
-                <th style="width: 110px;" class="text-end">Valor Unit.</th>
-                <th style="width: 115px;" class="text-end">Total Item</th>
-                <th style="width: 32px;" class="text-center"></th>
-              </tr>
-            </thead>
-            <tbody id="tbodyItensXml">
-              <!-- Linhas geradas via JavaScript -->
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Barra de Rodapé / Totais -->
-        <div class="nfe-summary-footer">
-          <div class="d-flex align-items-center gap-2 flex-wrap">
-            <button type="button" class="btn btn-sm btn-light border py-0 px-2" onclick="selecionarTodosItensXml(true)">Marcar Todos</button>
-            <button type="button" class="btn btn-sm btn-light border py-0 px-2" onclick="selecionarTodosItensXml(false)">Desmarcar</button>
-            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="adicionarItemManualXml()">
-              <i class="bi bi-plus-lg me-1"></i> Adicionar Item
-            </button>
-            <span class="text-muted small ms-1" id="xmlStatusIgnorados"></span>
-          </div>
-
-          <div class="d-flex align-items-center gap-3">
-            <div class="text-end">
-              <small class="text-muted d-block" style="font-size:0.7rem;">Soma Selecionada:</small>
-              <strong class="tabular-nums" id="xmlSomaQtd">0 cab</strong>
-              <span class="text-muted">•</span>
-              <strong class="tabular-nums text-success" id="xmlSomaValor">R$ 0,00</strong>
-            </div>
-            <button type="button" class="btn btn-sm btn-success py-1 px-3" onclick="aplicarItensXmlAoFormulario()">
-              <i class="bi bi-arrow-repeat me-1"></i> Aplicar ao Lote
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Seção 1: Chaves Mestras e Origem -->
+      <!-- Seção 1: Identificação & Documentação da Entrada -->
       <div class="form-section">
         <div class="form-section-title">
-          <i class="bi bi-shield-check text-success"></i> Chaves Mestras (Documentação Obrigatória)
+          <i class="bi bi-file-earmark-text text-success"></i> Identificação & Documentação da Entrada
         </div>
 
         <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Número / Série da GTA *</label>
+          <!-- Descrição / Identificação da NF-e em DESTAQUE no topo da seção -->
+          <div class="col-12">
+            <label class="form-label fw-bold text-dark">
+              Descrição da NF-e / Identificação do Lote *
+            </label>
             <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-file-earmark-medical text-success"></i></span>
-              <input type="text" name="numero_gta" id="compra_gta" class="form-control" placeholder="Ex: 123456/2026" required autocomplete="off" value="<?= e($compra['numero_gta'] ?? '') ?>">
+              <span class="input-group-text"><i class="bi bi-card-text text-success"></i></span>
+              <input type="text" name="descricao" id="compra_descricao" class="form-control fw-600" placeholder="Ex: Lote NF 1234 - BOVINOS MACHOS NELORE PARA RECRIA" autocomplete="off" required value="<?= e($compra['descricao'] ?? '') ?>">
             </div>
-            <small class="text-muted" style="font-size:0.72rem;">Guia de Trânsito Animal emitida pelo órgão estadual.</small>
+            <small class="text-muted" style="font-size:0.72rem;">Preenchido automaticamente ao carregar o XML da NF-e ou digitado manualmente.</small>
           </div>
 
-          <div class="col-md-6">
+          <div class="col-md-7">
+            <label class="form-label">Fornecedor / Fazenda de Origem</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-building"></i></span>
+              <input type="text" name="fornecedor_origem" id="compra_fornecedor" class="form-control" placeholder="Ex: Fazenda Santa Maria, Leilão Terra Boa..." autocomplete="off" value="<?= e($compra['fornecedor_origem'] ?? '') ?>">
+            </div>
+          </div>
+
+          <div class="col-md-5">
+            <label class="form-label">Data da Operação / Entrada *</label>
+            <input type="date" name="data_compra" id="compra_data" class="form-control" value="<?= e($compra['data_compra'] ?? date('Y-m-d')) ?>" required>
+          </div>
+
+          <div class="col-md-7">
             <label class="form-label">Chave de Acesso da NF-e (44 dígitos)</label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-receipt"></i></span>
@@ -188,14 +208,13 @@ $animaisLote = $animaisLote ?? [];
             <small class="text-muted" style="font-size:0.72rem;">Preenchida automaticamente ao importar o XML acima.</small>
           </div>
 
-          <div class="col-md-8">
-            <label class="form-label">Fornecedor / Fazenda de Origem</label>
-            <input type="text" name="fornecedor_origem" id="compra_fornecedor" class="form-control" placeholder="Ex: Fazenda Santa Maria, Leilão Terra Boa..." autocomplete="off" value="<?= e($compra['fornecedor_origem'] ?? '') ?>">
-          </div>
-
-          <div class="col-md-4">
-            <label class="form-label">Data da Operação / Entrada *</label>
-            <input type="date" name="data_compra" id="compra_data" class="form-control" value="<?= e($compra['data_compra'] ?? date('Y-m-d')) ?>" required>
+          <div class="col-md-5">
+            <label class="form-label">Número / Série da GTA *</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-file-earmark-medical text-success"></i></span>
+              <input type="text" name="numero_gta" id="compra_gta" class="form-control" placeholder="Ex: 123456/2026" required autocomplete="off" value="<?= e($compra['numero_gta'] ?? '') ?>">
+            </div>
+            <small class="text-muted" style="font-size:0.72rem;">Guia de Trânsito Animal emitida pelo órgão estadual.</small>
           </div>
         </div>
       </div>
@@ -209,7 +228,7 @@ $animaisLote = $animaisLote ?? [];
         <div class="row g-3">
           <div class="col-md-4">
             <label class="form-label">Quantidade de Cabeças *</label>
-            <input type="number" name="quantidade_cabecas" id="compra_qtd" class="form-control tabular-nums" min="1" value="<?= (int)($compra['quantidade_cabecas'] ?? 10) ?>" required oninput="calcularMediasCompra()">
+            <input type="number" name="quantidade_cabecas" id="compra_qtd" class="form-control tabular-nums fw-600" min="1" value="<?= (int)($compra['quantidade_cabecas'] ?? 10) ?>" required oninput="calcularMediasCompra()">
           </div>
 
           <div class="col-md-4">
@@ -224,16 +243,11 @@ $animaisLote = $animaisLote ?? [];
             <label class="form-label">Valor Total da Compra (R$) *</label>
             <div class="input-group">
               <span class="input-group-text fw-bold">R$</span>
-              <input type="number" step="0.01" name="valor_total" id="compra_valor" class="form-control tabular-nums fw-bold" placeholder="0,00" required value="<?= !empty($compra['valor_total']) ? number_format((float)$compra['valor_total'], 2, '.', '') : '' ?>" oninput="calcularMediasCompra()">
+              <input type="number" step="0.01" name="valor_total" id="compra_valor" class="form-control tabular-nums fw-bold text-success fs-6" placeholder="0,00" required value="<?= !empty($compra['valor_total']) ? number_format((float)$compra['valor_total'], 2, '.', '') : '' ?>" oninput="calcularMediasCompra()">
             </div>
           </div>
 
-          <div class="col-md-6">
-            <label class="form-label">Descrição / Identificação do Lote</label>
-            <input type="text" name="descricao" id="compra_descricao" class="form-control" placeholder="Ex: Lote de 30 Garrotes Nelore" autocomplete="off" value="<?= e($compra['descricao'] ?? '') ?>">
-          </div>
-
-          <div class="col-md-6">
+          <div class="col-12">
             <label class="form-label">Pasto de Destino na Fazenda</label>
             <select name="pasto_destino_id" class="form-select">
               <option value="">— Selecionar Pasto Posteriormente —</option>
@@ -329,53 +343,55 @@ $animaisLote = $animaisLote ?? [];
 
     </div>
 
-    <!-- Coluna Lateral: Resumo de Médias & Ações -->
+    <!-- Coluna Lateral: Resumo de Médias & Ações (Sticky Sidebar) -->
     <div class="col-lg-4">
+      <div class="sticky-sidebar">
 
-      <!-- Card de Conferência em Tempo Real -->
-      <div class="card mb-3">
-        <div class="card-header">
-          <h6 class="mb-0"><i class="bi bi-graph-up-arrow text-primary me-1"></i>Conferência Zootécnica</h6>
-        </div>
-        <div class="card-body p-3">
-          <div class="summary-line">
-            <span class="summary-label">Custo Médio / Cab:</span>
-            <span class="summary-value tabular-nums" id="resumo_media_cab" style="color: var(--earth-green-800);">R$ 0,00</span>
+        <!-- Card de Conferência em Tempo Real -->
+        <div class="card mb-3">
+          <div class="card-header">
+            <h6 class="mb-0"><i class="bi bi-graph-up-arrow text-primary me-1"></i>Conferência Zootécnica</h6>
           </div>
-          <div class="summary-line">
-            <span class="summary-label">Peso Médio Estimado:</span>
-            <span class="summary-value tabular-nums" id="resumo_peso_cab">0,0 kg</span>
-          </div>
-          <div class="summary-line">
-            <span class="summary-label">Volume por Cabeça:</span>
-            <span class="summary-value tabular-nums" id="resumo_arr_cab">0,0 @</span>
-          </div>
-          <div class="summary-line">
-            <span class="summary-label">Custo da Arroba (@):</span>
-            <span class="summary-value tabular-nums" id="resumo_custo_arr" style="color: var(--earth-green-700);">R$ 0,00/@</span>
-          </div>
+          <div class="card-body p-3">
+            <div class="summary-line">
+              <span class="summary-label">Custo Médio / Cab:</span>
+              <span class="summary-value tabular-nums" id="resumo_media_cab" style="color: var(--earth-green-800);">R$ 0,00</span>
+            </div>
+            <div class="summary-line">
+              <span class="summary-label">Peso Médio Estimado:</span>
+              <span class="summary-value tabular-nums" id="resumo_peso_cab">0,0 kg</span>
+            </div>
+            <div class="summary-line">
+              <span class="summary-label">Volume por Cabeça:</span>
+              <span class="summary-value tabular-nums" id="resumo_arr_cab">0,0 @</span>
+            </div>
+            <div class="summary-line">
+              <span class="summary-label">Custo da Arroba (@):</span>
+              <span class="summary-value tabular-nums" id="resumo_custo_arr" style="color: var(--earth-green-700);">R$ 0,00/@</span>
+            </div>
 
-          <div class="p-2 mt-3 rounded bg-light border" style="font-size:0.75rem; color:var(--text-secondary);">
-            <i class="bi bi-info-circle text-primary me-1"></i> Conversão padrão: 30 kg de peso vivo equivalem a 1 @ com 50% de rendimento de carcaça.
+            <div class="p-2 mt-3 rounded bg-light border" style="font-size:0.75rem; color:var(--text-secondary);">
+              <i class="bi bi-info-circle text-primary me-1"></i> Conversão padrão: 30 kg de peso vivo equivalem a 1 @ com 50% de rendimento de carcaça.
+            </div>
           </div>
         </div>
+
+        <!-- Card de Confirmação e Ação -->
+        <div class="card shadow-sm">
+          <div class="card-header">
+            <h6 class="mb-0"><?= $isEdit ? 'Salvar Alterações' : 'Finalizar Operação' ?></h6>
+          </div>
+          <div class="card-body">
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary btn-lg py-2 fw-bold">
+                <i class="bi bi-check-lg me-1"></i> <?= $isEdit ? 'Salvar e Atualizar Compra' : 'Confirmar e Salvar Compra' ?>
+              </button>
+              <a href="/compras" class="btn btn-secondary">Cancelar</a>
+            </div>
+          </div>
+        </div>
+
       </div>
-
-      <!-- Card de Confirmação e Ação -->
-      <div class="card">
-        <div class="card-header">
-          <h6 class="mb-0"><?= $isEdit ? 'Salvar Alterações' : 'Finalizar Operação' ?></h6>
-        </div>
-        <div class="card-body">
-          <div class="d-grid gap-2">
-            <button type="submit" class="btn btn-primary">
-              <i class="bi bi-check-lg me-1"></i> <?= $isEdit ? 'Salvar e Atualizar Compra' : 'Confirmar e Salvar Compra' ?>
-            </button>
-            <a href="/compras" class="btn btn-secondary">Cancelar</a>
-          </div>
-        </div>
-      </div>
-
     </div>
   </div>
 </form>

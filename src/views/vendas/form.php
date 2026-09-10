@@ -68,141 +68,161 @@ if (!isset($pastos)) {
 <form method="POST" action="<?= $actionUrl ?>" enctype="multipart/form-data" id="formVenda">
   <?= csrf_field() ?>
 
+  <!-- 1. BLOCO SUPERIOR: Importação de XML e Painel de Conferência (Largura Total) -->
+  <div class="mb-4">
+    <!-- Informação de XML existente em modo de Edição -->
+    <?php if ($isEdit && !empty($venda['arquivo_xml'])): ?>
+      <div class="p-3 mb-3 bg-white rounded border d-flex justify-content-between align-items-center flex-wrap gap-2 shadow-sm">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle p-2 bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width:42px;height:42px;">
+            <i class="bi bi-file-earmark-check-fill fs-5"></i>
+          </div>
+          <div>
+            <div class="fw-bold text-dark">Nota Fiscal de Saída / Abate Anexada</div>
+            <div class="text-muted small">
+              <?php if (!empty($venda['chave_nfe'])): ?>
+                Chave: <span class="font-monospace text-dark"><?= substr($venda['chave_nfe'], 0, 10) ?>...<?= substr($venda['chave_nfe'], -6) ?></span> •
+              <?php endif; ?>
+              Comprador: <strong><?= e($venda['comprador_destino'] ?: 'Não informado') ?></strong>
+            </div>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <a href="/vendas/<?= $vendaId ?>/nfe" target="_blank" class="btn btn-sm btn-outline-success">
+            <i class="bi bi-eye me-1"></i> Ver Detalhes da NF-e
+          </a>
+          <a href="<?= e($venda['arquivo_xml']) ?>" download class="btn btn-sm btn-secondary">
+            <i class="bi bi-download me-1"></i> Baixar XML
+          </a>
+        </div>
+      </div>
+    <?php endif; ?>
+
+    <!-- Zona de Importação Inteligente de XML da NF-e -->
+    <div class="xml-import-zone" id="dropZoneXmlVenda" onclick="document.getElementById('inputXmlVenda').click()">
+      <input type="file" name="arquivo_xml" id="inputXmlVenda" accept=".xml,text/xml" style="display: none;" onchange="handleXmlSelectVenda(this)">
+      <i class="bi bi-file-earmark-arrow-up xml-import-icon"></i>
+      <h6 class="fw-bold mb-1 text-dark"><?= $isEdit ? 'Substituir ou Reimportar XML da NF-e' : 'Importar XML da Nota Fiscal de Venda / Abate' ?></h6>
+      <p class="small text-muted mb-0">
+        Selecione o arquivo <strong>.xml</strong> emitido pelo frigorífico ou comprador para conferência e preenchimento automático.
+      </p>
+      <div id="xmlFeedbackVenda" style="display: none;" class="xml-badge-success justify-content-center mt-2">
+        <i class="bi bi-check-circle-fill text-success fs-6"></i>
+        <span id="xmlFeedbackVendaText">XML lido e validado com sucesso!</span>
+      </div>
+    </div>
+
+    <!-- Painel Dinâmico & Dimensionado de Pré-visualização de Itens da NF-e de Venda -->
+    <div id="painelItensXmlVenda" style="display: none;" class="nfe-preview-panel active mt-3">
+      <div class="nfe-preview-header">
+        <div class="nfe-preview-title">
+          <i class="bi bi-receipt-cutoff text-success fs-5"></i>
+          <div>
+            <h6 id="xmlVendaCabecalho">Nota Fiscal de Saída Carregada</h6>
+            <small class="text-muted" id="xmlVendaSubcabecalho">Conferência dos itens discriminados na NF-e</small>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="abrirModalNfeVendaCompleta()" title="Ver todos os detalhes da nota fiscal original">
+            <i class="bi bi-eye me-1"></i> Ver NF-e Completa
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2" onclick="limparXmlVendaImportado()" title="Descartar XML">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Chips de Metadados -->
+      <div class="nfe-meta-chips" id="xmlVendaMetaChips"></div>
+
+      <!-- Alerta com InfCpl / GTA -->
+      <div id="xmlVendaInfCplAlert" style="display: none;" class="p-2 px-3 bg-light border-bottom small d-flex align-items-start gap-2">
+        <i class="bi bi-info-circle text-primary mt-1"></i>
+        <div class="flex-grow-1">
+          <strong class="text-secondary">Observações da NF-e:</strong>
+          <span id="xmlVendaInfCplText" class="font-monospace text-dark ms-1"></span>
+        </div>
+      </div>
+
+      <!-- Tabela Compacta de Itens -->
+      <div class="nfe-table-container">
+        <table class="nfe-table" id="tabelaItensVendaXml">
+          <thead>
+            <tr>
+              <th style="width: 36px;" class="text-center" title="Incluir item no lote de saída">Inc.</th>
+              <th>Produto / Descrição na NF-e</th>
+              <th style="width: 90px;" class="text-end">Qtd</th>
+              <th style="width: 110px;" class="text-end">Valor Unit.</th>
+              <th style="width: 115px;" class="text-end">Total Item</th>
+              <th style="width: 32px;" class="text-center"></th>
+            </tr>
+          </thead>
+          <tbody id="tbodyItensVendaXml"></tbody>
+        </table>
+      </div>
+
+      <!-- Barra de Totais -->
+      <div class="nfe-summary-footer">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <button type="button" class="btn btn-sm btn-light border py-0 px-2" onclick="selecionarTodosItensVendaXml(true)">Marcar Todos</button>
+          <button type="button" class="btn btn-sm btn-light border py-0 px-2" onclick="selecionarTodosItensVendaXml(false)">Desmarcar</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="adicionarItemManualVendaXml()">
+            <i class="bi bi-plus-lg me-1"></i> Adicionar Item
+          </button>
+          <span class="text-muted small ms-1" id="xmlVendaStatusIgnorados"></span>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+          <div class="text-end">
+            <small class="text-muted d-block" style="font-size:0.7rem;">Faturamento dos Itens:</small>
+            <strong class="tabular-nums text-success fs-6" id="xmlVendaSomaValor">R$ 0,00</strong>
+          </div>
+          <button type="button" class="btn btn-sm btn-success py-1 px-3" onclick="aplicarItensXmlAoFormularioVenda()">
+            <i class="bi bi-arrow-repeat me-1"></i> Aplicar Valores
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. GRID PRINCIPAL: Formulário Detalhado (8) + Resumo & Ações (4) -->
   <div class="row g-3">
     <!-- Coluna Principal: Formulário e Seleção de Gado -->
     <div class="col-lg-8">
 
-      <!-- Informação de XML existente em modo de Edição -->
-      <?php if ($isEdit && !empty($venda['arquivo_xml'])): ?>
-        <div class="p-3 mb-3 bg-white rounded border d-flex justify-content-between align-items-center flex-wrap gap-2 shadow-sm">
-          <div class="d-flex align-items-center gap-3">
-            <div class="rounded-circle p-2 bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width:42px;height:42px;">
-              <i class="bi bi-file-earmark-check-fill fs-5"></i>
-            </div>
-            <div>
-              <div class="fw-bold text-dark">Nota Fiscal de Saída / Abate Anexada</div>
-              <div class="text-muted small">
-                <?php if (!empty($venda['chave_nfe'])): ?>
-                  Chave: <span class="font-monospace text-dark"><?= substr($venda['chave_nfe'], 0, 10) ?>...<?= substr($venda['chave_nfe'], -6) ?></span> •
-                <?php endif; ?>
-                Comprador: <strong><?= e($venda['comprador_destino'] ?: 'Não informado') ?></strong>
-              </div>
-            </div>
-          </div>
-          <div class="d-flex align-items-center gap-2">
-            <a href="/vendas/<?= $vendaId ?>/nfe" target="_blank" class="btn btn-sm btn-outline-success">
-              <i class="bi bi-eye me-1"></i> Ver Detalhes da NF-e
-            </a>
-            <a href="<?= e($venda['arquivo_xml']) ?>" download class="btn btn-sm btn-secondary">
-              <i class="bi bi-download me-1"></i> Baixar XML
-            </a>
-          </div>
-        </div>
-      <?php endif; ?>
-
-      <!-- Zona de Importação Inteligente de XML da NF-e -->
-      <div class="xml-import-zone" id="dropZoneXmlVenda" onclick="document.getElementById('inputXmlVenda').click()">
-        <input type="file" name="arquivo_xml" id="inputXmlVenda" accept=".xml,text/xml" style="display: none;" onchange="handleXmlSelectVenda(this)">
-        <i class="bi bi-file-earmark-arrow-up xml-import-icon"></i>
-        <h6 class="fw-bold mb-1 text-dark"><?= $isEdit ? 'Substituir ou Reimportar XML da NF-e' : 'Importar XML da Nota Fiscal de Venda / Abate' ?></h6>
-        <p class="small text-muted mb-0">
-          Selecione o arquivo <strong>.xml</strong> emitido pelo frigorífico ou comprador para conferência e preenchimento automático.
-        </p>
-        <div id="xmlFeedbackVenda" style="display: none;" class="xml-badge-success justify-content-center mt-2">
-          <i class="bi bi-check-circle-fill text-success fs-6"></i>
-          <span id="xmlFeedbackVendaText">XML lido e validado com sucesso!</span>
-        </div>
-      </div>
-
-      <!-- Painel Dinâmico & Dimensionado de Pré-visualização de Itens da NF-e de Venda -->
-      <div id="painelItensXmlVenda" style="display: none;" class="nfe-preview-panel active">
-        <div class="nfe-preview-header">
-          <div class="nfe-preview-title">
-            <i class="bi bi-receipt-cutoff text-success fs-5"></i>
-            <div>
-              <h6 id="xmlVendaCabecalho">Nota Fiscal de Saída Carregada</h6>
-              <small class="text-muted" id="xmlVendaSubcabecalho">Conferência dos itens discriminados na NF-e</small>
-            </div>
-          </div>
-          <div class="d-flex align-items-center gap-2">
-            <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="abrirModalNfeVendaCompleta()" title="Ver todos os detalhes da nota fiscal original">
-              <i class="bi bi-eye me-1"></i> Ver NF-e Completa
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2" onclick="limparXmlVendaImportado()" title="Descartar XML">
-              <i class="bi bi-x-lg"></i>
-            </button>
-          </div>
-        </div>
-
-        <!-- Chips de Metadados -->
-        <div class="nfe-meta-chips" id="xmlVendaMetaChips"></div>
-
-        <!-- Alerta com InfCpl / GTA -->
-        <div id="xmlVendaInfCplAlert" style="display: none;" class="p-2 px-3 bg-light border-bottom small d-flex align-items-start gap-2">
-          <i class="bi bi-info-circle text-primary mt-1"></i>
-          <div class="flex-grow-1">
-            <strong class="text-secondary">Observações da NF-e:</strong>
-            <span id="xmlVendaInfCplText" class="font-monospace text-dark ms-1"></span>
-          </div>
-        </div>
-
-        <!-- Tabela Compacta de Itens -->
-        <div class="nfe-table-container">
-          <table class="nfe-table" id="tabelaItensXmlVenda">
-            <thead>
-              <tr>
-                <th style="width: 36px;" class="text-center" title="Incluir no faturamento da venda">Inc.</th>
-                <th>Produto / Descrição na NF-e</th>
-                <th style="width: 90px;" class="text-end">Qtd</th>
-                <th style="width: 110px;" class="text-end">Valor Unit.</th>
-                <th style="width: 115px;" class="text-end">Total Item</th>
-                <th style="width: 32px;" class="text-center"></th>
-              </tr>
-            </thead>
-            <tbody id="tbodyItensXmlVenda"></tbody>
-          </table>
-        </div>
-
-        <!-- Barra de Rodapé / Totais -->
-        <div class="nfe-summary-footer">
-          <div class="d-flex align-items-center gap-2 flex-wrap">
-            <button type="button" class="btn btn-sm btn-light border py-0 px-2" onclick="selecionarTodosItensVendaXml(true)">Marcar Todos</button>
-            <button type="button" class="btn btn-sm btn-light border py-0 px-2" onclick="selecionarTodosItensVendaXml(false)">Desmarcar</button>
-            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="adicionarItemManualVendaXml()">
-              <i class="bi bi-plus-lg me-1"></i> Adicionar Item
-            </button>
-            <span class="text-muted small ms-1" id="xmlVendaStatusIgnorados"></span>
-          </div>
-
-          <div class="d-flex align-items-center gap-3">
-            <div class="text-end">
-              <small class="text-muted d-block" style="font-size:0.7rem;">Faturamento dos Itens:</small>
-              <strong class="tabular-nums text-success fs-6" id="xmlVendaSomaValor">R$ 0,00</strong>
-            </div>
-            <button type="button" class="btn btn-sm btn-success py-1 px-3" onclick="aplicarItensXmlAoFormularioVenda()">
-              <i class="bi bi-arrow-repeat me-1"></i> Aplicar Valores
-            </button>
-          </div>
-        </div>
-      </div>
-
       <!-- Seção 1: Chaves Mestras de Saída -->
       <div class="form-section">
         <div class="form-section-title">
-          <i class="bi bi-shield-check text-success"></i> Chaves Mestras de Saída & Documentação
+          <i class="bi bi-file-earmark-text text-success"></i> Identificação & Documentação da Saída
         </div>
 
         <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Número / Série da GTA de Saída *</label>
+          <!-- Descrição / Identificação da Saída em DESTAQUE no topo da seção -->
+          <div class="col-12">
+            <label class="form-label fw-bold text-dark">
+              Descrição da NF-e / Identificação da Saída *
+            </label>
             <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-file-earmark-medical text-success"></i></span>
-              <input type="text" name="numero_gta" id="venda_gta" class="form-control" placeholder="Ex: 987654/2026" required autocomplete="off" value="<?= e($venda['numero_gta'] ?? '') ?>">
+              <span class="input-group-text"><i class="bi bi-card-text text-success"></i></span>
+              <input type="text" name="descricao" id="venda_descricao" class="form-control fw-600" placeholder="Ex: Embarque de 20 bois gordos para abate" autocomplete="off" required value="<?= e($venda['descricao'] ?? '') ?>">
             </div>
-            <small class="text-muted" style="font-size:0.72rem;">Guia de Trânsito Animal emitida para o embarque ou abate.</small>
+            <small class="text-muted" style="font-size:0.72rem;">Preenchido automaticamente a partir da NF-e ou digitado manualmente.</small>
           </div>
 
-          <div class="col-md-6">
+          <div class="col-md-7">
+            <label class="form-label">Comprador / Frigorífico de Destino *</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-building"></i></span>
+              <input type="text" name="comprador_destino" id="venda_comprador" class="form-control" placeholder="Ex: Frigorífico JBS, Minerva, Fazenda São José..." required autocomplete="off" value="<?= e($venda['comprador_destino'] ?? '') ?>">
+            </div>
+          </div>
+
+          <div class="col-md-5">
+            <label class="form-label">Data do Embarque / Saída *</label>
+            <input type="date" name="data_venda" id="venda_data" class="form-control" value="<?= e($venda['data_venda'] ?? date('Y-m-d')) ?>" required>
+          </div>
+
+          <div class="col-md-7">
             <label class="form-label">Chave de Acesso da NF-e (44 dígitos)</label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-receipt"></i></span>
@@ -211,14 +231,13 @@ if (!isset($pastos)) {
             <small class="text-muted" style="font-size:0.72rem;">Preenchida automaticamente ao anexar o XML acima.</small>
           </div>
 
-          <div class="col-md-8">
-            <label class="form-label">Comprador / Frigorífico de Destino *</label>
-            <input type="text" name="comprador_destino" id="venda_comprador" class="form-control" placeholder="Ex: Frigorífico JBS, Minerva, Fazenda São José..." required autocomplete="off" value="<?= e($venda['comprador_destino'] ?? '') ?>">
-          </div>
-
-          <div class="col-md-4">
-            <label class="form-label">Data do Embarque / Saída *</label>
-            <input type="date" name="data_venda" id="venda_data" class="form-control" value="<?= e($venda['data_venda'] ?? date('Y-m-d')) ?>" required>
+          <div class="col-md-5">
+            <label class="form-label">Número / Série da GTA de Saída *</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-file-earmark-medical text-success"></i></span>
+              <input type="text" name="numero_gta" id="venda_gta" class="form-control" placeholder="Ex: 987654/2026" required autocomplete="off" value="<?= e($venda['numero_gta'] ?? '') ?>">
+            </div>
+            <small class="text-muted" style="font-size:0.72rem;">Guia de Trânsito Animal emitida para o embarque ou abate.</small>
           </div>
         </div>
       </div>
@@ -257,17 +276,12 @@ if (!isset($pastos)) {
             </div>
           </div>
 
-          <div class="col-md-6">
+          <div class="col-12">
             <label class="form-label">Valor Total da Venda (R$) *</label>
             <div class="input-group">
               <span class="input-group-text fw-bold">R$</span>
-              <input type="number" step="0.01" name="valor_total" id="venda_valor_total" class="form-control tabular-nums fw-bold fs-5" style="color: var(--earth-green-900);" placeholder="0,00" required value="<?= !empty($venda['valor_total']) ? number_format((float)$venda['valor_total'], 2, '.', '') : '' ?>" oninput="atualizarCalculoVenda()">
+              <input type="number" step="0.01" name="valor_total" id="venda_valor_total" class="form-control tabular-nums fw-bold fs-5 text-success" placeholder="0,00" required value="<?= !empty($venda['valor_total']) ? number_format((float)$venda['valor_total'], 2, '.', '') : '' ?>" oninput="atualizarCalculoVenda()">
             </div>
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label">Descrição / Identificação da Saída</label>
-            <input type="text" name="descricao" id="venda_descricao" class="form-control" placeholder="Ex: Embarque de 20 bois gordos para abate" autocomplete="off" value="<?= e($venda['descricao'] ?? '') ?>">
           </div>
         </div>
       </div>
@@ -337,52 +351,54 @@ if (!isset($pastos)) {
 
     </div>
 
-    <!-- Coluna Lateral: Resumo do Embarque & Confirmação -->
+    <!-- Coluna Lateral: Resumo do Embarque & Confirmação (Sticky Sidebar) -->
     <div class="col-lg-4">
+      <div class="sticky-sidebar">
 
-      <!-- Card de Resumo Financeiro da Venda -->
-      <div class="card mb-3">
-        <div class="card-header">
-          <h6 class="mb-0"><i class="bi bi-cash-stack text-success me-1"></i>Resumo do Embarque</h6>
-        </div>
-        <div class="card-body p-3">
-          <div class="summary-line">
-            <span class="summary-label">Animais Marcados:</span>
-            <span class="summary-value tabular-nums" id="resumo_qtd_selecionada" style="color: var(--earth-green-800);">0 cab</span>
+        <!-- Card de Resumo Financeiro da Venda -->
+        <div class="card mb-3">
+          <div class="card-header">
+            <h6 class="mb-0"><i class="bi bi-cash-stack text-success me-1"></i>Resumo do Embarque</h6>
           </div>
-          <div class="summary-line">
-            <span class="summary-label">Volume Total:</span>
-            <span class="summary-value tabular-nums" id="resumo_arr_total">0,0 @</span>
-          </div>
-          <div class="summary-line">
-            <span class="summary-label">Média por Cabeça:</span>
-            <span class="summary-value tabular-nums" id="resumo_media_cab">R$ 0,00</span>
-          </div>
+          <div class="card-body p-3">
+            <div class="summary-line">
+              <span class="summary-label">Animais Marcados:</span>
+              <span class="summary-value tabular-nums" id="resumo_qtd_selecionada" style="color: var(--earth-green-800);">0 cab</span>
+            </div>
+            <div class="summary-line">
+              <span class="summary-label">Volume Total:</span>
+              <span class="summary-value tabular-nums" id="resumo_arr_total">0,0 @</span>
+            </div>
+            <div class="summary-line">
+              <span class="summary-label">Média por Cabeça:</span>
+              <span class="summary-value tabular-nums" id="resumo_media_cab">R$ 0,00</span>
+            </div>
 
-          <div class="p-3 mt-3 rounded border" style="background: var(--earth-green-50);">
-            <small class="text-muted d-block text-uppercase fw-bold" style="font-size:0.68rem;">Faturamento Previsto</small>
-            <div class="fs-4 fw-bold tabular-nums" id="resumo_total_destaque" style="color: var(--earth-green-900);">
-              R$ 0,00
+            <div class="p-3 mt-3 rounded border" style="background: var(--earth-green-50);">
+              <small class="text-muted d-block text-uppercase fw-bold" style="font-size:0.68rem;">Faturamento Previsto</small>
+              <div class="fs-4 fw-bold tabular-nums" id="resumo_total_destaque" style="color: var(--earth-green-900);">
+                R$ 0,00
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Card de Confirmação e Ação -->
-      <div class="card">
-        <div class="card-header">
-          <h6 class="mb-0"><?= $isEdit ? 'Salvar Alterações' : 'Finalizar Baixa de Venda' ?></h6>
-        </div>
-        <div class="card-body">
-          <div class="d-grid gap-2">
-            <button type="submit" class="btn btn-primary">
-              <i class="bi bi-check2-circle me-1"></i> <?= $isEdit ? 'Salvar Alterações na Venda' : 'Confirmar Venda e Dar Baixa' ?>
-            </button>
-            <a href="/vendas" class="btn btn-secondary">Cancelar</a>
+        <!-- Card de Confirmação e Ação -->
+        <div class="card shadow-sm">
+          <div class="card-header">
+            <h6 class="mb-0"><?= $isEdit ? 'Salvar Alterações' : 'Finalizar Baixa de Venda' ?></h6>
+          </div>
+          <div class="card-body">
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary btn-lg py-2 fw-bold">
+                <i class="bi bi-check2-circle me-1"></i> <?= $isEdit ? 'Salvar Alterações na Venda' : 'Confirmar Venda e Dar Baixa' ?>
+              </button>
+              <a href="/vendas" class="btn btn-secondary">Cancelar</a>
+            </div>
           </div>
         </div>
-      </div>
 
+      </div>
     </div>
   </div>
 </form>

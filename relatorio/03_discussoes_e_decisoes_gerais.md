@@ -167,6 +167,42 @@ Durante os testes práticos de validação da aplicação com usuário/produtor 
   * Validador de regras de negócio XML (`tests/test_xml_parser.php`) aprovado com fixtures reais de compra e venda.
   * **Correção de CI para Ambientes Descartáveis (GitHub Actions):** Incluído seed automático com fixture de XML real para compras e vendas na função `initDb()` (`src/db.php`), assegurando que contêineres e bancos recém-inicializados do zero em pipelines de CI contenham registros de teste e arquivos de XML prontos para inspeção imediata. Alinhada a variável `API_KEY=pecuaria-mobile-key` no `.env.example` e em todos os runners automatizados.
 
+---
+
+### 🆔 [LAYOUT-NFE-2026-09-09] Refatoração de Layout dos Formulários Comerciais (Dropzone/Preview Full-Width, Descrição no Topo e Sidebar Sticky)
+
+> **Status:** 🟢 **CONCLUÍDO E TESTADO COM 100% DE SUCESSO**  
+> **Identificador Único:** `[LAYOUT-NFE-2026-09-09]`  
+> **Data de Registro:** 09/09/2026  
+> **Branch de Desenvolvimento:** `feature/xml-nfe-preview-edit`
+
+#### 1. Relato do Usuário
+* *"o layout ainda esta meio cagado, na hora de subir uma nota, na parte de entradas, eu coloquei uma nota e sobre a descricao da NF-e ela fica embaixo do painel de finalizar operacao, consegue arrumar para mim?"*
+
+#### 2. Diagnóstico Visual e de Estrutura
+1. **Conflito de Alturas na Grid de 2 Colunas (`col-lg-8` vs `col-lg-4`):**
+   * O painel de upload e a tabela de itens do XML estavam inseridos dentro de `col-lg-8`. Ao carregar um arquivo XML grande, a coluna esquerda crescia substancialmente em altura vertical.
+   * O campo `"Descrição / Identificação do Lote"` (`compra_descricao`) estava posicionado na Seção 2 (Volume, Peso e Custo), bem abaixo de vários outros inputs.
+   * O painel lateral `"Finalizar Operação"` ficava curto no topo da coluna `col-lg-4` (~320px de altura). Por consequência, a descrição ficava visualmente posicionada abaixo do término do card de finalizar, criando um espaço vazio branco gigante no lado direito da tela e quebrando o fluxo natural de leitura.
+2. **Compressão da Tabela de Itens XML:**
+   * A tabela de conferência de itens da NF-e com 6 colunas ficava espremida nos 66% de largura do container (`col-lg-8`), dificultando a visualização rápida pelo usuário.
+
+#### 3. Solução e Implementação Realizada:
+1. **Estrutura em Duas Camadas (Tiering):**
+   * **Camada Superior (`col-12` - Largura Total):** O dropzone de upload do XML e o painel expansível de conferência e edição dos itens da NF-e foram promovidos para a largura total da página (`col-12`). Isso confere 100% do espaço útil para a tabela de itens, permitindo leitura confortável sem rolagem horizontal indesejada.
+   * **Camada Inferior (`row g-3`):** Grid balanceada entre dados do formulário (`col-lg-8`) e barra de ações (`col-lg-4`).
+2. **Reposicionamento Estratégico da Descrição:**
+   * O campo `"Descrição da NF-e / Identificação do Lote"` (`compra_descricao` / `venda_descricao`) foi movido para o topo absoluto (`col-12`) da Seção 1 (Identificação & Documentação da Entrada).
+   * Ele agora se alinha perfeitamente com o início do formulário e com a lateral direita, recebendo destaque visual com ícone dedicado e label explicativa.
+3. **Painel Lateral Inteligente (`.sticky-sidebar`):**
+   * Implementada a classe CSS `.sticky-sidebar` (`position: sticky; top: 4.85rem; z-index: 15;`) para o container lateral direito (`col-lg-4`).
+   * Agora, os painéis de `"Conferência Zootécnica"` e `"Finalizar Operação"` acompanham suavemente a rolagem do usuário ao longo de todo o preenchimento da página, mantendo o botão primário de envio sempre visível e acessível.
+4. **Simetria Total no Módulo de Vendas:**
+   * As exatas melhorias de layout, promoção do XML para `col-12`, descrição no topo e `.sticky-sidebar` foram aplicadas em `src/views/vendas/form.php`.
+5. **Garantia de Qualidade:**
+   * Bateria completa de testes de integração (`tests/test_integration.js`) executada: 40/40 rotas aprovadas com status HTTP 200 e zero falhas de integridade.
+
+
 
 
 
