@@ -93,6 +93,7 @@ class RelatoriosController extends BaseController {
             LEFT JOIN pastagens p ON a.pasto_id = p.id
             WHERE a.status = 'ativo'
             ORDER BY a.brinco ASC
+            LIMIT 500
         ")->fetchAll();
 
         $this->render('relatorios/index', 'Relatórios Gerenciais', 'relatorios', [

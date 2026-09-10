@@ -1,8 +1,16 @@
 <?php
-$totalAnimais   = $db->query("SELECT COUNT(*) FROM animais WHERE status != 'morto' AND status != 'vendido'")->fetchColumn();
-$totalAtivos    = $db->query("SELECT COUNT(*) FROM animais WHERE status = 'ativo'")->fetchColumn();
-$totalDoentes   = $db->query("SELECT COUNT(*) FROM animais WHERE status = 'doente'")->fetchColumn();
-$totalPrenhas   = $db->query("SELECT COUNT(*) FROM animais WHERE status = 'prenha'")->fetchColumn();
+$statsAnimais   = $db->query("
+    SELECT 
+        COUNT(CASE WHEN status NOT IN ('morto', 'vendido') THEN 1 END) as total,
+        COUNT(CASE WHEN status = 'ativo' THEN 1 END) as ativos,
+        COUNT(CASE WHEN status = 'doente' THEN 1 END) as doentes,
+        COUNT(CASE WHEN status = 'prenha' THEN 1 END) as prenhas
+    FROM animais
+")->fetch(PDO::FETCH_ASSOC);
+$totalAnimais   = (int)($statsAnimais['total'] ?? 0);
+$totalAtivos    = (int)($statsAnimais['ativos'] ?? 0);
+$totalDoentes   = (int)($statsAnimais['doentes'] ?? 0);
+$totalPrenhas   = (int)($statsAnimais['prenhas'] ?? 0);
 $totalPastagens = $db->query("SELECT COUNT(*) FROM pastagens WHERE status = 'ativa'")->fetchColumn();
 $alertasAtivos  = $db->query("SELECT COUNT(*) FROM alertas WHERE lido = 0")->fetchColumn();
 $ultimaPesagem  = $db->query("SELECT MAX(data) FROM pesagens")->fetchColumn();

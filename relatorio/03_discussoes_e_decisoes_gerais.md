@@ -246,6 +246,39 @@ Durante os testes práticos de validação da aplicação com usuário/produtor 
   * Diagnóstico: A tabela apresentava larguras mínimas acumuladas (`min-width`) superiores a 710px dentro da coluna de 8 partes (`col-lg-8`), causando o corte visual da coluna de Custo e do botão de exclusão.
   * Solução: Proporções redefinidas com larguras compactas (total de 482px), células com numerais tabulares otimizados, rótulos enxutos, container com rolagem nativa suave (`.romaneio-scroll-box`) e adição do botão de **"Tela Cheia"** para visualização ampla em modo planilha em qualquer tamanho de monitor.
 
+---
+
+### 🆔 [OTIMIZACOES-ARQUITETURA-2026-09-10] Otimizações de Desempenho e Integridade: Transações ACID, Queries Condensadas e Bulk Updates
+
+> **Status:** 🟢 **CONCLUÍDO E HOMOLOGADO COM 100% DE SUCESSO**  
+> **Identificador Único:** `[OTIMIZACOES-ARQUITETURA-2026-09-10]`  
+> **Data de Registro:** 10/09/2026  
+> **Branch de Desenvolvimento:** `feature/xml-nfe-preview-edit`
+
+#### 1. Contexto e Avaliação de Risco
+O autor solicitou uma varredura técnica para identificar lacunas, processos excessivamente complexos ou gargalos de performance que pudessem ser simplificados de forma direta, garantindo que:
+* **Não comprometa** nenhuma outra função ou regra de negócio existente;
+* **Não comprometa** a segurança (RBAC, CSRF, Anti-SQLi);
+* **Não comprometa** a performance global da aplicação (ao contrário, melhore o tempo de resposta e I/O).
+
+#### 2. Melhorias Aprovadas e Executadas:
+1. **Transações de Banco de Dados ACID (`ComercialController.php`):**
+   * Envolvimento de `comprasSalvar`, `comprasAtualizar`, `comprasExcluir`, `vendasSalvar`, `vendasAtualizar` e `vendasExcluir` em transações atômicas com `$this->db->beginTransaction()`, `$this->db->commit()` e rollback em caso de falha.
+   * **Benefício:** Elimina qualquer risco de inconsistência (ex: lote salvo com apenas metade dos animais inseridos se houver queda de rede) e reduz as operações de escrita de log em disco no PostgreSQL de dezenas para 1 única por lote.
+2. **Reaproveitamento de Prepared Statements fora dos Loops:**
+   * Declaração de `$chk = $this->db->prepare(...)` antes dos loops de verificação de unicidade de brincos, executando apenas `$chk->execute(...)` internamente.
+   * **Benefício:** Evita compilar repetidamente planos de execução de consulta no PostgreSQL para cada cabeça de gado cadastrada.
+3. **Baixa e Atualização de Animais na Venda em Query Única (Bulk Update):**
+   * Substituição do loop sequencial de `UPDATE animais WHERE id = ?` por `UPDATE animais ... WHERE id IN (?, ?, ...)`.
+   * **Benefício:** Reduz N round-trips de rede para 1 única consulta compilada e executada atomicamente no banco.
+4. **Condensação de Consultas no Dashboard (`views/dashboard.php`):**
+   * As 4 leituras separadas (`COUNT` de rebanho geral, ativos, doentes e prenhas) na tabela `animais` foram unificadas em uma única consulta ANSI SQL com agregação condicional `COUNT(CASE WHEN ... THEN 1 END)`.
+   * **Benefício:** Reduz o número de leituras de disco e conexões necessárias para carregar o cockpit inicial.
+5. **Limitação de Memória no Modal de Relatórios (`RelatoriosController.php`):**
+   * Aplicação de `LIMIT 500` na listagem de animais ativos carregados para a seleção individual dos modais de relatório.
+   * **Benefício:** Impede esgotamento de memória no navegador e travamentos de DOM em rebanhos massivos de milhares de animais.
+
+
 
 
 

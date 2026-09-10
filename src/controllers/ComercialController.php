@@ -58,102 +58,111 @@ class ComercialController extends BaseController {
 
         $arquivoXml = salvarUploadDocumento($_FILES['arquivo_xml'] ?? null, 'documentos');
 
-        $stmt = $this->db->prepare("
-            INSERT INTO compras (numero_gta, chave_nfe, arquivo_xml, fornecedor_origem, data_compra, quantidade_cabecas, peso_total_kg, valor_total, descricao, pasto_destino_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ");
-        $stmt->execute([$numeroGta, $chaveNfe ?: null, $arquivoXml, $fornecedor, $dataCompra, $qtdCabecas, $pesoTotal, $valorTotal, $descricao, $pastoDestinoId]);
-        $compraId = (int)$this->db->lastInsertId();
+        $this->db->beginTransaction();
+        try {
+            $stmt = $this->db->prepare("
+                INSERT INTO compras (numero_gta, chave_nfe, arquivo_xml, fornecedor_origem, data_compra, quantidade_cabecas, peso_total_kg, valor_total, descricao, pasto_destino_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([$numeroGta, $chaveNfe ?: null, $arquivoXml, $fornecedor, $dataCompra, $qtdCabecas, $pesoTotal, $valorTotal, $descricao, $pastoDestinoId]);
+            $compraId = (int)$this->db->lastInsertId();
 
-        // Cadastro automático ou individual de animais do lote se habilitado
-        if (!empty($_POST['cadastrar_animais'])) {
-            $modo = trim($_POST['modo_entrada_animais'] ?? 'automatico');
+            // Cadastro automático ou individual de animais do lote se habilitado
+            if (!empty($_POST['cadastrar_animais'])) {
+                $modo = trim($_POST['modo_entrada_animais'] ?? 'automatico');
+                $chk = $this->db->prepare("SELECT id FROM animais WHERE brinco = ? LIMIT 1");
 
-            if ($modo === 'individual' && !empty($_POST['animais_individuais']) && is_array($_POST['animais_individuais'])) {
-                // Modo B: Romaneio Cabeça a Cabeça (Individual)
-                $stmtAnimal = $this->db->prepare("
-                    INSERT INTO animais (brinco, sexo, raca, status, pasto_id, peso_inicial, data_nascimento, compra_id, valor_compra_individual, observacao)
-                    VALUES (?, ?, ?, 'ativo', ?, ?, ?, ?, ?, ?)
-                ");
-                $stmtPesagem = $this->db->prepare("
-                    INSERT INTO pesagens (animal_id, peso, data, observacao, origem)
-                    VALUES (?, ?, ?, ?, 'web')
-                ");
+                if ($modo === 'individual' && !empty($_POST['animais_individuais']) && is_array($_POST['animais_individuais'])) {
+                    // Modo B: Romaneio Cabeça a Cabeça (Individual)
+                    $stmtAnimal = $this->db->prepare("
+                        INSERT INTO animais (brinco, sexo, raca, status, pasto_id, peso_inicial, data_nascimento, compra_id, valor_compra_individual, observacao)
+                        VALUES (?, ?, ?, 'ativo', ?, ?, ?, ?, ?, ?)
+                    ");
+                    $stmtPesagem = $this->db->prepare("
+                        INSERT INTO pesagens (animal_id, peso, data, observacao, origem)
+                        VALUES (?, ?, ?, ?, 'web')
+                    ");
 
-                $brincosUsados = [];
-                $cadastrados = 0;
+                    $brincosUsados = [];
+                    $cadastrados = 0;
 
-                foreach ($_POST['animais_individuais'] as $item) {
-                    $brinco = strtoupper(trim($item['brinco'] ?? ''));
-                    if (empty($brinco)) continue;
+                    foreach ($_POST['animais_individuais'] as $item) {
+                        $brinco = strtoupper(trim($item['brinco'] ?? ''));
+                        if (empty($brinco)) continue;
 
-                    if (isset($brincosUsados[$brinco])) continue;
-                    $brincosUsados[$brinco] = true;
+                        if (isset($brincosUsados[$brinco])) continue;
+                        $brincosUsados[$brinco] = true;
 
-                    // Validação de unicidade do brinco no rebanho
-                    $chk = $this->db->prepare("SELECT id FROM animais WHERE brinco = ? LIMIT 1");
-                    $chk->execute([$brinco]);
-                    if ($chk->fetchColumn()) {
-                        continue;
-                    }
-
-                    $sexo = in_array($item['sexo'] ?? '', ['M', 'F']) ? $item['sexo'] : 'M';
-                    $raca = trim($item['raca'] ?? 'Nelore') ?: 'Nelore';
-                    $pesoIndiv = !empty($item['peso']) ? (float)$item['peso'] : (($pesoTotal && $qtdCabecas > 0) ? round($pesoTotal / $qtdCabecas, 2) : null);
-                    $valorIndiv = !empty($item['valor']) ? (float)$item['valor'] : ($qtdCabecas > 0 ? round($valorTotal / $qtdCabecas, 2) : null);
-
-                    $obs = "Entrada Individual - Lote #$compraId (GTA: $numeroGta)";
-                    $stmtAnimal->execute([$brinco, $sexo, $raca, $pastoDestinoId, $pesoIndiv, $dataCompra, $compraId, $valorIndiv, $obs]);
-                    $novoAnimalId = (int)$this->db->lastInsertId();
-
-                    // Registra a pesagem de entrada no histórico zootécnico se houver peso informado
-                    if ($pesoIndiv && $pesoIndiv > 0 && $novoAnimalId > 0) {
-                        $stmtPesagem->execute([$novoAnimalId, $pesoIndiv, $dataCompra, "Pesagem de entrada / descarregamento (Compra #$compraId)"]);
-                    }
-
-                    $cadastrados++;
-                }
-            } else {
-                // Modo A: Lote Automático com prefixo sequencial
-                $prefixo = trim($_POST['prefixo_brinco'] ?? 'C-') ?: 'C-';
-                $raca = trim($_POST['raca_animais'] ?? 'Nelore') ?: 'Nelore';
-                $sexo = in_array($_POST['sexo_animais'] ?? '', ['M', 'F']) ? $_POST['sexo_animais'] : 'M';
-
-                $pesoIndiv = ($pesoTotal && $qtdCabecas > 0) ? round($pesoTotal / $qtdCabecas, 2) : null;
-                $valorIndiv = $qtdCabecas > 0 ? round($valorTotal / $qtdCabecas, 2) : null;
-
-                $stmtAnimal = $this->db->prepare("
-                    INSERT INTO animais (brinco, sexo, raca, status, pasto_id, peso_inicial, data_nascimento, compra_id, valor_compra_individual, observacao)
-                    VALUES (?, ?, ?, 'ativo', ?, ?, ?, ?, ?, ?)
-                ");
-                $stmtPesagem = $this->db->prepare("
-                    INSERT INTO pesagens (animal_id, peso, data, observacao, origem)
-                    VALUES (?, ?, ?, ?, 'web')
-                ");
-
-                $brincosInseridos = 0;
-                $seq = 1;
-                while ($brincosInseridos < $qtdCabecas && $seq <= ($qtdCabecas + 5000)) {
-                    $brincoGerado = $prefixo . str_pad((string)$seq, 3, '0', STR_PAD_LEFT);
-                    $chk = $this->db->prepare("SELECT id FROM animais WHERE brinco = ? LIMIT 1");
-                    $chk->execute([$brincoGerado]);
-                    if (!$chk->fetchColumn()) {
-                        $obs = "Lote de Compra #$compraId (GTA: $numeroGta)";
-                        $stmtAnimal->execute([$brincoGerado, $sexo, $raca, $pastoDestinoId, $pesoIndiv, $dataCompra, $compraId, $valorIndiv, $obs]);
-                        $novoAnimalId = (int)$this->db->lastInsertId();
-
-                        if ($pesoIndiv && $pesoIndiv > 0 && $novoAnimalId > 0) {
-                            $stmtPesagem->execute([$novoAnimalId, $pesoIndiv, $dataCompra, "Pesagem de entrada do lote (Compra #$compraId)"]);
+                        // Validação de unicidade do brinco no rebanho
+                        $chk->execute([$brinco]);
+                        if ($chk->fetchColumn()) {
+                            continue;
                         }
 
-                        $brincosInseridos++;
+                        $sexo = in_array($item['sexo'] ?? '', ['M', 'F']) ? $item['sexo'] : 'M';
+                        $raca = trim($item['raca'] ?? 'Nelore') ?: 'Nelore';
+                        $pesoIndiv = !empty($item['peso']) ? (float)$item['peso'] : (($pesoTotal && $qtdCabecas > 0) ? round($pesoTotal / $qtdCabecas, 2) : null);
+                        $valorIndiv = !empty($item['valor']) ? (float)$item['valor'] : ($qtdCabecas > 0 ? round($valorTotal / $qtdCabecas, 2) : null);
+
+                        $obs = "Entrada Individual - Lote #$compraId (GTA: $numeroGta)";
+                        $stmtAnimal->execute([$brinco, $sexo, $raca, $pastoDestinoId, $pesoIndiv, $dataCompra, $compraId, $valorIndiv, $obs]);
+                        $novoAnimalId = (int)$this->db->lastInsertId();
+
+                        // Registra a pesagem de entrada no histórico zootécnico se houver peso informado
+                        if ($pesoIndiv && $pesoIndiv > 0 && $novoAnimalId > 0) {
+                            $stmtPesagem->execute([$novoAnimalId, $pesoIndiv, $dataCompra, "Pesagem de entrada / descarregamento (Compra #$compraId)"]);
+                        }
+
+                        $cadastrados++;
                     }
-                    $seq++;
+                } else {
+                    // Modo A: Lote Automático com prefixo sequencial
+                    $prefixo = trim($_POST['prefixo_brinco'] ?? 'C-') ?: 'C-';
+                    $raca = trim($_POST['raca_animais'] ?? 'Nelore') ?: 'Nelore';
+                    $sexo = in_array($_POST['sexo_animais'] ?? '', ['M', 'F']) ? $_POST['sexo_animais'] : 'M';
+
+                    $pesoIndiv = ($pesoTotal && $qtdCabecas > 0) ? round($pesoTotal / $qtdCabecas, 2) : null;
+                    $valorIndiv = $qtdCabecas > 0 ? round($valorTotal / $qtdCabecas, 2) : null;
+
+                    $stmtAnimal = $this->db->prepare("
+                        INSERT INTO animais (brinco, sexo, raca, status, pasto_id, peso_inicial, data_nascimento, compra_id, valor_compra_individual, observacao)
+                        VALUES (?, ?, ?, 'ativo', ?, ?, ?, ?, ?, ?)
+                    ");
+                    $stmtPesagem = $this->db->prepare("
+                        INSERT INTO pesagens (animal_id, peso, data, observacao, origem)
+                        VALUES (?, ?, ?, ?, 'web')
+                    ");
+
+                    $brincosInseridos = 0;
+                    $seq = 1;
+                    while ($brincosInseridos < $qtdCabecas && $seq <= ($qtdCabecas + 5000)) {
+                        $brincoGerado = $prefixo . str_pad((string)$seq, 3, '0', STR_PAD_LEFT);
+                        $chk->execute([$brincoGerado]);
+                        if (!$chk->fetchColumn()) {
+                            $obs = "Lote de Compra #$compraId (GTA: $numeroGta)";
+                            $stmtAnimal->execute([$brincoGerado, $sexo, $raca, $pastoDestinoId, $pesoIndiv, $dataCompra, $compraId, $valorIndiv, $obs]);
+                            $novoAnimalId = (int)$this->db->lastInsertId();
+
+                            if ($pesoIndiv && $pesoIndiv > 0 && $novoAnimalId > 0) {
+                                $stmtPesagem->execute([$novoAnimalId, $pesoIndiv, $dataCompra, "Pesagem de entrada do lote (Compra #$compraId)"]);
+                            }
+
+                            $brincosInseridos++;
+                        }
+                        $seq++;
+                    }
                 }
             }
-        }
 
-        flash('success', "Compra de {$qtdCabecas} cabeças registrada com sucesso!");
+            $this->db->commit();
+            flash('success', "Compra de {$qtdCabecas} cabeças registrada com sucesso!");
+        } catch (Exception $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            flash('error', 'Erro ao salvar compra: ' . $e->getMessage());
+            $this->redirect('/compras/novo');
+        }
         $this->redirect('/compras');
     }
 
@@ -228,28 +237,37 @@ class ComercialController extends BaseController {
         $novoXml = salvarUploadDocumento($_FILES['arquivo_xml'] ?? null, 'documentos');
         $arquivoXml = $novoXml ?: ($compra['arquivo_xml'] ?? null);
 
-        $upd = $this->db->prepare("
-            UPDATE compras
-            SET numero_gta = ?, chave_nfe = ?, arquivo_xml = ?, fornecedor_origem = ?,
-                data_compra = ?, quantidade_cabecas = ?, peso_total_kg = ?, valor_total = ?,
-                descricao = ?, pasto_destino_id = ?
-            WHERE id = ?
-        ");
-        $upd->execute([$numeroGta, $chaveNfe ?: null, $arquivoXml, $fornecedor, $dataCompra, $qtdCabecas, $pesoTotal, $valorTotal, $descricao, $pastoDestinoId, $id]);
+        $this->db->beginTransaction();
+        try {
+            $upd = $this->db->prepare("
+                UPDATE compras
+                SET numero_gta = ?, chave_nfe = ?, arquivo_xml = ?, fornecedor_origem = ?,
+                    data_compra = ?, quantidade_cabecas = ?, peso_total_kg = ?, valor_total = ?,
+                    descricao = ?, pasto_destino_id = ?
+                WHERE id = ?
+            ");
+            $upd->execute([$numeroGta, $chaveNfe ?: null, $arquivoXml, $fornecedor, $dataCompra, $qtdCabecas, $pesoTotal, $valorTotal, $descricao, $pastoDestinoId, $id]);
 
-        // Atualiza rateio e pasto dos animais já vinculados ao lote
-        $valorIndiv = $qtdCabecas > 0 ? round($valorTotal / $qtdCabecas, 2) : null;
+            // Atualiza rateio e pasto dos animais já vinculados ao lote
+            $valorIndiv = $qtdCabecas > 0 ? round($valorTotal / $qtdCabecas, 2) : null;
 
-        $updAnimais = $this->db->prepare("
-            UPDATE animais
-            SET valor_compra_individual = ?,
-                pasto_id = COALESCE(?, pasto_id)
-            WHERE compra_id = ?
-        ");
-        $updAnimais->execute([$valorIndiv, $pastoDestinoId, $id]);
+            $updAnimais = $this->db->prepare("
+                UPDATE animais
+                SET valor_compra_individual = ?,
+                    pasto_id = COALESCE(?, pasto_id)
+                WHERE compra_id = ?
+            ");
+            $updAnimais->execute([$valorIndiv, $pastoDestinoId, $id]);
 
-        flash('success', 'Lote de compra atualizado com sucesso!');
-        $this->redirect('/compras');
+            $this->db->commit();
+            flash('success', 'Lote de compra atualizado com sucesso!');
+            $this->redirect('/compras');
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            error_log("Erro comprasAtualizar: " . $e->getMessage());
+            flash('error', 'Erro ao atualizar lote de compra: ' . $e->getMessage());
+            $this->redirect("/compras/{$id}/editar");
+        }
     }
 
     /**
@@ -262,10 +280,19 @@ class ComercialController extends BaseController {
             $this->redirect('/compras');
         }
 
-        $this->db->prepare("UPDATE animais SET compra_id = NULL, valor_compra_individual = NULL WHERE compra_id = ?")->execute([$id]);
-        $this->db->prepare("DELETE FROM compras WHERE id = ?")->execute([$id]);
-        flash('success', 'Registro de compra excluído com sucesso.');
-        $this->redirect('/compras');
+        $this->db->beginTransaction();
+        try {
+            $this->db->prepare("UPDATE animais SET compra_id = NULL, valor_compra_individual = NULL WHERE compra_id = ?")->execute([$id]);
+            $this->db->prepare("DELETE FROM compras WHERE id = ?")->execute([$id]);
+            $this->db->commit();
+            flash('success', 'Registro de compra excluído com sucesso.');
+            $this->redirect('/compras');
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            error_log("Erro comprasExcluir: " . $e->getMessage());
+            flash('error', 'Erro ao excluir compra: ' . $e->getMessage());
+            $this->redirect('/compras');
+        }
     }
 
     /**
@@ -321,40 +348,49 @@ class ComercialController extends BaseController {
         $arquivoXml = salvarUploadDocumento($_FILES['arquivo_xml'] ?? null, 'documentos');
         $qtdCabecas = (!empty($animaisIds) && is_array($animaisIds)) ? count($animaisIds) : max(1, (int)($_POST['quantidade_cabecas'] ?? 1));
 
-        $stmt = $this->db->prepare("
-            INSERT INTO vendas (numero_gta, chave_nfe, arquivo_xml, comprador_destino, data_venda, quantidade_cabecas, peso_total_kg, valor_total, preco_unitario, tipo_precificacao, descricao)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ");
-        $stmt->execute([$numeroGta, $chaveNfe ?: null, $arquivoXml, $comprador, $dataVenda, $qtdCabecas, $pesoTotal, $valorTotal, $precoUnitario, $tipoPrecificacao, $descricao]);
-        $vendaId = (int)$this->db->lastInsertId();
-
-        // Baixa comercial dos animais selecionados
-        if (!empty($animaisIds) && is_array($animaisIds)) {
-            $valorIndiv = $qtdCabecas > 0 ? round($valorTotal / $qtdCabecas, 2) : 0;
-            $pesoIndiv = ($pesoTotal && $qtdCabecas > 0) ? round($pesoTotal / $qtdCabecas, 2) : null;
-
-            $updAnimal = $this->db->prepare("
-                UPDATE animais 
-                SET status = 'vendido',
-                    pasto_id = NULL,
-                    venda_id = ?,
-                    valor_venda_individual = ?,
-                    peso_venda = COALESCE(?, peso_venda),
-                    data_venda = ?
-                WHERE id = ?
+        $this->db->beginTransaction();
+        try {
+            $stmt = $this->db->prepare("
+                INSERT INTO vendas (numero_gta, chave_nfe, arquivo_xml, comprador_destino, data_venda, quantidade_cabecas, peso_total_kg, valor_total, preco_unitario, tipo_precificacao, descricao)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
+            $stmt->execute([$numeroGta, $chaveNfe ?: null, $arquivoXml, $comprador, $dataVenda, $qtdCabecas, $pesoTotal, $valorTotal, $precoUnitario, $tipoPrecificacao, $descricao]);
+            $vendaId = (int)$this->db->lastInsertId();
 
-            foreach ($animaisIds as $aid) {
-                $aid = (int)$aid;
-                if ($aid > 0) {
-                    $updAnimal->execute([$vendaId, $valorIndiv, $pesoIndiv, $dataVenda, $aid]);
+            // Baixa comercial dos animais selecionados
+            if (!empty($animaisIds) && is_array($animaisIds)) {
+                $validIds = array_values(array_filter(array_map('intval', $animaisIds), fn($aid) => $aid > 0));
+                if (!empty($validIds)) {
+                    $valorIndiv = $qtdCabecas > 0 ? round($valorTotal / $qtdCabecas, 2) : 0;
+                    $pesoIndiv = ($pesoTotal && $qtdCabecas > 0) ? round($pesoTotal / $qtdCabecas, 2) : null;
+
+                    $inClause = implode(',', array_fill(0, count($validIds), '?'));
+                    $params = array_merge([$vendaId, $valorIndiv, $pesoIndiv, $dataVenda], $validIds);
+
+                    $updAnimal = $this->db->prepare("
+                        UPDATE animais 
+                        SET status = 'vendido',
+                            pasto_id = NULL,
+                            venda_id = ?,
+                            valor_venda_individual = ?,
+                            peso_venda = COALESCE(?, peso_venda),
+                            data_venda = ?
+                        WHERE id IN ($inClause)
+                    ");
+                    $updAnimal->execute($params);
                 }
             }
-        }
 
-        $totalBaixados = (!empty($animaisIds) && is_array($animaisIds)) ? count($animaisIds) : 0;
-        flash('success', "Venda registrada com sucesso! {$totalBaixados} animal(is) baixado(s) do rebanho.");
-        $this->redirect('/vendas');
+            $this->db->commit();
+            $totalBaixados = (!empty($animaisIds) && is_array($animaisIds)) ? count($animaisIds) : 0;
+            flash('success', "Venda registrada com sucesso! {$totalBaixados} animal(is) baixado(s) do rebanho.");
+            $this->redirect('/vendas');
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            error_log("Erro vendasSalvar: " . $e->getMessage());
+            flash('error', 'Erro ao salvar venda: ' . $e->getMessage());
+            $this->redirect('/vendas/novo');
+        }
     }
 
     /**
@@ -444,59 +480,67 @@ class ComercialController extends BaseController {
         $arquivoXml = $novoXml ?: ($venda['arquivo_xml'] ?? null);
         $qtdCabecas = !empty($animaisIds) ? count($animaisIds) : max(1, (int)($_POST['quantidade_cabecas'] ?? $venda['quantidade_cabecas']));
 
-        $updVenda = $this->db->prepare("
-            UPDATE vendas
-            SET numero_gta = ?, chave_nfe = ?, arquivo_xml = ?, comprador_destino = ?,
-                data_venda = ?, quantidade_cabecas = ?, peso_total_kg = ?, valor_total = ?,
-                preco_unitario = ?, tipo_precificacao = ?, descricao = ?
-            WHERE id = ?
-        ");
-        $updVenda->execute([$numeroGta, $chaveNfe ?: null, $arquivoXml, $comprador, $dataVenda, $qtdCabecas, $pesoTotal, $valorTotal, $precoUnitario, $tipoPrecificacao, $descricao, $id]);
-
-        // Sincronização dos animais:
-        // 1. Desvincula animais que foram desmarcados
-        if (!empty($animaisIds)) {
-            $inClause = implode(',', array_fill(0, count($animaisIds), '?'));
-            $params = array_merge([$id], $animaisIds);
-            $stmtRelease = $this->db->prepare("
-                UPDATE animais 
-                SET status = 'ativo', venda_id = NULL, valor_venda_individual = NULL, peso_venda = NULL, data_venda = NULL
-                WHERE venda_id = ? AND id NOT IN ($inClause)
-            ");
-            $stmtRelease->execute($params);
-        } else {
-            $this->db->prepare("
-                UPDATE animais 
-                SET status = 'ativo', venda_id = NULL, valor_venda_individual = NULL, peso_venda = NULL, data_venda = NULL
-                WHERE venda_id = ?
-            ")->execute([$id]);
-        }
-
-        // 2. Vincula/atualiza os animais selecionados
-        if (!empty($animaisIds)) {
-            $valorIndiv = $qtdCabecas > 0 ? round($valorTotal / $qtdCabecas, 2) : 0;
-            $pesoIndiv = ($pesoTotal && $qtdCabecas > 0) ? round($pesoTotal / $qtdCabecas, 2) : null;
-
-            $updAnimal = $this->db->prepare("
-                UPDATE animais 
-                SET status = 'vendido',
-                    pasto_id = NULL,
-                    venda_id = ?,
-                    valor_venda_individual = ?,
-                    peso_venda = COALESCE(?, peso_venda),
-                    data_venda = ?
+        $this->db->beginTransaction();
+        try {
+            $updVenda = $this->db->prepare("
+                UPDATE vendas
+                SET numero_gta = ?, chave_nfe = ?, arquivo_xml = ?, comprador_destino = ?,
+                    data_venda = ?, quantidade_cabecas = ?, peso_total_kg = ?, valor_total = ?,
+                    preco_unitario = ?, tipo_precificacao = ?, descricao = ?
                 WHERE id = ?
             ");
+            $updVenda->execute([$numeroGta, $chaveNfe ?: null, $arquivoXml, $comprador, $dataVenda, $qtdCabecas, $pesoTotal, $valorTotal, $precoUnitario, $tipoPrecificacao, $descricao, $id]);
 
-            foreach ($animaisIds as $aid) {
-                if ($aid > 0) {
-                    $updAnimal->execute([$id, $valorIndiv, $pesoIndiv, $dataVenda, $aid]);
-                }
+            // Sincronização dos animais:
+            // 1. Desvincula animais que foram desmarcados
+            $validIds = array_values(array_filter($animaisIds, fn($aid) => $aid > 0));
+            if (!empty($validIds)) {
+                $inClause = implode(',', array_fill(0, count($validIds), '?'));
+                $params = array_merge([$id], $validIds);
+                $stmtRelease = $this->db->prepare("
+                    UPDATE animais 
+                    SET status = 'ativo', venda_id = NULL, valor_venda_individual = NULL, peso_venda = NULL, data_venda = NULL
+                    WHERE venda_id = ? AND id NOT IN ($inClause)
+                ");
+                $stmtRelease->execute($params);
+            } else {
+                $this->db->prepare("
+                    UPDATE animais 
+                    SET status = 'ativo', venda_id = NULL, valor_venda_individual = NULL, peso_venda = NULL, data_venda = NULL
+                    WHERE venda_id = ?
+                ")->execute([$id]);
             }
-        }
 
-        flash('success', 'Registro de venda e animais baixados atualizados com sucesso!');
-        $this->redirect('/vendas');
+            // 2. Vincula/atualiza os animais selecionados
+            if (!empty($validIds)) {
+                $valorIndiv = $qtdCabecas > 0 ? round($valorTotal / $qtdCabecas, 2) : 0;
+                $pesoIndiv = ($pesoTotal && $qtdCabecas > 0) ? round($pesoTotal / $qtdCabecas, 2) : null;
+
+                $inClause = implode(',', array_fill(0, count($validIds), '?'));
+                $params = array_merge([$id, $valorIndiv, $pesoIndiv, $dataVenda], $validIds);
+
+                $updAnimal = $this->db->prepare("
+                    UPDATE animais 
+                    SET status = 'vendido',
+                        pasto_id = NULL,
+                        venda_id = ?,
+                        valor_venda_individual = ?,
+                        peso_venda = COALESCE(?, peso_venda),
+                        data_venda = ?
+                    WHERE id IN ($inClause)
+                ");
+                $updAnimal->execute($params);
+            }
+
+            $this->db->commit();
+            flash('success', 'Registro de venda e animais baixados atualizados com sucesso!');
+            $this->redirect('/vendas');
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            error_log("Erro vendasAtualizar: " . $e->getMessage());
+            flash('error', 'Erro ao atualizar venda: ' . $e->getMessage());
+            $this->redirect("/vendas/{$id}/editar");
+        }
     }
 
     /**
@@ -509,20 +553,29 @@ class ComercialController extends BaseController {
             $this->redirect('/vendas');
         }
 
-        // Restaura animais vinculados para ativo
-        $this->db->prepare("
-            UPDATE animais 
-            SET status = 'ativo',
-                venda_id = NULL,
-                valor_venda_individual = NULL,
-                peso_venda = NULL,
-                data_venda = NULL
-            WHERE venda_id = ?
-        ")->execute([$id]);
+        $this->db->beginTransaction();
+        try {
+            // Restaura animais vinculados para ativo
+            $this->db->prepare("
+                UPDATE animais 
+                SET status = 'ativo',
+                    venda_id = NULL,
+                    valor_venda_individual = NULL,
+                    peso_venda = NULL,
+                    data_venda = NULL
+                WHERE venda_id = ?
+            ")->execute([$id]);
 
-        $this->db->prepare("DELETE FROM vendas WHERE id = ?")->execute([$id]);
-        flash('success', 'Venda estornada com sucesso! Os animais retornaram ao rebanho ativo.');
-        $this->redirect('/vendas');
+            $this->db->prepare("DELETE FROM vendas WHERE id = ?")->execute([$id]);
+            $this->db->commit();
+            flash('success', 'Venda estornada com sucesso! Os animais retornaram ao rebanho ativo.');
+            $this->redirect('/vendas');
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            error_log("Erro vendasExcluir: " . $e->getMessage());
+            flash('error', 'Erro ao estornar venda: ' . $e->getMessage());
+            $this->redirect('/vendas');
+        }
     }
 
     /**
