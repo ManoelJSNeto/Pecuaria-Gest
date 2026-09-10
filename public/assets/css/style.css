@@ -1329,4 +1329,29 @@ body.mode-arroba .peso-hero-sub-kg {
   }
 }
 
+/* Romaneio Cabeça a Cabeça */
+.romaneio-table th {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  background-color: var(--bg-surface);
+  white-space: nowrap;
+}
+.romaneio-table td {
+  padding: 0.3rem 0.4rem;
+  vertical-align: middle;
+}
+.romaneio-input {
+  font-size: 0.82rem;
+  padding: 0.25rem 0.45rem;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-default);
+}
+.romaneio-input:focus {
+  border-color: var(--earth-green-600);
+  box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.15);
+}
+
+
 

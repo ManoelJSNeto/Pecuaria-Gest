@@ -65,32 +65,91 @@ class ComercialController extends BaseController {
         $stmt->execute([$numeroGta, $chaveNfe ?: null, $arquivoXml, $fornecedor, $dataCompra, $qtdCabecas, $pesoTotal, $valorTotal, $descricao, $pastoDestinoId]);
         $compraId = (int)$this->db->lastInsertId();
 
-        // Cadastro automático de animais do lote se habilitado
+        // Cadastro automático ou individual de animais do lote se habilitado
         if (!empty($_POST['cadastrar_animais'])) {
-            $prefixo = trim($_POST['prefixo_brinco'] ?? 'C-') ?: 'C-';
-            $raca = trim($_POST['raca_animais'] ?? 'Nelore') ?: 'Nelore';
-            $sexo = in_array($_POST['sexo_animais'] ?? '', ['M', 'F']) ? $_POST['sexo_animais'] : 'M';
+            $modo = trim($_POST['modo_entrada_animais'] ?? 'automatico');
 
-            $pesoIndiv = ($pesoTotal && $qtdCabecas > 0) ? round($pesoTotal / $qtdCabecas, 2) : null;
-            $valorIndiv = $qtdCabecas > 0 ? round($valorTotal / $qtdCabecas, 2) : null;
+            if ($modo === 'individual' && !empty($_POST['animais_individuais']) && is_array($_POST['animais_individuais'])) {
+                // Modo B: Romaneio Cabeça a Cabeça (Individual)
+                $stmtAnimal = $this->db->prepare("
+                    INSERT INTO animais (brinco, sexo, raca, status, pasto_id, peso_inicial, data_nascimento, compra_id, valor_compra_individual, observacao)
+                    VALUES (?, ?, ?, 'ativo', ?, ?, ?, ?, ?, ?)
+                ");
+                $stmtPesagem = $this->db->prepare("
+                    INSERT INTO pesagens (animal_id, peso, data, observacao, origem)
+                    VALUES (?, ?, ?, ?, 'web')
+                ");
 
-            $stmtAnimal = $this->db->prepare("
-                INSERT INTO animais (brinco, sexo, raca, status, pasto_id, peso_inicial, data_nascimento, compra_id, valor_compra_individual, observacao)
-                VALUES (?, ?, ?, 'ativo', ?, ?, ?, ?, ?, ?)
-            ");
+                $brincosUsados = [];
+                $cadastrados = 0;
 
-            $brincosInseridos = 0;
-            $seq = 1;
-            while ($brincosInseridos < $qtdCabecas && $seq <= ($qtdCabecas + 5000)) {
-                $brincoGerado = $prefixo . str_pad((string)$seq, 3, '0', STR_PAD_LEFT);
-                $chk = $this->db->prepare("SELECT id FROM animais WHERE brinco = ? LIMIT 1");
-                $chk->execute([$brincoGerado]);
-                if (!$chk->fetchColumn()) {
-                    $obs = "Lote de Compra #$compraId (GTA: $numeroGta)";
-                    $stmtAnimal->execute([$brincoGerado, $sexo, $raca, $pastoDestinoId, $pesoIndiv, $dataCompra, $compraId, $valorIndiv, $obs]);
-                    $brincosInseridos++;
+                foreach ($_POST['animais_individuais'] as $item) {
+                    $brinco = strtoupper(trim($item['brinco'] ?? ''));
+                    if (empty($brinco)) continue;
+
+                    if (isset($brincosUsados[$brinco])) continue;
+                    $brincosUsados[$brinco] = true;
+
+                    // Validação de unicidade do brinco no rebanho
+                    $chk = $this->db->prepare("SELECT id FROM animais WHERE brinco = ? LIMIT 1");
+                    $chk->execute([$brinco]);
+                    if ($chk->fetchColumn()) {
+                        continue;
+                    }
+
+                    $sexo = in_array($item['sexo'] ?? '', ['M', 'F']) ? $item['sexo'] : 'M';
+                    $raca = trim($item['raca'] ?? 'Nelore') ?: 'Nelore';
+                    $pesoIndiv = !empty($item['peso']) ? (float)$item['peso'] : (($pesoTotal && $qtdCabecas > 0) ? round($pesoTotal / $qtdCabecas, 2) : null);
+                    $valorIndiv = !empty($item['valor']) ? (float)$item['valor'] : ($qtdCabecas > 0 ? round($valorTotal / $qtdCabecas, 2) : null);
+
+                    $obs = "Entrada Individual - Lote #$compraId (GTA: $numeroGta)";
+                    $stmtAnimal->execute([$brinco, $sexo, $raca, $pastoDestinoId, $pesoIndiv, $dataCompra, $compraId, $valorIndiv, $obs]);
+                    $novoAnimalId = (int)$this->db->lastInsertId();
+
+                    // Registra a pesagem de entrada no histórico zootécnico se houver peso informado
+                    if ($pesoIndiv && $pesoIndiv > 0 && $novoAnimalId > 0) {
+                        $stmtPesagem->execute([$novoAnimalId, $pesoIndiv, $dataCompra, "Pesagem de entrada / descarregamento (Compra #$compraId)"]);
+                    }
+
+                    $cadastrados++;
                 }
-                $seq++;
+            } else {
+                // Modo A: Lote Automático com prefixo sequencial
+                $prefixo = trim($_POST['prefixo_brinco'] ?? 'C-') ?: 'C-';
+                $raca = trim($_POST['raca_animais'] ?? 'Nelore') ?: 'Nelore';
+                $sexo = in_array($_POST['sexo_animais'] ?? '', ['M', 'F']) ? $_POST['sexo_animais'] : 'M';
+
+                $pesoIndiv = ($pesoTotal && $qtdCabecas > 0) ? round($pesoTotal / $qtdCabecas, 2) : null;
+                $valorIndiv = $qtdCabecas > 0 ? round($valorTotal / $qtdCabecas, 2) : null;
+
+                $stmtAnimal = $this->db->prepare("
+                    INSERT INTO animais (brinco, sexo, raca, status, pasto_id, peso_inicial, data_nascimento, compra_id, valor_compra_individual, observacao)
+                    VALUES (?, ?, ?, 'ativo', ?, ?, ?, ?, ?, ?)
+                ");
+                $stmtPesagem = $this->db->prepare("
+                    INSERT INTO pesagens (animal_id, peso, data, observacao, origem)
+                    VALUES (?, ?, ?, ?, 'web')
+                ");
+
+                $brincosInseridos = 0;
+                $seq = 1;
+                while ($brincosInseridos < $qtdCabecas && $seq <= ($qtdCabecas + 5000)) {
+                    $brincoGerado = $prefixo . str_pad((string)$seq, 3, '0', STR_PAD_LEFT);
+                    $chk = $this->db->prepare("SELECT id FROM animais WHERE brinco = ? LIMIT 1");
+                    $chk->execute([$brincoGerado]);
+                    if (!$chk->fetchColumn()) {
+                        $obs = "Lote de Compra #$compraId (GTA: $numeroGta)";
+                        $stmtAnimal->execute([$brincoGerado, $sexo, $raca, $pastoDestinoId, $pesoIndiv, $dataCompra, $compraId, $valorIndiv, $obs]);
+                        $novoAnimalId = (int)$this->db->lastInsertId();
+
+                        if ($pesoIndiv && $pesoIndiv > 0 && $novoAnimalId > 0) {
+                            $stmtPesagem->execute([$novoAnimalId, $pesoIndiv, $dataCompra, "Pesagem de entrada do lote (Compra #$compraId)"]);
+                        }
+
+                        $brincosInseridos++;
+                    }
+                    $seq++;
+                }
             }
         }
 

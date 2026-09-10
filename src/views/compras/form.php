@@ -305,7 +305,7 @@ $animaisLote = $animaisLote ?? [];
           </div>
         <?php else: ?>
           <div class="form-section-title">
-            <i class="bi bi-tags text-secondary"></i> Entrada Automática de Brincos no Rebanho
+            <i class="bi bi-tags text-secondary"></i> Entrada de Brincos no Rebanho
           </div>
 
           <div class="form-check form-switch mb-2">
@@ -315,27 +315,145 @@ $animaisLote = $animaisLote ?? [];
             </label>
           </div>
           <small class="text-muted d-block mb-3">
-            Se habilitado, o sistema criará as fichas de cada animal com peso e valor rateados e alocados no pasto de destino.
+            Se habilitado, o sistema criará as fichas de cada animal com peso e valor rateados ou discriminados individualmente e alocados no pasto de destino.
           </small>
 
           <div id="boxEntradaAnimais" style="display: none;" class="pt-3 border-top">
-            <div class="row g-3">
-              <div class="col-md-4">
-                <label class="form-label">Prefixo do Brinco</label>
-                <input type="text" name="prefixo_brinco" class="form-control text-uppercase" placeholder="Ex: C-" value="C-">
-                <small class="text-muted" style="font-size:0.7rem;">Ex: C-001, C-002...</small>
+            <!-- SELETOR DE MODO (AUTOMÁTICO vs INDIVIDUAL) -->
+            <div class="d-flex align-items-center justify-content-between p-2 mb-3 bg-light rounded border flex-wrap gap-2">
+              <div class="d-flex align-items-center gap-2">
+                <span class="small fw-bold text-dark"><i class="bi bi-sliders me-1"></i>Modo de Entrada:</span>
+                <div class="btn-group btn-group-sm" role="group">
+                  <input type="radio" class="btn-check" name="modo_entrada_animais" id="modoEntradaAuto" value="automatico" checked onchange="alternarModoEntradaAnimais('automatico')">
+                  <label class="btn btn-outline-success" for="modoEntradaAuto">
+                    <i class="bi bi-lightning-charge me-1"></i>Lote Automático (Por Prefixo)
+                  </label>
+
+                  <input type="radio" class="btn-check" name="modo_entrada_animais" id="modoEntradaIndiv" value="individual" onchange="alternarModoEntradaAnimais('individual')">
+                  <label class="btn btn-outline-success" for="modoEntradaIndiv">
+                    <i class="bi bi-list-check me-1"></i>Romaneio Cabeça a Cabeça (Individual)
+                  </label>
+                </div>
               </div>
-              <div class="col-md-4">
-                <label class="form-label">Raça Predominante</label>
-                <input type="text" name="raca_animais" class="form-control" value="Nelore">
+              <span class="text-muted small" id="modoEntradaDescricao">Distribui média de peso e gera brincos sequenciais por lote.</span>
+            </div>
+
+            <!-- MODO A: LOTE AUTOMÁTICO -->
+            <div id="boxModoAutomatico">
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label class="form-label">Prefixo do Brinco</label>
+                  <input type="text" name="prefixo_brinco" id="prefixo_brinco" class="form-control text-uppercase" placeholder="Ex: C-" value="C-">
+                  <small class="text-muted" style="font-size:0.7rem;">Ex: C-001, C-002...</small>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Raça Predominante</label>
+                  <input type="text" name="raca_animais" id="raca_animais_auto" class="form-control" value="Nelore">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Sexo do Lote</label>
+                  <select name="sexo_animais" id="sexo_animais_auto" class="form-select">
+                    <option value="M">Macho</option>
+                    <option value="F">Fêmea</option>
+                  </select>
+                </div>
               </div>
-              <div class="col-md-4">
-                <label class="form-label">Sexo do Lote</label>
-                <select name="sexo_animais" class="form-select">
-                  <option value="M">Macho</option>
-                  <option value="F">Fêmea</option>
-                </select>
+            </div>
+
+            <!-- MODO B: ROMANEIO CABEÇA A CABEÇA -->
+            <div id="boxModoIndividual" style="display: none;">
+              <!-- Barra de Produtividade & Ações em Massa -->
+              <div class="card bg-light border mb-2">
+                <div class="card-body p-2 d-flex flex-wrap align-items-center justify-content-between gap-2">
+                  <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="small fw-bold text-secondary"><i class="bi bi-magic me-1"></i>Em Massa:</span>
+                    
+                    <!-- Preencher Raça -->
+                    <div class="input-group input-group-sm" style="width: auto;">
+                      <select id="massaRacaSelect" class="form-select form-select-sm" style="max-width: 140px;">
+                        <option value="Nelore">Nelore</option>
+                        <option value="Angus">Angus</option>
+                        <option value="Cruzamento Industrial">Cruz. Ind.</option>
+                        <option value="Senepol">Senepol</option>
+                        <option value="Brahman">Brahman</option>
+                        <option value="Brangus">Brangus</option>
+                        <option value="Caracu">Caracu</option>
+                        <option value="Girolando">Girolando</option>
+                        <option value="Mestiço">Mestiço</option>
+                      </select>
+                      <button type="button" class="btn btn-outline-secondary" onclick="aplicarRacaEmMassa()" title="Aplica a todos os animais">Raça</button>
+                    </div>
+
+                    <!-- Preencher Sexo -->
+                    <div class="input-group input-group-sm" style="width: auto;">
+                      <select id="massaSexoSelect" class="form-select form-select-sm" style="max-width: 100px;">
+                        <option value="M">Macho</option>
+                        <option value="F">Fêmea</option>
+                      </select>
+                      <button type="button" class="btn btn-outline-secondary" onclick="aplicarSexoEmMassa()" title="Aplica a todos os animais">Sexo</button>
+                    </div>
+
+                    <!-- Distribuir Peso Total -->
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="distribuirPesoTotalEmMassa()" title="Rateia o peso total da nota entre os animais">
+                      <i class="bi bi-distribute-vertical me-1"></i>Ratear Peso
+                    </button>
+
+                    <!-- Colar Lista de Brincos -->
+                    <button type="button" class="btn btn-sm btn-outline-dark" onclick="abrirModalColarBrincos()">
+                      <i class="bi bi-clipboard-plus me-1"></i>Colar Brincos
+                    </button>
+                  </div>
+
+                  <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-success py-1" onclick="adicionarLinhaRomaneio()">
+                      <i class="bi bi-plus-circle me-1"></i>Adicionar Boi
+                    </button>
+                  </div>
+                </div>
               </div>
+
+              <!-- Status e Indicador de Balanço do Romaneio -->
+              <div class="d-flex align-items-center justify-content-between p-2 mb-2 bg-white rounded border small flex-wrap gap-2">
+                <div>
+                  <span class="text-muted">Total no Romaneio:</span>
+                  <strong id="badgeRomaneioContador" class="text-dark tabular-nums">0 cabeças</strong>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <div>
+                    <span class="text-muted">Soma dos Pesos:</span>
+                    <strong id="badgeRomaneioSomaPeso" class="tabular-nums text-primary">0,0 kg</strong>
+                  </div>
+                  <span class="text-muted">•</span>
+                  <div>
+                    <span class="text-muted">Peso na Nota:</span>
+                    <span id="badgeRomaneioPesoNota" class="tabular-nums">0,0 kg</span>
+                  </div>
+                  <span id="badgeRomaneioDifPeso" class="badge bg-secondary tabular-nums">Dif: 0,0 kg</span>
+                </div>
+              </div>
+
+              <!-- Tabela do Romaneio -->
+              <div class="table-responsive border rounded" style="max-height: 420px; overflow-y: auto;">
+                <table class="table table-sm table-hover align-middle mb-0 romaneio-table" id="tabelaRomaneio">
+                  <thead class="table-light sticky-top">
+                    <tr>
+                      <th style="width: 35px;" class="text-center">#</th>
+                      <th style="min-width: 150px;">Brinco / Identificador *</th>
+                      <th style="min-width: 140px;">Raça</th>
+                      <th style="min-width: 95px;">Sexo</th>
+                      <th style="min-width: 120px;" class="text-end">Peso Indiv. (kg)</th>
+                      <th style="min-width: 130px;" class="text-end">Custo Indiv. (R$)</th>
+                      <th style="width: 40px;" class="text-center"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbodyRomaneio">
+                    <!-- Linhas dinâmicas -->
+                  </tbody>
+                </table>
+              </div>
+              <small class="text-muted mt-1 d-block" style="font-size: 0.72rem;">
+                * Dica: Se o peso individual de algum animal for deixado em branco, o sistema utilizará a média proporcional do lote.
+              </small>
             </div>
           </div>
         <?php endif; ?>
@@ -474,6 +592,30 @@ $animaisLote = $animaisLote ?? [];
       </div>
       <div class="modal-footer py-2">
         <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Colar Lista de Brincos -->
+<div class="modal fade" id="modalColarBrincos" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title fw-bold text-dark"><i class="bi bi-clipboard-data text-primary me-2"></i>Colar Lista de Brincos</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="small text-muted mb-2">
+          Cole abaixo os números dos brincos (um por linha, ou separados por vírgula/espaço), copiados de bastão eletrônico RFID, leitor ou planilha Excel:
+        </p>
+        <textarea id="textareaColarBrincos" class="form-control font-monospace text-uppercase" rows="8" placeholder="Exemplo:&#10;BR-1001&#10;BR-1002&#10;BR-1003&#10;..."></textarea>
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-sm btn-primary" onclick="processarBrincosColados()">
+          <i class="bi bi-check2-circle me-1"></i>Importar para o Romaneio
+        </button>
       </div>
     </div>
   </div>
@@ -887,14 +1029,258 @@ function calcularMediasCompra() {
   if (elPeso) elPeso.textContent = pesoCab.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' kg';
   if (elArr) elArr.textContent = arrobaCab.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' @';
   if (elCustoArr) elCustoArr.textContent = 'R$ ' + custoArr.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '/@';
+
+  atualizarBalancoRomaneio();
 }
 
 function toggleAnimaisCompra(cb) {
   const box = document.getElementById('boxEntradaAnimais');
   if (box) box.style.display = cb.checked ? 'block' : 'none';
+  if (cb.checked) {
+    const isIndiv = document.getElementById('modoEntradaIndiv')?.checked;
+    if (isIndiv) {
+      sincronizarRomaneioComQtdCabecas();
+    }
+  }
+}
+
+// ── ROMANEIO CABEÇA A CABEÇA (ENTRADA INDIVIDUAL) ──
+function alternarModoEntradaAnimais(modo) {
+  const boxAuto = document.getElementById('boxModoAutomatico');
+  const boxIndiv = document.getElementById('boxModoIndividual');
+  const desc = document.getElementById('modoEntradaDescricao');
+
+  if (modo === 'individual') {
+    if (boxAuto) boxAuto.style.display = 'none';
+    if (boxIndiv) boxIndiv.style.display = 'block';
+    if (desc) desc.textContent = 'Permite conferir e definir brinco, raça, sexo e peso exato de cada boi.';
+    sincronizarRomaneioComQtdCabecas();
+  } else {
+    if (boxAuto) boxAuto.style.display = 'block';
+    if (boxIndiv) boxIndiv.style.display = 'none';
+    if (desc) desc.textContent = 'Distribui média de peso e gera brincos sequenciais por lote.';
+  }
+}
+
+let romaneioIndexSeq = 0;
+
+function sincronizarRomaneioComQtdCabecas() {
+  const qtdDesejada = parseInt(document.getElementById('compra_qtd')?.value) || 1;
+  const tbody = document.getElementById('tbodyRomaneio');
+  if (!tbody) return;
+
+  const linhasAtuais = tbody.querySelectorAll('tr').length;
+  if (linhasAtuais === 0) {
+    const prefixo = document.getElementById('prefixo_brinco')?.value?.trim() || 'C-';
+    const racaPadrao = document.getElementById('raca_animais_auto')?.value?.trim() || 'Nelore';
+    const sexoPadrao = document.getElementById('sexo_animais_auto')?.value || 'M';
+    const pesoTotal = parseFloat(document.getElementById('compra_peso')?.value) || 0;
+    const valorTotal = parseFloat(document.getElementById('compra_valor')?.value) || 0;
+    const pesoMedio = qtdDesejada > 0 && pesoTotal > 0 ? (pesoTotal / qtdDesejada).toFixed(1) : '';
+    const valorMedio = qtdDesejada > 0 && valorTotal > 0 ? (valorTotal / qtdDesejada).toFixed(2) : '';
+
+    for (let i = 1; i <= qtdDesejada; i++) {
+      const brincoSugerido = prefixo + String(i).padStart(3, '0');
+      adicionarLinhaRomaneio({
+        brinco: brincoSugerido,
+        raca: racaPadrao,
+        sexo: sexoPadrao,
+        peso: pesoMedio,
+        valor: valorMedio
+      });
+    }
+  } else if (linhasAtuais < qtdDesejada) {
+    const prefixo = document.getElementById('prefixo_brinco')?.value?.trim() || 'C-';
+    for (let i = linhasAtuais + 1; i <= qtdDesejada; i++) {
+      adicionarLinhaRomaneio({
+        brinco: prefixo + String(i).padStart(3, '0')
+      });
+    }
+  }
+  atualizarBalancoRomaneio();
+}
+
+function adicionarLinhaRomaneio(dados = {}) {
+  const tbody = document.getElementById('tbodyRomaneio');
+  if (!tbody) return;
+
+  romaneioIndexSeq++;
+  const idx = romaneioIndexSeq;
+  const numLinha = tbody.querySelectorAll('tr').length + 1;
+
+  const brinco = dados.brinco || '';
+  const raca = dados.raca || document.getElementById('massaRacaSelect')?.value || 'Nelore';
+  const sexo = dados.sexo || document.getElementById('massaSexoSelect')?.value || 'M';
+  const peso = dados.peso !== undefined ? dados.peso : '';
+  const valor = dados.valor !== undefined ? dados.valor : '';
+
+  const tr = document.createElement('tr');
+  tr.id = `linhaRomaneio_${idx}`;
+  tr.innerHTML = `
+    <td class="text-center text-muted tabular-nums romaneio-num">${numLinha}</td>
+    <td>
+      <input type="text" name="animais_individuais[${idx}][brinco]" class="form-control form-control-sm romaneio-input romaneio-brinco font-monospace text-uppercase fw-600" value="${escapeHtml(brinco)}" placeholder="Ex: BR-1001" required autocomplete="off">
+    </td>
+    <td>
+      <select name="animais_individuais[${idx}][raca]" class="form-select form-select-sm romaneio-input romaneio-raca">
+        <option value="Nelore" ${raca === 'Nelore' ? 'selected' : ''}>Nelore</option>
+        <option value="Angus" ${raca === 'Angus' ? 'selected' : ''}>Angus</option>
+        <option value="Cruzamento Industrial" ${raca === 'Cruzamento Industrial' ? 'selected' : ''}>Cruzamento Industrial</option>
+        <option value="Senepol" ${raca === 'Senepol' ? 'selected' : ''}>Senepol</option>
+        <option value="Brahman" ${raca === 'Brahman' ? 'selected' : ''}>Brahman</option>
+        <option value="Brangus" ${raca === 'Brangus' ? 'selected' : ''}>Brangus</option>
+        <option value="Caracu" ${raca === 'Caracu' ? 'selected' : ''}>Caracu</option>
+        <option value="Girolando" ${raca === 'Girolando' ? 'selected' : ''}>Girolando</option>
+        <option value="Mestiço" ${raca === 'Mestiço' ? 'selected' : ''}>Mestiço</option>
+      </select>
+    </td>
+    <td>
+      <select name="animais_individuais[${idx}][sexo]" class="form-select form-select-sm romaneio-input romaneio-sexo">
+        <option value="M" ${sexo === 'M' ? 'selected' : ''}>Macho</option>
+        <option value="F" ${sexo === 'F' ? 'selected' : ''}>Fêmea</option>
+      </select>
+    </td>
+    <td>
+      <input type="number" step="0.1" name="animais_individuais[${idx}][peso]" class="form-control form-control-sm romaneio-input romaneio-peso text-end tabular-nums" value="${peso}" placeholder="0,0" oninput="atualizarBalancoRomaneio()">
+    </td>
+    <td>
+      <input type="number" step="0.01" name="animais_individuais[${idx}][valor]" class="form-control form-control-sm romaneio-input romaneio-valor text-end tabular-nums" value="${valor}" placeholder="0,00">
+    </td>
+    <td class="text-center">
+      <button type="button" class="btn btn-sm btn-outline-danger p-0 px-1" onclick="removerLinhaRomaneio(this)" title="Remover este boi">
+        <i class="bi bi-x"></i>
+      </button>
+    </td>
+  `;
+
+  tbody.appendChild(tr);
+  renumerarRomaneio();
+  atualizarBalancoRomaneio();
+}
+
+function removerLinhaRomaneio(btn) {
+  const tr = btn.closest('tr');
+  if (tr) {
+    tr.remove();
+    renumerarRomaneio();
+    atualizarBalancoRomaneio();
+  }
+}
+
+function renumerarRomaneio() {
+  const tbody = document.getElementById('tbodyRomaneio');
+  if (!tbody) return;
+  const linhas = tbody.querySelectorAll('tr');
+  linhas.forEach((linha, i) => {
+    const tdNum = linha.querySelector('.romaneio-num');
+    if (tdNum) tdNum.textContent = i + 1;
+  });
+  const contador = document.getElementById('badgeRomaneioContador');
+  if (contador) contador.textContent = `${linhas.length} cabeças`;
+}
+
+function atualizarBalancoRomaneio() {
+  const tbody = document.getElementById('tbodyRomaneio');
+  if (!tbody) return;
+
+  let somaPesos = 0;
+  const pesosInputs = tbody.querySelectorAll('.romaneio-peso');
+  pesosInputs.forEach(input => {
+    const val = parseFloat(input.value);
+    if (!isNaN(val) && val > 0) {
+      somaPesos += val;
+    }
+  });
+
+  const pesoNota = parseFloat(document.getElementById('compra_peso')?.value) || 0;
+  const dif = somaPesos - pesoNota;
+
+  const elSoma = document.getElementById('badgeRomaneioSomaPeso');
+  const elNota = document.getElementById('badgeRomaneioPesoNota');
+  const elDif = document.getElementById('badgeRomaneioDifPeso');
+
+  if (elSoma) elSoma.textContent = somaPesos.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' kg';
+  if (elNota) elNota.textContent = pesoNota.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' kg';
+
+  if (elDif) {
+    if (pesoNota === 0 || somaPesos === 0) {
+      elDif.className = 'badge bg-secondary tabular-nums';
+      elDif.textContent = 'Dif: 0,0 kg';
+    } else if (Math.abs(dif) < 0.05) {
+      elDif.className = 'badge bg-success tabular-nums';
+      elDif.textContent = 'Balanço 100% Exato';
+    } else if (dif > 0) {
+      elDif.className = 'badge bg-warning text-dark tabular-nums';
+      elDif.textContent = '+' + dif.toFixed(1) + ' kg acima da NF';
+    } else {
+      elDif.className = 'badge bg-info text-dark tabular-nums';
+      elDif.textContent = dif.toFixed(1) + ' kg abaixo da NF';
+    }
+  }
+}
+
+function aplicarRacaEmMassa() {
+  const raca = document.getElementById('massaRacaSelect')?.value || 'Nelore';
+  document.querySelectorAll('.romaneio-raca').forEach(sel => sel.value = raca);
+}
+
+function aplicarSexoEmMassa() {
+  const sexo = document.getElementById('massaSexoSelect')?.value || 'M';
+  document.querySelectorAll('.romaneio-sexo').forEach(sel => sel.value = sexo);
+}
+
+function distribuirPesoTotalEmMassa() {
+  const pesoNota = parseFloat(document.getElementById('compra_peso')?.value) || 0;
+  const linhas = document.querySelectorAll('.romaneio-peso');
+  if (linhas.length > 0 && pesoNota > 0) {
+    const pesoPorCab = (pesoNota / linhas.length).toFixed(1);
+    linhas.forEach(input => input.value = pesoPorCab);
+    atualizarBalancoRomaneio();
+  }
+}
+
+function abrirModalColarBrincos() {
+  const modalEl = document.getElementById('modalColarBrincos');
+  if (modalEl) {
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+  }
+}
+
+function processarBrincosColados() {
+  const text = document.getElementById('textareaColarBrincos')?.value || '';
+  if (!text.trim()) return;
+
+  const brincos = text.split(/[\r\n,;\t]+/).map(b => b.trim()).filter(b => b.length > 0);
+  if (!brincos.length) return;
+
+  const tbody = document.getElementById('tbodyRomaneio');
+  const linhasExistentes = tbody.querySelectorAll('tr');
+
+  brincos.forEach((brinco, idx) => {
+    if (idx < linhasExistentes.length) {
+      const input = linhasExistentes[idx].querySelector('.romaneio-brinco');
+      if (input) input.value = brinco.toUpperCase();
+    } else {
+      adicionarLinhaRomaneio({ brinco: brinco.toUpperCase() });
+    }
+  });
+
+  const modalEl = document.getElementById('modalColarBrincos');
+  if (modalEl) {
+    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+    if (modalInstance) modalInstance.hide();
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   calcularMediasCompra();
+  
+  // Reage à alteração de quantidade no formulário para ajustar romaneio
+  document.getElementById('compra_qtd')?.addEventListener('input', () => {
+    if (document.getElementById('modoEntradaIndiv')?.checked && document.getElementById('checkCadastrarAnimais')?.checked) {
+      sincronizarRomaneioComQtdCabecas();
+    }
+  });
 });
 </script>

@@ -202,6 +202,50 @@ Durante os testes práticos de validação da aplicação com usuário/produtor 
 5. **Garantia de Qualidade:**
    * Bateria completa de testes de integração (`tests/test_integration.js`) executada: 40/40 rotas aprovadas com status HTTP 200 e zero falhas de integridade.
 
+---
+
+### 🆔 [DISCUSSAO-ENTRADA-INDIVIDUAL-2026-09-09] Discussão de Regra de Negócio: Entrada por Lote Automática vs Romaneio Individual Cabeça a Cabeça
+
+> **Status:** 🟢 **CONCLUÍDO E TESTADO COM 100% DE SUCESSO**  
+> **Identificador Único:** `[DISCUSSAO-ENTRADA-INDIVIDUAL-2026-09-09]`  
+> **Data de Registro:** 09/09/2026  
+> **Branch de Desenvolvimento:** `feature/xml-nfe-preview-edit`
+
+#### 1. Questionamentos e Levantamento do Usuário
+* Avaliação qualitativa do layout atual após a refatoração anterior.
+* O usuário destacou que a geração automática com prefixo de brinco é muito boa, mas ponderou sobre a necessidade prática de poder **inserir manualmente cada boi com seu brinco específico, raça, sexo e peso individual**.
+* Dúvida levantada: *"em notas de pecuária mesmo marca o de cada boi ou o total do lote?"*
+
+#### 2. Análise Técnica e Regra de Negócio Real de Pecuária (SEFAZ vs Campo):
+1. **O que vem na NF-e SEFAZ (Realidade Fiscal):**
+   * A Nota Fiscal Eletrônica de gado bovino no Brasil **não discrimina os brincos individuais de cada animal nos itens do XML**.
+   * O padrão fiscal registra um item consolidado (ex: *"BOVINOS MACHOS NELORE PARA RECRIA"*), a quantidade comercial de cabeças (ex: 30 cabeças) e o valor total (ou valor por cabeça).
+   * O peso total informado na nota é geralmente o peso de embarque aferido em balança rodoviária (caminhão cheio menos tara).
+2. **De onde vêm os brincos e pesos individuais:**
+   * Os brincos individuais e pesos cabeça a cabeça são aferidos:
+     * No **Romaneio de Balança/Embarque** ou na **GTA (Guia de Trânsito Animal)**;
+     * Ou, no caso mais frequente nas fazendas, **na lida do curral/brete no momento do desembarque**, onde o gado passa pela balança de contenção e o peão lê o brinco (visual ou RFID) e anota o peso real de cada animal.
+
+#### 3. Implementação e Resultados Entregues:
+* **Entrada Híbrida de Animais no Formulário (`src/views/compras/form.php`):**
+  * Switch moderno com seletor de modo:
+    * ⚡ **Modo Lote Automático (Por Prefixo):** gera sequência rápida (ex: `C-001`, `C-002`), distribuindo peso e custo médios.
+    * 📋 **Modo Romaneio Cabeça a Cabeça (Individual):** grade dinâmica ajustada reativamente à quantidade de cabeças da compra.
+* **Ferramentas de Produtividade no Romaneio:**
+  * **Barra de Ações em Massa:** aplicação com 1 clique de Raça (Nelore, Angus, Cruzamento Industrial, Senepol, Brahman, etc.) e Sexo (Machos / Fêmeas) para todos os animais da grade.
+  * **Rateio de Peso Restante:** botão para distribuir o peso da nota entre os animais que estiverem sem peso individual.
+  * **Importador "Colar Lista de Brincos" (`#modalColarBrincos`):** modal com área de texto para colar listas de brincos (copiadas de bastões eletrônicos RFID ou planilhas Excel) com preenchimento instantâneo.
+  * **Balanço Zootécnico em Tempo Real:** cálculo contínuo da soma dos pesos individuais comparado com o peso bruto da nota fiscal, indicando divergências ou confirmação de *"Balanço 100% Exato"*.
+* **Persistência Inteligente no Backend (`ComercialController.php`):**
+  * Suporte ao payload `animais_individuais` com inserção na tabela `animais` com `compra_id`, `pasto_destino_id`, `peso_inicial`, `valor_compra_individual` e observações zootécnicas.
+  * **Registro Automático de Histórico de Pesagem:** cada animal com peso individual informado gera um registro correspondente na tabela `pesagens` na data da compra com origem `web`, garantindo o histórico evolutivo de ganho de peso (GMD) desde o primeiro dia.
+* **Validação Automatizada:**
+  * Teste unitário de romaneio (`tests/test_compras_individual.js`): 100% aprovado, validando compra com 3 animais individuais com raças, sexos e pesos distintos confirmados no banco e na API móvel.
+  * Suíte completa de integração (`tests/test_integration.js`): 40/40 rotas aprovadas com HTTP 200 e zero erros SQL.
+  * Integração contínua atualizada no GitHub Actions (`.github/workflows/ci.yml`).
+
+
+
 
 
 

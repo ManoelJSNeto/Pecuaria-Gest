@@ -57,6 +57,8 @@ jobs:
       - name: Executar Bateria de Testes de Integração
         run: |
           node tests/test_integration.js
+          node tests/test_compras_vendas_edit.js
+          node tests/test_compras_individual.js
           node tests/test_mobile_flow.js
 
       - name: Coletar Logs em Caso de Falha
