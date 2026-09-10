@@ -1330,28 +1330,92 @@ body.mode-arroba .peso-hero-sub-kg {
 }
 
 /* Romaneio Cabeça a Cabeça */
+.romaneio-scroll-box {
+  max-height: 440px;
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xs);
+  background: var(--bg-surface);
+}
+
+.romaneio-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  margin-bottom: 0;
+}
+
 .romaneio-table th {
-  font-size: 0.74rem;
+  font-size: 0.72rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-secondary);
-  background-color: var(--bg-surface);
+  background-color: var(--bg-subtle) !important;
   white-space: nowrap;
+  padding: 0.35rem 0.3rem !important;
+  border-bottom: 2px solid var(--border-strong) !important;
 }
+
 .romaneio-table td {
-  padding: 0.3rem 0.4rem;
-  vertical-align: middle;
+  padding: 0.2rem 0.25rem !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid var(--border-subtle);
 }
+
+.romaneio-table tr:hover {
+  background-color: rgba(46, 125, 50, 0.04);
+}
+
 .romaneio-input {
-  font-size: 0.82rem;
-  padding: 0.25rem 0.45rem;
-  border-radius: var(--radius-xs);
-  border: 1px solid var(--border-default);
+  font-size: 0.78rem !important;
+  padding: 0.2rem 0.35rem !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  border-radius: var(--radius-xs) !important;
+  border: 1px solid var(--border-default) !important;
+  line-height: 1.2 !important;
 }
+
 .romaneio-input:focus {
-  border-color: var(--earth-green-600);
-  box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.15);
+  border-color: var(--earth-green-600) !important;
+  box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.18) !important;
+  background-color: #fff !important;
 }
+
+/* Modo Tela Cheia do Romaneio */
+.romaneio-fullscreen {
+  position: fixed !important;
+  top: 1.5rem !important;
+  left: 1.5rem !important;
+  right: 1.5rem !important;
+  bottom: 1.5rem !important;
+  z-index: 1060 !important;
+  background: var(--bg-surface) !important;
+  padding: 1.5rem !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+.romaneio-fullscreen .romaneio-scroll-box {
+  max-height: none !important;
+  flex: 1 1 auto !important;
+}
+.romaneio-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.5);
+  z-index: 1055;
+  backdrop-filter: blur(2px);
+}
+
 
 
 

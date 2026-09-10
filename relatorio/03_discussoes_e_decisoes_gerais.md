@@ -241,8 +241,11 @@ Durante os testes práticos de validação da aplicação com usuário/produtor 
   * **Registro Automático de Histórico de Pesagem:** cada animal com peso individual informado gera um registro correspondente na tabela `pesagens` na data da compra com origem `web`, garantindo o histórico evolutivo de ganho de peso (GMD) desde o primeiro dia.
 * **Validação Automatizada:**
   * Teste unitário de romaneio (`tests/test_compras_individual.js`): 100% aprovado, validando compra com 3 animais individuais com raças, sexos e pesos distintos confirmados no banco e na API móvel.
-  * Suíte completa de integração (`tests/test_integration.js`): 40/40 rotas aprovadas com HTTP 200 e zero erros SQL.
   * Integração contínua atualizada no GitHub Actions (`.github/workflows/ci.yml`).
+* **Ajuste de Dimensionamento e Erradicação do Corte na Tabela:**
+  * Diagnóstico: A tabela apresentava larguras mínimas acumuladas (`min-width`) superiores a 710px dentro da coluna de 8 partes (`col-lg-8`), causando o corte visual da coluna de Custo e do botão de exclusão.
+  * Solução: Proporções redefinidas com larguras compactas (total de 482px), células com numerais tabulares otimizados, rótulos enxutos, container com rolagem nativa suave (`.romaneio-scroll-box`) e adição do botão de **"Tela Cheia"** para visualização ampla em modo planilha em qualquer tamanho de monitor.
+
 
 
 

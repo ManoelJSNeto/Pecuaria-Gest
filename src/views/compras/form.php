@@ -405,6 +405,9 @@ $animaisLote = $animaisLote ?? [];
                   </div>
 
                   <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2" id="btnToggleExpandirRomaneio" onclick="alternarExpansaoRomaneio()" title="Alternar visualização em tela cheia">
+                      <i class="bi bi-arrows-fullscreen me-1" id="iconExpandirRomaneio"></i><span id="textoExpandirRomaneio">Tela Cheia</span>
+                    </button>
                     <button type="button" class="btn btn-sm btn-success py-1" onclick="adicionarLinhaRomaneio()">
                       <i class="bi bi-plus-circle me-1"></i>Adicionar Boi
                     </button>
@@ -432,18 +435,18 @@ $animaisLote = $animaisLote ?? [];
                 </div>
               </div>
 
-              <!-- Tabela do Romaneio -->
-              <div class="table-responsive border rounded" style="max-height: 420px; overflow-y: auto;">
-                <table class="table table-sm table-hover align-middle mb-0 romaneio-table" id="tabelaRomaneio">
-                  <thead class="table-light sticky-top">
+              <!-- Tabela do Romaneio (Otimizada sem cortes) -->
+              <div class="romaneio-scroll-box" id="containerScrollRomaneio">
+                <table class="romaneio-table" id="tabelaRomaneio">
+                  <thead class="sticky-top">
                     <tr>
-                      <th style="width: 35px;" class="text-center">#</th>
-                      <th style="min-width: 150px;">Brinco / Identificador *</th>
-                      <th style="min-width: 140px;">Raça</th>
-                      <th style="min-width: 95px;">Sexo</th>
-                      <th style="min-width: 120px;" class="text-end">Peso Indiv. (kg)</th>
-                      <th style="min-width: 130px;" class="text-end">Custo Indiv. (R$)</th>
-                      <th style="width: 40px;" class="text-center"></th>
+                      <th style="width: 32px;" class="text-center">#</th>
+                      <th style="width: 24%; min-width: 95px;">Brinco *</th>
+                      <th style="width: 25%; min-width: 105px;">Raça</th>
+                      <th style="width: 14%; min-width: 65px;" class="text-center">Sexo</th>
+                      <th style="width: 18%; min-width: 75px;" class="text-end">Peso (kg)</th>
+                      <th style="width: 19%; min-width: 80px;" class="text-end">Custo (R$)</th>
+                      <th style="width: 30px;" class="text-center"></th>
                     </tr>
                   </thead>
                   <tbody id="tbodyRomaneio">
@@ -452,7 +455,7 @@ $animaisLote = $animaisLote ?? [];
                 </table>
               </div>
               <small class="text-muted mt-1 d-block" style="font-size: 0.72rem;">
-                * Dica: Se o peso individual de algum animal for deixado em branco, o sistema utilizará a média proporcional do lote.
+                * Dica: Se o peso individual for deixado em branco para algum animal, o sistema utilizará o peso médio proporcional da nota fiscal.
               </small>
             </div>
           </div>
@@ -1125,7 +1128,7 @@ function adicionarLinhaRomaneio(dados = {}) {
       <select name="animais_individuais[${idx}][raca]" class="form-select form-select-sm romaneio-input romaneio-raca">
         <option value="Nelore" ${raca === 'Nelore' ? 'selected' : ''}>Nelore</option>
         <option value="Angus" ${raca === 'Angus' ? 'selected' : ''}>Angus</option>
-        <option value="Cruzamento Industrial" ${raca === 'Cruzamento Industrial' ? 'selected' : ''}>Cruzamento Industrial</option>
+        <option value="Cruzamento Industrial" ${raca === 'Cruzamento Industrial' ? 'selected' : ''}>Cruz. Ind.</option>
         <option value="Senepol" ${raca === 'Senepol' ? 'selected' : ''}>Senepol</option>
         <option value="Brahman" ${raca === 'Brahman' ? 'selected' : ''}>Brahman</option>
         <option value="Brangus" ${raca === 'Brangus' ? 'selected' : ''}>Brangus</option>
@@ -1135,9 +1138,9 @@ function adicionarLinhaRomaneio(dados = {}) {
       </select>
     </td>
     <td>
-      <select name="animais_individuais[${idx}][sexo]" class="form-select form-select-sm romaneio-input romaneio-sexo">
-        <option value="M" ${sexo === 'M' ? 'selected' : ''}>Macho</option>
-        <option value="F" ${sexo === 'F' ? 'selected' : ''}>Fêmea</option>
+      <select name="animais_individuais[${idx}][sexo]" class="form-select form-select-sm romaneio-input romaneio-sexo text-center">
+        <option value="M" ${sexo === 'M' ? 'selected' : ''}>M</option>
+        <option value="F" ${sexo === 'F' ? 'selected' : ''}>F</option>
       </select>
     </td>
     <td>
@@ -1147,8 +1150,8 @@ function adicionarLinhaRomaneio(dados = {}) {
       <input type="number" step="0.01" name="animais_individuais[${idx}][valor]" class="form-control form-control-sm romaneio-input romaneio-valor text-end tabular-nums" value="${valor}" placeholder="0,00">
     </td>
     <td class="text-center">
-      <button type="button" class="btn btn-sm btn-outline-danger p-0 px-1" onclick="removerLinhaRomaneio(this)" title="Remover este boi">
-        <i class="bi bi-x"></i>
+      <button type="button" class="btn btn-sm btn-link text-danger p-0 border-0" onclick="removerLinhaRomaneio(this)" title="Remover este boi">
+        <i class="bi bi-x-circle fs-6"></i>
       </button>
     </td>
   `;
@@ -1156,6 +1159,32 @@ function adicionarLinhaRomaneio(dados = {}) {
   tbody.appendChild(tr);
   renumerarRomaneio();
   atualizarBalancoRomaneio();
+}
+
+function alternarExpansaoRomaneio() {
+  const box = document.getElementById('boxModoIndividual');
+  const icon = document.getElementById('iconExpandirRomaneio');
+  const texto = document.getElementById('textoExpandirRomaneio');
+
+  let backdrop = document.getElementById('romaneioBackdrop');
+
+  if (box.classList.contains('romaneio-fullscreen')) {
+    box.classList.remove('romaneio-fullscreen');
+    if (backdrop) backdrop.remove();
+    if (icon) icon.className = 'bi bi-arrows-fullscreen me-1';
+    if (texto) texto.textContent = 'Tela Cheia';
+  } else {
+    box.classList.add('romaneio-fullscreen');
+    if (!backdrop) {
+      backdrop = document.createElement('div');
+      backdrop.id = 'romaneioBackdrop';
+      backdrop.className = 'romaneio-backdrop';
+      backdrop.onclick = alternarExpansaoRomaneio;
+      document.body.appendChild(backdrop);
+    }
+    if (icon) icon.className = 'bi bi-fullscreen-exit me-1';
+    if (texto) texto.textContent = 'Restaurar';
+  }
 }
 
 function removerLinhaRomaneio(btn) {
