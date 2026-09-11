@@ -241,9 +241,9 @@ class ApiController extends BaseController {
 
         $driver = $this->db->getAttribute(PDO::ATTR_DRIVER_NAME);
         if ($driver === 'pgsql') {
-            $this->db->exec("TRUNCATE TABLE alertas, pesagens, saude, reproducao, compras, vendas, animais RESTART IDENTITY CASCADE");
+            $this->db->exec("TRUNCATE TABLE alertas, pesagens, saude, reproducao, fotos_animais, sincronizacoes, compras, vendas, animais RESTART IDENTITY CASCADE");
         } else {
-            $this->db->exec("DELETE FROM alertas; DELETE FROM pesagens; DELETE FROM saude; DELETE FROM reproducao; DELETE FROM compras; DELETE FROM vendas; DELETE FROM animais;");
+            $this->db->exec("DELETE FROM alertas; DELETE FROM pesagens; DELETE FROM saude; DELETE FROM reproducao; DELETE FROM fotos_animais; DELETE FROM sincronizacoes; DELETE FROM compras; DELETE FROM vendas; DELETE FROM animais;");
         }
 
         initDb($this->db);

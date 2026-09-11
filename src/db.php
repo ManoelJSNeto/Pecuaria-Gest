@@ -243,7 +243,7 @@ function initDb(PDO $db): void {
             $nasci = date('Y-m-d', mktime(0, 0, 0, rand(1,12), rand(1,28), rand(2020,2024)));
             $peso  = round(rand(200, 550) + rand(0,99)/100, 2);
             $pasto = rand(1, 5);
-            $animais[] = [sprintf('BR%04d', $i), ($sexo==='M'?'Boi ':'Vaca ').$i, $sexo, $raca, $nasci, $peso, $st, $pasto];
+            $animais[] = [sprintf('T%04d', $i), ($sexo==='M'?'Boi ':'Vaca ').$i, $sexo, $raca, $nasci, $peso, $st, $pasto];
         }
         $stmt = $db->prepare("INSERT INTO animais (brinco, nome, sexo, raca, data_nascimento, peso_inicial, status, pasto_id) VALUES (?,?,?,?,?,?,?,?)");
         foreach ($animais as $a) $stmt->execute($a);
@@ -279,7 +279,7 @@ function initDb(PDO $db): void {
             $reproTipos = [
                 ['Inseminação Artificial', 'Positivo - Prenha', 'TO0099', 'Sêmen convencional Nelore'],
                 ['Diagnóstico de Gestação', 'Confirmada prenhez 60 dias', 'TO0088', 'Ultrassom realizado'],
-                ['Cobertura Natural', 'Aguardando diagnóstico', 'BR0003', 'Manejo a campo'],
+                ['Cobertura Natural', 'Aguardando diagnóstico', 'T0003', 'Manejo a campo'],
                 ['Parto', 'Nascimento normal - bezerra saudável', 'TO0042', 'Fêmea 34kg'],
             ];
             foreach ($females as $idx => $f) {
