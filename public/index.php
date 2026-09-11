@@ -88,6 +88,10 @@ if (str_starts_with($uri, '/api/')) {
         (new ApiController())->animais();
         exit;
     }
+    if ($uri === '/api/benchmark/reset' && $method === 'POST') {
+        (new ApiController())->benchmarkReset();
+        exit;
+    }
 
     http_response_code(404);
     echo json_encode(['error' => 'Not found']);

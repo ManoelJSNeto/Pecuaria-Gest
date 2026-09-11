@@ -224,4 +224,35 @@ class ApiController extends BaseController {
         echo json_encode(['animais' => $animais]);
         exit;
     }
+
+    /**
+     * Reseta o banco para o estado seed inicial de benchmark simétrico (POST /api/benchmark/reset)
+     */
+    public function benchmarkReset(): void {
+        header('Content-Type: application/json');
+        $secret = $_SERVER['HTTP_X_BENCHMARK_SECRET'] ?? '';
+        $expectedSecret = defined('BENCHMARK_SECRET') ? BENCHMARK_SECRET : 'pecuaria-benchmark-secret-2026';
+
+        if (empty($secret) || !hash_equals($expectedSecret, (string)$secret)) {
+            http_response_code(403);
+            echo json_encode(['error' => 'Acesso não autorizado ao reset de benchmark.']);
+            exit;
+        }
+
+        $driver = $this->db->getAttribute(PDO::ATTR_DRIVER_NAME);
+        if ($driver === 'pgsql') {
+            $this->db->exec("TRUNCATE TABLE alertas, pesagens, saude, reproducao, compras, vendas, animais RESTART IDENTITY CASCADE");
+        } else {
+            $this->db->exec("DELETE FROM alertas; DELETE FROM pesagens; DELETE FROM saude; DELETE FROM reproducao; DELETE FROM compras; DELETE FROM vendas; DELETE FROM animais;");
+        }
+
+        initDb($this->db);
+        $totalAnimais = (int)$this->db->query("SELECT COUNT(*) FROM animais")->fetchColumn();
+        echo json_encode([
+            'status' => 'ok',
+            'message' => 'Banco resetado com sucesso para benchmark simétrico!',
+            'animais_seed' => $totalAnimais
+        ]);
+        exit;
+    }
 }

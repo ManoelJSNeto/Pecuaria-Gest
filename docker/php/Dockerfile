@@ -26,6 +26,11 @@ RUN apk add --no-cache \
 # Permite que variaveis de ambiente do docker-compose cheguem ao PHP-FPM
 RUN sed -i 's/^;clear_env = no/clear_env = no/' /usr/local/etc/php-fpm.d/www.conf
 
+# Configura limites de upload e memoria para fotos e XMLs de NF-e
+RUN echo "upload_max_filesize = 32M" > /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "post_max_size = 32M" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "memory_limit = 256M" >> /usr/local/etc/php/conf.d/uploads.ini
+
 WORKDIR /var/www/html
 
 # Copia o codigo da aplicacao

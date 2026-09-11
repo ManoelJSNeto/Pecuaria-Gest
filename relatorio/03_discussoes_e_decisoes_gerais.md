@@ -278,6 +278,52 @@ O autor solicitou uma varredura técnica para identificar lacunas, processos exc
    * Aplicação de `LIMIT 500` na listagem de animais ativos carregados para a seleção individual dos modais de relatório.
    * **Benefício:** Impede esgotamento de memória no navegador e travamentos de DOM em rebanhos massivos de milhares de animais.
 
+---
+
+### 🆔 [TRIADE-BENCHMARK-E2E-2026-09-11] A Tríade Metodológica de Testes: Carga Transacional, Estresse de Mídia (I/O) e Navegador Headless (E2E)
+
+> **Status:** 🟢 **METODOLOGIA APROVADA, SCRIPTS IMPLEMENTADOS E HOMOLOGADOS**  
+> **Identificador Único:** `[TRIADE-BENCHMARK-E2E-2026-09-11]`  
+> **Data de Registro:** 11/09/2026  
+> **Branch de Desenvolvimento:** `feature/triade-testes-benchmark`
+
+#### 1. Contexto e Motivação Científica
+Nas discussões de planejamento experimental para o TCC, identificou-se que avaliar apenas requisições HTTP leves via JMeter ou curl cobria apenas uma fração do ecossistema real. Na rotina zootécnica de campo:
+* O operador descarrega pacotes transacionais de pesagens e manejos;
+* O sistema recebe arquivos volumosos (fotos de animais em alta resolução para prontuário e laudos sanitários, além de arquivos XML de NF-e completos);
+* O produtor na cidade acessa a interface web através de um navegador real, onde o custo de DNS, criptografia TLS/HTTPS e renderização gráfica (DOM e Chart.js) impacta a experiência percebida (Core Web Vitals).
+
+#### 2. Decisão Arquitetural: A Origem dos Disparos (O Canhão de Testes)
+* **Local de Execução:** Os testes partem da **máquina física do usuário (Cliente)** contra os alvos (Local Docker e Nuvem AWS).
+* **Racional Técnico:**  
+  1. Simula com fidelidade o usuário real acessando via internet pública (WAN);
+  2. Evita canibalizar recursos da máquina virtual da aplicação na nuvem (`t3.micro` possui 1GB de RAM — rodar navegadores ou geradores de estresse dentro dela causaria congelamento por falta de memória / *OOM Killer*).
+
+#### 3. Os 3 Pilares da Tríade de Testes
+
+1. **Pilar 1: Carga Transacional de API (`tests/benchmark/run_benchmark.js`)**
+   * **Carga:** Concorrência simétrica de 20, 50 e 100 usuários com $N=3$ repetições.
+   * **Fluxo:** `GET /api/animais` + `POST /api/sync` com transações atômicas ACID.
+   * **Métricas:** Throughput (req/s), P50 (mediana), P95 (SLA), P99 (cauda longa), taxa de erros e auditoria de gravação no banco.
+   * **Simetria:** Reset automático do banco (`/api/benchmark/reset`) para o estado seed de 30 animais antes de cada rodada.
+
+2. **Pilar 2: Estresse de Mídia & I/O de Disco (`tests/benchmark/test_heavy_uploads.js`)**
+   * **Carga:** Uploads concorrentes de fotos reais de alta resolução (~1.5 MB) e arquivos XML de NF-e completos.
+   * **Descoberta Crítica de Infraestrutura:** Durante a calibração, identificou-se que o Nginx padrão limitava uploads a 1MB (`413 Request Entity Too Large`) e o PHP limitava a 2MB. A infraestrutura foi imediatamente corrigida com `client_max_body_size 32M` no Nginx e `upload_max_filesize = 32M` / `post_max_size = 32M` no PHP-FPM, viabilizando uploads pesados de fazenda sem engasgos.
+   * **Métricas:** Throughput de ingestão (MB/s), latência de I/O em disco (EBS na AWS vs NVMe Local) e integridade física de arquivos.
+
+3. **Pilar 3: Navegador Real Headless (`tests/benchmark/test_browser_headless.js`)**
+   * **Tecnologia:** Automação 100% CLI com Playwright em modo Headless (sem abrir janelas gráficas, aproveitando o motor nativo instalado).
+   * **Fluxo E2E Completo:** Login de operador (`/login`) ➔ Carga do Dashboard (`/dashboard`) com gráficos ➔ Leitura e preview de XML de NF-e no navegador (`/compras/novo`) ➔ Captura automática de screenshots de comprovação.
+   * **Métricas W3C Navigation Timing:** DNS, Handshake TLS/HTTPS, TTFB (Time to First Byte), DOM Content Loaded, Full Page Load e tempo de processamento client-side da NF-e (demonstrando economia de CPU da nuvem).
+
+#### 4. Resultados da Homologação Preliminar (Baseline Local)
+Executado via orquestrador unificado (`node tests/benchmark/executar_triade.js --url http://localhost:8080 --env local`):
+* **Pilar 1:** 120.47 req/s | P50: 154.5 ms | Taxa de Erro: 0.00% | Auditoria ACID: 100.0%.
+* **Pilar 2:** 44.53 MB/s de Throughput | 140.3 ms por foto de 1.5MB | Taxa de Sucesso: 100.0%.
+* **Pilar 3:** Login: 1091.9 ms | TTFB: 35.9 ms | Dashboard: 591.4 ms | NF-e no Cliente: 72.8 ms (3 itens) | Prints salvos com sucesso.
+
+
 
 
 
