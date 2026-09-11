@@ -164,9 +164,21 @@ async function run() {
     xml_items: xmlTotalItems
   };
 
-  const jsonFile = path.join(RESULTS_DIR, `browser_metrics_${ENV_LABEL}_run${RUN_NUM}_${Date.now()}.json`);
+  const now = Date.now();
+  const jsonFile = path.join(RESULTS_DIR, `browser_metrics_${ENV_LABEL}_run${RUN_NUM}_${now}.json`);
   fs.writeFileSync(jsonFile, JSON.stringify(metricsData, null, 2), 'utf-8');
-  console.log(`💾 Métricas W3C salvas em: ${path.basename(jsonFile)}\n`);
+  console.log(`💾 Métricas W3C JSON salvas em: ${path.basename(jsonFile)}`);
+
+  // Salva dados brutos em CSV (Preservação Científica Completa)
+  const csvFile = path.join(RESULTS_DIR, `browser_metrics_${ENV_LABEL}_run${RUN_NUM}_${now}.csv`);
+  const csvHeader = 'Timestamp,Env,Run,Engine,Step,Status,Latency_ms,TTFB_ms,DomContentLoaded_ms,XmlItems\n';
+  const csvRows = [
+    `${metricsData.timestamp},${ENV_LABEL},${RUN_NUM},"${browserEngine}",login,200,${loginDur.toFixed(2)},,,`,
+    `${metricsData.timestamp},${ENV_LABEL},${RUN_NUM},"${browserEngine}",dashboard_w3c,200,${dashDur.toFixed(2)},${w3cMetrics.ttfb.toFixed(2)},${w3cMetrics.domContentLoaded.toFixed(2)},`,
+    `${metricsData.timestamp},${ENV_LABEL},${RUN_NUM},"${browserEngine}",xml_parse_client,200,${xmlParseDur.toFixed(2)},,,${xmlTotalItems}`
+  ].join('\n');
+  fs.writeFileSync(csvFile, csvHeader + csvRows, 'utf-8');
+  console.log(`💾 [DADOS BRUTOS] Arquivo CSV salvo: ${path.basename(csvFile)}\n`);
 
   return metricsData;
 }

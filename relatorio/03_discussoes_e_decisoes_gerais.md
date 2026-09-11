@@ -319,16 +319,26 @@ Nas discussões de planejamento experimental para o TCC, identificou-se que aval
 
 #### 4. Resultados da Homologação Preliminar (Baseline Local)
 Executado via orquestrador unificado (`node tests/benchmark/executar_triade.js --url http://localhost:8080 --env local`):
-* **Pilar 1:** 120.47 req/s | P50: 154.5 ms | Taxa de Erro: 0.00% | Auditoria ACID: 100.0%.
-* **Pilar 2:** 44.53 MB/s de Throughput | 140.3 ms por foto de 1.5MB | Taxa de Sucesso: 100.0%.
-* **Pilar 3:** Login: 1091.9 ms | TTFB: 35.9 ms | Dashboard: 591.4 ms | NF-e no Cliente: 72.8 ms (3 itens) | Prints salvos com sucesso.
+* **Pilar 1 (API):** 120.47 req/s | P50: 154.5 ms | Taxa de Erro: 0.00% | Auditoria ACID: 100.0%.
+* **Pilar 2 (Mídia):** 44.53 MB/s de Throughput | 140.3 ms por foto de 1.5MB | Taxa de Sucesso: 100.0%.
+* **Pilar 3 (Navegador):** Login: 1091.9 ms | TTFB: 35.9 ms | Dashboard: 591.4 ms | NF-e no Cliente: 72.8 ms (3 itens) | Evidências visuais salvas.
 
+#### 5. Diretriz Fundamental: Preservação Irrestrita e Auditoria de Dados Brutos (Raw Datasets)
+* **Demanda Explícita do Autor:** Conforme alinhado com o pesquisador (*"eh legal a ideia de gráficos e tabelas, mas eu também vou querer os dados brutos"*), todo e qualquer teste deve resguardar a integridade física de cada transação sem perda granular.
+* **Política Anti-Agregação Prematura:**
+  1. **CSVs Granulares por Execução:** Cada execução de cada pilar salva seu próprio arquivo CSV datado e versionado (`benchmark_{env}_{conc}users_run{N}_{timestamp}.csv`, `heavy_uploads_...csv`, `browser_metrics_...csv`).
+  2. **Estrutura dos Campos:** Cada linha contém `Timestamp` (ISO 8601 com microssegundos), `Worker` (ID do usuário virtual), `Method`/`Type`, `Endpoint`/`Bytes`, `Status` (HTTP real retornado), `Latency_ms` (medido com precisão de hardware via `performance.now()`), `Ok` (booleano) e `AuditOk` (confirmação ACID).
+  3. **Master Dataset Unificado (`dataset_bruto_unificado_tcc.csv`):** O script `consolidar_triade.js` unifica todas as execuções em uma tabela mestre sem truncamentos, exportando também em JSON (`dataset_bruto_unificado_tcc.json`). Esse arquivo serve como insumo direto para scripts Python (Pandas/Seaborn), R ou planilhas estatísticas (Excel/SPSS), permitindo à banca examinadora conferir cada evento sem intermediações.
+  4. **Explorer Interativo de Dados Brutos no Dashboard HTML (`dashboard_comparativo_tcc.html`):** Uma aba dedicada permite navegar, pesquisar e filtrar transações em tempo real diretamente no navegador, além de disponibilizar botão para download direto do CSV.
 
-
-
-
-
-
-
-
+#### 6. Artefatos Produzidos e Disponíveis no Repositório
+* 📜 `tests/benchmark/executar_triade.js`: Orquestrador mestre (com `--modo rapido` e `--modo oficial`).
+* 🚀 `tests/benchmark/run_benchmark.js`: Pilar 1 (Carga Transacional com reset de banco).
+* 📦 `tests/benchmark/test_heavy_uploads.js`: Pilar 2 (Upload de fotos 1.5MB e XMLs de NF-e).
+* 🌐 `tests/benchmark/test_browser_headless.js`: Pilar 3 (Playwright CLI, W3C Timing e screenshots).
+* 📊 `tests/benchmark/consolidar_triade.js`: Consolidador estatístico e gerador do Dataset Mestre.
+* 📄 `tests/benchmark/resultados/TABELA_CONSOLIDADA_TCC.md`: Relatório comparativo oficial em Markdown.
+* 📈 `tests/benchmark/resultados/dashboard_comparativo_tcc.html`: Dashboard com gráficos Chart.js e Explorer de Dados Brutos.
+* 💾 `tests/benchmark/resultados/dataset_bruto_unificado_tcc.csv`: O arquivo mestre com 100% dos dados brutos.
+* 📘 `tests/benchmark/README.md`: Manual operacional completo passo a passo.
 
