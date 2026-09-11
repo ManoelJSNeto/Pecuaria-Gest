@@ -359,6 +359,126 @@ Pilar 1 - API Transacional,local,1,20,2026-09-11T05:50:27.654Z,POST /api/sync,0,
 Pilar 1 - API Transacional,local,1,20,2026-09-11T05:50:27.667Z,POST /api/sync,0,173.46,200,1,1,Worker 16
 Pilar 1 - API Transacional,local,1,20,2026-09-11T05:50:27.673Z,POST /api/sync,0,166.55,200,1,1,Worker 19
 Pilar 1 - API Transacional,local,1,20,2026-09-11T05:50:27.673Z,POST /api/sync,0,169.08,200,1,1,Worker 20
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:09.948Z,GET /api/animais,0,67.02,200,1,1,Worker 2
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:09.950Z,GET /api/animais,0,69.85,200,1,1,Worker 1
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:09.969Z,GET /api/animais,0,86.81,200,1,1,Worker 4
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:09.969Z,GET /api/animais,0,87.06,200,1,1,Worker 5
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:09.989Z,GET /api/animais,0,107.14,200,1,1,Worker 3
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:09.989Z,GET /api/animais,0,106.9,200,1,1,Worker 6
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.010Z,GET /api/animais,0,127.31,200,1,1,Worker 7
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.012Z,GET /api/animais,0,129.44,200,1,1,Worker 8
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.033Z,GET /api/animais,0,149.46,200,1,1,Worker 9
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.033Z,GET /api/animais,0,149.07,200,1,1,Worker 13
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.055Z,GET /api/animais,0,170.6,200,1,1,Worker 11
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.055Z,GET /api/animais,0,171.64,200,1,1,Worker 10
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.079Z,GET /api/animais,0,195.22,200,1,1,Worker 12
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.080Z,GET /api/animais,0,195.7,200,1,1,Worker 14
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.103Z,GET /api/animais,0,218,200,1,1,Worker 15
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.103Z,GET /api/animais,0,218.37,200,1,1,Worker 16
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.126Z,GET /api/animais,0,241.03,200,1,1,Worker 17
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.129Z,GET /api/animais,0,244.1,200,1,1,Worker 20
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.148Z,GET /api/animais,0,263.17,200,1,1,Worker 19
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.149Z,GET /api/animais,0,263.75,200,1,1,Worker 18
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.185Z,POST /api/sync,0,232.93,200,1,1,Worker 2
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.185Z,POST /api/sync,0,231.58,200,1,1,Worker 1
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.211Z,POST /api/sync,0,240.29,200,1,1,Worker 5
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.212Z,POST /api/sync,0,241.25,200,1,1,Worker 4
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.241Z,POST /api/sync,0,251.19,200,1,1,Worker 3
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.243Z,POST /api/sync,0,252.24,200,1,1,Worker 6
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.271Z,POST /api/sync,0,259.47,200,1,1,Worker 7
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.271Z,POST /api/sync,0,257.54,200,1,1,Worker 8
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.300Z,POST /api/sync,0,264.22,200,1,1,Worker 13
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.302Z,POST /api/sync,0,267.93,200,1,1,Worker 9
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.328Z,POST /api/sync,0,270.7,200,1,1,Worker 10
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.328Z,POST /api/sync,0,271.68,200,1,1,Worker 11
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.358Z,POST /api/sync,0,276.72,200,1,1,Worker 12
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.359Z,POST /api/sync,0,276.65,200,1,1,Worker 14
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.390Z,POST /api/sync,0,284.84,200,1,1,Worker 16
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.390Z,POST /api/sync,0,285.56,200,1,1,Worker 15
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.419Z,POST /api/sync,0,287.99,200,1,1,Worker 20
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.419Z,POST /api/sync,0,292.28,200,1,1,Worker 17
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.446Z,POST /api/sync,0,296.02,200,1,1,Worker 18
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.447Z,POST /api/sync,0,297.33,200,1,1,Worker 19
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.467Z,GET /api/animais,0,282.39,200,1,1,Worker 2
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.468Z,GET /api/animais,0,282.42,200,1,1,Worker 1
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.489Z,GET /api/animais,0,277.15,200,1,1,Worker 5
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.489Z,GET /api/animais,0,277.11,200,1,1,Worker 4
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.509Z,GET /api/animais,0,267.46,200,1,1,Worker 3
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.511Z,GET /api/animais,0,267.25,200,1,1,Worker 6
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.529Z,GET /api/animais,0,257.47,200,1,1,Worker 8
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.529Z,GET /api/animais,0,258.09,200,1,1,Worker 7
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.550Z,GET /api/animais,0,247.61,200,1,1,Worker 9
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.551Z,GET /api/animais,0,251.26,200,1,1,Worker 13
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.570Z,GET /api/animais,0,241.87,200,1,1,Worker 11
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.570Z,GET /api/animais,0,242.67,200,1,1,Worker 10
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.592Z,GET /api/animais,0,233.55,200,1,1,Worker 14
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.593Z,GET /api/animais,0,234.15,200,1,1,Worker 12
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.613Z,GET /api/animais,0,223.59,200,1,1,Worker 15
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.614Z,GET /api/animais,0,224.09,200,1,1,Worker 16
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.633Z,GET /api/animais,0,214.58,200,1,1,Worker 20
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.635Z,GET /api/animais,0,215.33,200,1,1,Worker 17
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.655Z,GET /api/animais,0,207.72,200,1,1,Worker 19
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.656Z,GET /api/animais,0,210.16,200,1,1,Worker 18
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.683Z,POST /api/sync,0,213.49,200,1,1,Worker 1
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.684Z,POST /api/sync,0,215.08,200,1,1,Worker 2
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.687Z,POST /api/sync,0,197.02,200,1,1,Worker 5
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.711Z,POST /api/sync,0,200.64,200,1,1,Worker 3
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.711Z,POST /api/sync,0,220.68,200,1,1,Worker 4
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.717Z,POST /api/sync,0,204.98,200,1,1,Worker 6
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.741Z,POST /api/sync,0,209.19,200,1,1,Worker 7
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.741Z,POST /api/sync,0,210.18,200,1,1,Worker 8
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.751Z,POST /api/sync,0,198.71,200,1,1,Worker 9
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.770Z,POST /api/sync,0,199.31,200,1,1,Worker 11
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.775Z,POST /api/sync,0,222.07,200,1,1,Worker 13
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.783Z,POST /api/sync,0,211.59,200,1,1,Worker 10
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.801Z,POST /api/sync,0,207.18,200,1,1,Worker 14
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.806Z,POST /api/sync,0,211.65,200,1,1,Worker 12
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.814Z,POST /api/sync,0,199,200,1,1,Worker 15
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.831Z,POST /api/sync,0,216.47,200,1,1,Worker 16
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.837Z,POST /api/sync,0,202.29,200,1,1,Worker 20
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.845Z,POST /api/sync,0,209.41,200,1,1,Worker 17
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.860Z,POST /api/sync,0,204.03,200,1,1,Worker 19
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.866Z,GET /api/animais,0,183.13,200,1,1,Worker 1
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.872Z,POST /api/sync,0,214.55,200,1,1,Worker 18
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.887Z,GET /api/animais,0,202.66,200,1,1,Worker 2
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.887Z,GET /api/animais,0,200.34,200,1,1,Worker 5
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.902Z,GET /api/animais,0,191.27,200,1,1,Worker 3
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.906Z,GET /api/animais,0,188.91,200,1,1,Worker 6
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.908Z,GET /api/animais,0,196.81,200,1,1,Worker 4
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.924Z,GET /api/animais,0,183.3,200,1,1,Worker 7
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.927Z,GET /api/animais,0,186.06,200,1,1,Worker 8
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.929Z,GET /api/animais,0,178.21,200,1,1,Worker 9
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.947Z,GET /api/animais,0,177.13,200,1,1,Worker 11
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.950Z,GET /api/animais,0,175.61,200,1,1,Worker 13
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.951Z,GET /api/animais,0,167.51,200,1,1,Worker 10
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.968Z,GET /api/animais,0,154.88,200,1,1,Worker 15
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.969Z,GET /api/animais,0,168.15,200,1,1,Worker 14
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.969Z,GET /api/animais,0,163.28,200,1,1,Worker 12
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.989Z,GET /api/animais,0,151.67,200,1,1,Worker 20
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.989Z,GET /api/animais,0,157.4,200,1,1,Worker 16
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:10.989Z,GET /api/animais,0,143.79,200,1,1,Worker 17
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:11.008Z,GET /api/animais,0,148.32,200,1,1,Worker 19
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:11.009Z,GET /api/animais,0,137.02,200,1,1,Worker 18
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:11.019Z,POST /api/sync,0,151.92,200,1,1,Worker 1
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:11.038Z,POST /api/sync,0,148.57,200,1,1,Worker 5
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:11.038Z,POST /api/sync,0,149.49,200,1,1,Worker 2
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:11.049Z,POST /api/sync,0,145.38,200,1,1,Worker 3
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:11.065Z,POST /api/sync,0,156.43,200,1,1,Worker 4
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:11.066Z,POST /api/sync,0,158.76,200,1,1,Worker 6
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:11.076Z,POST /api/sync,0,151.53,200,1,1,Worker 7
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:11.095Z,POST /api/sync,0,163.81,200,1,1,Worker 9
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:11.095Z,POST /api/sync,0,166.28,200,1,1,Worker 8
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:11.104Z,POST /api/sync,0,155.96,200,1,1,Worker 11
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:11.122Z,POST /api/sync,0,170.03,200,1,1,Worker 10
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:11.123Z,POST /api/sync,0,170.71,200,1,1,Worker 13
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:11.133Z,POST /api/sync,0,163.21,200,1,1,Worker 15
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:11.150Z,POST /api/sync,0,179.71,200,1,1,Worker 14
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:11.151Z,POST /api/sync,0,179.94,200,1,1,Worker 12
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:11.160Z,POST /api/sync,0,169.86,200,1,1,Worker 20
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:11.177Z,POST /api/sync,0,185.49,200,1,1,Worker 17
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:11.177Z,POST /api/sync,0,186.7,200,1,1,Worker 16
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:11.188Z,POST /api/sync,0,178.36,200,1,1,Worker 19
+Pilar 1 - API Transacional,local,1,20,2026-09-11T21:46:11.206Z,POST /api/sync,0,194.81,200,1,1,Worker 18
 Pilar 1 - API Transacional,local,1,20,2026-09-11T05:06:46.410Z,GET /api/animais,0,26.37,200,1,1,Worker 1
 Pilar 1 - API Transacional,local,1,20,2026-09-11T05:06:46.412Z,GET /api/animais,0,27.69,200,1,1,Worker 2
 Pilar 1 - API Transacional,local,1,20,2026-09-11T05:06:46.434Z,GET /api/animais,0,48.86,200,1,1,Worker 3
@@ -421,6 +541,19 @@ Pilar 2 - Mídia & I/O,local,1,5,2026-09-11T05:50:28.868Z,Upload xml_nfe_check,2
 Pilar 2 - Mídia & I/O,local,1,5,2026-09-11T05:50:28.880Z,Upload xml_nfe_check,2402,61.9,200,1,-,Worker 1 | 0.00 MB
 Pilar 2 - Mídia & I/O,local,1,5,2026-09-11T05:50:28.890Z,Upload xml_nfe_check,2402,35.25,200,1,-,Worker 3 | 0.00 MB
 Pilar 2 - Mídia & I/O,local,1,5,2026-09-11T05:50:28.891Z,Upload xml_nfe_check,2402,30.22,200,1,-,Worker 5 | 0.00 MB
+Pilar 2 - Mídia & I/O,local,1,5,2026-09-11T21:46:12.352Z,Upload foto_app_sync,2097458,120.39,200,1,-,Worker 1 | 2.00 MB
+Pilar 2 - Mídia & I/O,local,1,5,2026-09-11T21:46:12.354Z,Upload foto_app_sync,2097458,90.57,200,1,-,Worker 4 | 2.00 MB
+Pilar 2 - Mídia & I/O,local,1,5,2026-09-11T21:46:12.355Z,Upload foto_app_sync,2097458,108.46,200,1,-,Worker 2 | 2.00 MB
+Pilar 2 - Mídia & I/O,local,1,5,2026-09-11T21:46:12.375Z,Upload xml_nfe_check,2402,22.4,200,1,-,Worker 1 | 0.00 MB
+Pilar 2 - Mídia & I/O,local,1,5,2026-09-11T21:46:12.400Z,Upload xml_nfe_check,2402,46.05,200,1,-,Worker 4 | 0.00 MB
+Pilar 2 - Mídia & I/O,local,1,5,2026-09-11T21:46:12.422Z,Upload xml_nfe_check,2402,67.76,200,1,-,Worker 2 | 0.00 MB
+Pilar 2 - Mídia & I/O,local,1,5,2026-09-11T21:46:12.442Z,Upload foto_app_sync,2097458,186.56,200,1,-,Worker 3 | 2.00 MB
+Pilar 2 - Mídia & I/O,local,1,5,2026-09-11T21:46:12.443Z,Upload foto_app_sync,2097458,167.12,200,1,-,Worker 5 | 2.00 MB
+Pilar 2 - Mídia & I/O,local,1,5,2026-09-11T21:46:12.468Z,Upload xml_nfe_check,2402,25.78,200,1,-,Worker 3 | 0.00 MB
+Pilar 2 - Mídia & I/O,local,1,5,2026-09-11T21:46:12.479Z,Upload xml_nfe_check,2402,36.35,200,1,-,Worker 5 | 0.00 MB
 Pilar 3 - Navegador Headless,local,1,1,2026-09-11T05:50:33.441Z,Browser: login,-,1158.02,200,1,-,Engine: msedge (Chromium) | TTFB: -ms | DOM: -ms | XML Itens: -
 Pilar 3 - Navegador Headless,local,1,1,2026-09-11T05:50:33.441Z,Browser: dashboard_w3c,-,591.66,200,1,-,Engine: msedge (Chromium) | TTFB: 38.60ms | DOM: 0.00ms | XML Itens: -
 Pilar 3 - Navegador Headless,local,1,1,2026-09-11T05:50:33.441Z,Browser: xml_parse_client,-,147.47,200,1,-,Engine: msedge (Chromium) | TTFB: -ms | DOM: -ms | XML Itens: 3
+Pilar 3 - Navegador Headless,local,1,1,2026-09-11T21:46:18.683Z,Browser: login,-,1379.69,200,1,-,Engine: msedge (Chromium) | TTFB: -ms | DOM: -ms | XML Itens: -
+Pilar 3 - Navegador Headless,local,1,1,2026-09-11T21:46:18.683Z,Browser: dashboard_w3c,-,616.92,200,1,-,Engine: msedge (Chromium) | TTFB: 42.10ms | DOM: 0.00ms | XML Itens: -
+Pilar 3 - Navegador Headless,local,1,1,2026-09-11T21:46:18.683Z,Browser: xml_parse_client,-,54.98,200,1,-,Engine: msedge (Chromium) | TTFB: -ms | DOM: -ms | XML Itens: 3
