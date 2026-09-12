@@ -35,8 +35,8 @@ resource "aws_instance" "app_server" {
   associate_public_ip_address = true # Recebe IP público IPv4 para o teste de benchmark
 
   # Segurança & Gerenciamento via AWS Systems Manager
-  # Anexa o perfil IAM que permite login no terminal sem SSH e sem chave .pem
-  iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
+  # Anexa o perfil IAM (ou LabInstanceProfile no AWS Academy) que permite login no terminal sem SSH
+  iam_instance_profile = var.use_aws_academy_lab_role ? "LabInstanceProfile" : aws_iam_instance_profile.ec2_profile[0].name
 
   # Armazenamento em Disco SSD (EBS)
   root_block_device {

@@ -8,9 +8,15 @@
 # ==============================================================================
 
 variable "aws_region" {
-  description = "Região da AWS onde os recursos serão criados. O padrão 'sa-east-1' (São Paulo) garante a menor latência de rede no Brasil (~20ms). Caso prefira usar Virgínia (EUA), mude para 'us-east-1'."
+  description = "Região da AWS onde os recursos serão criados. Para contas de estudante do AWS Academy Learner Lab, a região obrigatória suportada pelo laboratório é 'us-east-1' (N. Virginia)."
   type        = string
-  default     = "sa-east-1"
+  default     = "us-east-1"
+}
+
+variable "use_aws_academy_lab_role" {
+  description = "Define se deve utilizar o perfil 'LabInstanceProfile' pré-existente do AWS Academy Learner Lab (evitando bloqueios de SCP de criação de Role IAM)."
+  type        = bool
+  default     = true
 }
 
 variable "environment" {

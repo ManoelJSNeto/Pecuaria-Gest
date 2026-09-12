@@ -9,8 +9,10 @@
 # ==============================================================================
 
 # 1. IAM Role (Função de Identidade da EC2)
-# Define que o serviço EC2 da AWS tem permissão de assumir esta identidade
+# No AWS Academy Learner Lab, a criação de novas roles IAM é bloqueada por SCP.
+# O parâmetro 'use_aws_academy_lab_role = true' utiliza automaticamente o perfil 'LabInstanceProfile'.
 resource "aws_iam_role" "ec2_ssm_role" {
+  count       = var.use_aws_academy_lab_role ? 0 : 1
   name        = "${var.environment}-ec2-ssm-role"
   description = "Role IAM que permite a EC2 se comunicar com o AWS Systems Manager (SSM)"
 
@@ -33,19 +35,17 @@ resource "aws_iam_role" "ec2_ssm_role" {
 }
 
 # 2. Anexo da Política Gerenciada Oficial da AWS (AmazonSSMManagedInstanceCore)
-# Esta política concede as permissões estritas para:
-# - Registrar a instância no console do Systems Manager
-# - Permitir abertura de terminais interativos seguros (Session Manager)
-# - Enviar comandos remotos automatizados e coletar telemetrias de CPU/RAM
 resource "aws_iam_role_policy_attachment" "ssm_core" {
-  role       = aws_iam_role.ec2_ssm_role.name
+  count      = var.use_aws_academy_lab_role ? 0 : 1
+  role       = aws_iam_role.ec2_ssm_role[0].name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 # 3. Instance Profile (O contêiner de identidade que é anexado diretamente à EC2)
 resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "${var.environment}-ec2-instance-profile"
-  role = aws_iam_role.ec2_ssm_role.name
+  count = var.use_aws_academy_lab_role ? 0 : 1
+  name  = "${var.environment}-ec2-instance-profile"
+  role  = aws_iam_role.ec2_ssm_role[0].name
 
   tags = {
     Name = "${var.environment}-ec2-instance-profile"

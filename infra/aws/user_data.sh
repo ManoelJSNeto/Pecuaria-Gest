@@ -102,7 +102,7 @@ services:
     container_name: pecuaria-gest-web
     restart: always
     ports:
-      - "${APP_PORT:-8080}:80"
+      - "${APP_PORT}:80"
     volumes:
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - ./public:/var/www/html/public:ro
