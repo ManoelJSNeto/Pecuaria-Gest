@@ -28,9 +28,14 @@ $racas = $racas ?? $db->query("SELECT DISTINCT raca FROM animais WHERE raca IS N
 $tiposSaude = $tiposSaude ?? $db->query("SELECT DISTINCT tipo FROM saude WHERE tipo IS NOT NULL AND tipo != '' ORDER BY tipo ASC")->fetchAll(PDO::FETCH_COLUMN);
 ?>
 
-<div class="mb-3">
-  <h5 class="mb-0 fw-bold">Relatórios Gerenciais & Exportação</h5>
-  <small class="text-muted">Consolidação estatística e extração de dados tabulares</small>
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div>
+    <h5 class="mb-0 fw-bold">Relatórios Gerenciais & Exportação</h5>
+    <small class="text-muted">Consolidação estatística, emissão de documentos técnicos A4 e extração CSV</small>
+  </div>
+  <button type="button" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1" onclick="abrirAjudaRelatorios()">
+    <i class="bi bi-info-circle"></i> <span>Instruções dos Relatórios</span>
+  </button>
 </div>
 
 <!-- Cockpit de Indicadores Gerenciais -->
@@ -523,4 +528,42 @@ function atualizarContadorVacas() {
     }
   }
 }
+
+// ── Guia e Ajuda Lateral AWS para Relatórios ──
+window.abrirAjudaRelatorios = function() {
+  const title = 'Guia: Relatórios Zootécnicos e Emissões Oficiais';
+  const html = `
+    <div class="aws-help-section">
+      <h7><i class="bi bi-file-earmark-pdf-fill text-danger"></i> Relatórios Oficiais em PDF (A4)</h7>
+      <p>Gerados com cabeçalho institucional da fazenda, data de emissão e espaço para assinatura do responsável técnico:</p>
+      <ul>
+        <li><strong>Inventário Geral do Rebanho:</strong> Balanço do plantel, categorias (bezerros, novilhas, matrizes, touros), lotação dos pastos (cab/ha) e peso médio em kg e arrobas (@). Ideal para bancos (financiamentos/custeio) e declaração anual de rebanho.</li>
+        <li><strong>Laudo Sanitário:</strong> Histórico de vacinas obrigatórias (aftosa, brucelose) e medicações com controle de período de carência pré-abate.</li>
+      </ul>
+    </div>
+
+    <div class="aws-help-section">
+      <h7><i class="bi bi-sliders"></i> Personalização e Filtros Granulares</h7>
+      <p>Ao clicar em <strong>"Personalizar..."</strong>, você pode emitir relatórios específicos:</p>
+      <ul>
+        <li>Filtrar apenas fêmeas ou machos;</li>
+        <li>Filtrar por lote de prefixo (ex: lote <code>T001</code>);</li>
+        <li>Marcar manualmente vaca por vaca pelo brinco para montar um lote de venda ou transferência.</li>
+      </ul>
+    </div>
+
+    <div class="aws-help-section">
+      <h7><i class="bi bi-filetype-csv text-success"></i> Exportações em Planilha (CSV)</h7>
+      <div class="aws-help-tip-box">
+        Para auditorias contábeis ou análises personalizadas no Microsoft Excel, utilize a seção <strong>"Exportar Bases de Dados"</strong> para baixar os registros completos em formato CSV tabular.
+      </div>
+    </div>
+  `;
+  openAwsHelpDrawer(title, html);
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btnTop = document.getElementById('btnTopHelp');
+  if (btnTop) btnTop.onclick = abrirAjudaRelatorios;
+});
 </script>

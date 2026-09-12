@@ -428,6 +428,10 @@ if ($uri === '/configuracoes/testar-email' && $method === 'POST') {
     (new ConfiguracoesController())->testarEmail();
     exit;
 }
+if ($uri === '/configuracoes/backup') {
+    (new ConfiguracoesController())->backup();
+    exit;
+}
 
 // ── MÓDULO GESTÃO DE USUÁRIOS & RBAC (UsuariosController) ──
 if ($uri === '/usuarios') {

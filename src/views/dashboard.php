@@ -46,6 +46,67 @@ try {
     $pesoTrend = [];
 }
 ?>
+<!-- Barra de Ações Rápidas (Estilo AWS Console Quick Actions) -->
+<div class="mb-3">
+  <div class="d-flex align-items-center justify-content-between mb-2">
+    <div class="d-flex align-items-center gap-2">
+      <span class="small fw-bold text-uppercase text-muted" style="letter-spacing:0.04em; font-size:0.75rem;">Ações Frequentes</span>
+    </div>
+    <a href="javascript:void(0)" onclick="toggleAwsHelpDrawer()" class="small text-muted text-decoration-none">
+      <i class="bi bi-info-circle me-1"></i> Guia do Dashboard
+    </a>
+  </div>
+
+  <div class="aws-quick-bar">
+    <!-- 1. Novo Animal -->
+    <a href="/animais/novo" class="aws-quick-card">
+      <div class="aws-quick-icon icon-green">
+        <i class="bi bi-tag-fill"></i>
+      </div>
+      <div class="aws-quick-info">
+        <div class="aws-quick-title">Novo Animal</div>
+        <div class="aws-quick-sub">Cadastrar bezerro, matriz ou touro</div>
+      </div>
+      <i class="bi bi-chevron-right aws-quick-arrow"></i>
+    </a>
+
+    <!-- 2. Lançar Pesagem -->
+    <a href="/pesagens/novo" class="aws-quick-card">
+      <div class="aws-quick-icon icon-amber">
+        <i class="bi bi-rulers"></i>
+      </div>
+      <div class="aws-quick-info">
+        <div class="aws-quick-title">Anotar Pesagem</div>
+        <div class="aws-quick-sub">Lançar peso na balança e ver ganho</div>
+      </div>
+      <i class="bi bi-chevron-right aws-quick-arrow"></i>
+    </a>
+
+    <!-- 3. Entrada / Compra -->
+    <a href="/compras/novo" class="aws-quick-card">
+      <div class="aws-quick-icon icon-blue">
+        <i class="bi bi-truck"></i>
+      </div>
+      <div class="aws-quick-info">
+        <div class="aws-quick-title">Comprar Gado</div>
+        <div class="aws-quick-sub">Entrada de lote via NF-e ou manual</div>
+      </div>
+      <i class="bi bi-chevron-right aws-quick-arrow"></i>
+    </a>
+
+    <!-- 4. Saúde & Vacinas -->
+    <a href="/saude/novo" class="aws-quick-card">
+      <div class="aws-quick-icon icon-purple">
+        <i class="bi bi-heart-pulse"></i>
+      </div>
+      <div class="aws-quick-info">
+        <div class="aws-quick-title">Vacina & Remédio</div>
+        <div class="aws-quick-sub">Registrar vacinação ou tratamento</div>
+      </div>
+      <i class="bi bi-chevron-right aws-quick-arrow"></i>
+    </a>
+  </div>
+</div>
 
 <!-- Cockpit de Indicadores Chave (Anti-Card Soup) -->
 <div class="metric-cockpit">
@@ -334,6 +395,41 @@ new Chart(document.getElementById('racaChart'), {
       }
     },
     cutout: '68%'
+  }
+});
+
+// Inicialização do Painel de Ajuda Lateral para o Dashboard
+document.addEventListener('DOMContentLoaded', () => {
+  const dashHelpTitle = 'Painel de Ajuda: Visão Geral e Cockpit';
+  const dashHelpHtml = `
+    <div class="aws-help-section">
+      <h7><i class="bi bi-speedometer2"></i> Como usar o Dashboard</h7>
+      <p>O <strong>Dashboard</strong> é a central de comando da propriedade. Aqui você enxerga em poucos segundos os indicadores fundamentais do rebanho sem precisar emitir relatórios pesados.</p>
+    </div>
+
+    <div class="aws-help-section">
+      <h7><i class="bi bi-lightning-charge"></i> Ações Frequentes</h7>
+      <p>No topo da tela, você tem atalhos diretos para as 4 tarefas mais comuns do dia a dia:</p>
+      <ul class="ps-3 mb-2 small">
+        <li><strong>Novo Animal:</strong> Cadastra bezerras nascidas ou animais recém-chegados.</li>
+        <li><strong>Anotar Pesagem:</strong> Lança o peso da balança com conversão instantânea em arrobas.</li>
+        <li><strong>Comprar Gado:</strong> Dá entrada em lotes novos com ou sem NF-e.</li>
+        <li><strong>Vacina & Remédio:</strong> Registra manejos sanitários e gera alertas de retorno.</li>
+      </ul>
+    </div>
+
+    <div class="aws-help-section">
+      <h7><i class="bi bi-graph-up"></i> Entendendo as Métricas</h7>
+      <div class="aws-help-tip-box mb-2">
+        <strong>Quilogramas vs Arrobas (@):</strong> Você pode alternar a visualização de peso em todo o sistema clicando no botão <strong>Peso: kg / @</strong> no topo da página. A conversão utiliza a base comercial de 50% de rendimento de carcaça (30 kg de peso vivo = 1 @).
+      </div>
+      <p class="small text-muted mb-0">Animais em tratamento ou com vacinação pendente geram alertas destacados no painel de avisos.</p>
+    </div>
+  `;
+  // Configura a ajuda quando a tela carrega
+  const btnHelp = document.getElementById('btnTopHelp');
+  if (btnHelp) {
+    btnHelp.onclick = () => openAwsHelpDrawer(dashHelpTitle, dashHelpHtml);
   }
 });
 </script>

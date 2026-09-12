@@ -44,9 +44,20 @@ class ConfiguracoesController extends BaseController {
                 setSysConfig('notif_smtp_pass', $smtpPass);
             }
             setSysConfig('notif_smtp_secure', $smtpSecure);
+
+            // Dados Institucionais da Propriedade
+            if (isset($_POST['fazenda_nome'])) setSysConfig('fazenda_nome', trim($_POST['fazenda_nome']));
+            if (isset($_POST['fazenda_proprietario'])) setSysConfig('fazenda_proprietario', trim($_POST['fazenda_proprietario']));
+            if (isset($_POST['fazenda_municipio_uf'])) setSysConfig('fazenda_municipio_uf', trim($_POST['fazenda_municipio_uf']));
+            if (isset($_POST['fazenda_nirf_car'])) setSysConfig('fazenda_nirf_car', trim($_POST['fazenda_nirf_car']));
+
+            // Parâmetros Zootécnicos e Regras de Negócio
+            if (isset($_POST['rendimento_carcaca_padrao'])) setSysConfig('rendimento_carcaca_padrao', trim($_POST['rendimento_carcaca_padrao']));
+            if (isset($_POST['peso_alvo_abate'])) setSysConfig('peso_alvo_abate', trim($_POST['peso_alvo_abate']));
+            if (isset($_POST['periodo_carencia_alerta_dias'])) setSysConfig('periodo_carencia_alerta_dias', trim($_POST['periodo_carencia_alerta_dias']));
         }
 
-        flash('success', 'Configurações de e-mail e SMTP salvas com sucesso!');
+        flash('success', 'Configurações do sistema e notificações salvas com sucesso!');
         $this->redirect('/configuracoes');
     }
 
@@ -91,5 +102,103 @@ class ConfiguracoesController extends BaseController {
         }
 
         $this->redirect('/configuracoes');
+    }
+
+    /**
+     * Gera e realiza o download de backup manual das tabelas essenciais (GET /configuracoes/backup)
+     */
+    public function backup(): void {
+        $this->requireLogin();
+
+        $formato = strtolower($_GET['formato'] ?? 'sql');
+        $dataHora = date('Y-m-d_H-i-s');
+
+        // Tabelas vitais da propriedade
+        $tabelas = [
+            'configuracoes',
+            'pastagens',
+            'animais',
+            'pesagens',
+            'saude',
+            'reproducao',
+            'compras',
+            'compras_animais',
+            'vendas',
+            'vendas_animais',
+            'alertas',
+            'usuarios'
+        ];
+
+        $user = currentUser();
+        $nomeUser = $user['nome'] ?? 'Administrador';
+
+        if ($formato === 'json') {
+            $backupData = [
+                'sistema' => 'PecuáriaGest',
+                'versao' => '2.0-cloudscape',
+                'gerado_em' => date('Y-m-d H:i:s'),
+                'responsavel' => $nomeUser,
+                'tabelas' => []
+            ];
+
+            foreach ($tabelas as $tab) {
+                try {
+                    $rows = $this->db->query("SELECT * FROM {$tab}")->fetchAll(PDO::FETCH_ASSOC);
+                    if ($tab === 'usuarios') {
+                        foreach ($rows as &$u) {
+                            unset($u['senha']); // Sanitização de credenciais no JSON
+                        }
+                    }
+                    $backupData['tabelas'][$tab] = [
+                        'total_registros' => count($rows),
+                        'dados' => $rows
+                    ];
+                } catch (Exception $e) {
+                    // Ignora tabelas opcionais se não existirem
+                }
+            }
+
+            header('Content-Type: application/json; charset=utf-8');
+            header("Content-Disposition: attachment; filename=\"backup_pecuariagest_{$dataHora}.json\"");
+            echo json_encode($backupData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            exit;
+        } else {
+            // Formato padrão SQL Dump
+            $sqlDump = "-- ========================================================\n";
+            $sqlDump .= "-- BACKUP MANUAL DE SEGURANÇA - PECUÁRIAGEST\n";
+            $sqlDump .= "-- Data do Arquivo: " . date('d/m/Y H:i:s') . "\n";
+            $sqlDump .= "-- Gerado por: " . $nomeUser . "\n";
+            $sqlDump .= "-- ========================================================\n\n";
+
+            foreach ($tabelas as $tab) {
+                try {
+                    $rows = $this->db->query("SELECT * FROM {$tab}")->fetchAll(PDO::FETCH_ASSOC);
+                    $total = count($rows);
+                    $sqlDump .= "-- --------------------------------------------------------\n";
+                    $sqlDump .= "-- Registros da Tabela: {$tab} ({$total} linhas)\n";
+                    $sqlDump .= "-- --------------------------------------------------------\n";
+
+                    if ($total > 0) {
+                        foreach ($rows as $row) {
+                            $cols = array_keys($row);
+                            $vals = array_map(function($v) {
+                                if ($v === null) return 'NULL';
+                                return $this->db->quote((string)$v);
+                            }, array_values($row));
+
+                            $sqlDump .= "INSERT INTO {$tab} (" . implode(', ', $cols) . ") VALUES (" . implode(', ', $vals) . ");\n";
+                        }
+                    }
+                    $sqlDump .= "\n";
+                } catch (Exception $e) {
+                    // Ignora se tabela inexistente
+                }
+            }
+
+            header('Content-Type: application/sql; charset=utf-8');
+            header("Content-Disposition: attachment; filename=\"backup_pecuariagest_{$dataHora}.sql\"");
+            echo $sqlDump;
+            exit;
+        }
     }
 }

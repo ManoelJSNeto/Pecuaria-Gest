@@ -1416,6 +1416,540 @@ body.mode-arroba .peso-hero-sub-kg {
   backdrop-filter: blur(2px);
 }
 
+/* ============================================================
+   AWS CLOUDSCAPE INSPIRED ENTERPRISE DESIGN SYSTEM
+   Fluxos sutis, assistente em etapas (Wizard) e Painel de Ajuda (Info Drawer)
+   ============================================================ */
+
+/* ── 1. Barra de Ações Rápidas (Estilo AWS Console Quick Links) ── */
+.aws-quick-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.aws-quick-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+}
+
+.aws-quick-card:hover {
+  border-color: var(--earth-green-700);
+  background-color: #fafbf9;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  color: var(--earth-green-900);
+}
+
+.aws-quick-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  flex-shrink: 0;
+  border: 1px solid transparent;
+}
+
+.aws-quick-icon.icon-green  { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+.aws-quick-icon.icon-blue   { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+.aws-quick-icon.icon-amber  { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+.aws-quick-icon.icon-purple { background: #faf5ff; color: #7e22ce; border-color: #e9d5ff; }
+
+.aws-quick-info {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.aws-quick-title {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.25;
+}
+
+.aws-quick-sub {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  line-height: 1.2;
+}
+
+.aws-quick-arrow {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  opacity: 0.6;
+  transition: transform 140ms ease, opacity 140ms ease;
+}
+
+.aws-quick-card:hover .aws-quick-arrow {
+  opacity: 1;
+  color: var(--earth-green-700);
+  transform: translateX(2px);
+}
+
+/* ── 2. Stepper / Assistente em Etapas (Estilo AWS Wizard) ── */
+.aws-wizard-header {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+
+.aws-wizard-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.aws-step-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+  user-select: none;
+  background: var(--bg-surface);
+  padding: 0.25rem 0.5rem;
+}
+
+.aws-step-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  transition: all 140ms ease;
+  flex-shrink: 0;
+}
+
+.aws-step-label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #6b7280;
+  white-space: nowrap;
+  transition: color 140ms ease;
+}
+
+.aws-step-item.active .aws-step-badge {
+  background: var(--earth-green-800);
+  color: #ffffff;
+  border-color: var(--earth-green-800);
+  box-shadow: 0 0 0 3px rgba(27, 49, 22, 0.15);
+}
+
+.aws-step-item.active .aws-step-label {
+  color: var(--earth-green-950);
+  font-weight: 700;
+}
+
+.aws-step-item.completed .aws-step-badge {
+  background: var(--earth-green-600);
+  color: #ffffff;
+  border-color: var(--earth-green-600);
+}
+
+.aws-step-item.completed .aws-step-label {
+  color: var(--text-primary);
+}
+
+.aws-step-divider {
+  flex: 1 1 0;
+  height: 2px;
+  background: #e5e7eb;
+  margin: 0 0.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.aws-step-divider.completed-line {
+  background: var(--earth-green-600);
+}
+
+/* ── 3. Painéis de Conteúdo das Etapas ── */
+.aws-step-pane {
+  display: none;
+  animation: awsFadeIn 160ms ease-out;
+}
+
+.aws-step-pane.active-step {
+  display: block;
+}
+
+@keyframes awsFadeIn {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── 4. Controles Segmentados e Botões (Estilo AWS) ── */
+.aws-segmented-control {
+  display: inline-flex;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: var(--radius-xs);
+  padding: 2px;
+  gap: 2px;
+}
+
+.aws-segment-btn {
+  border: none;
+  background: transparent;
+  padding: 0.4rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #4b5563;
+  border-radius: calc(var(--radius-xs) - 2px);
+  cursor: pointer;
+  transition: all 120ms ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  user-select: none;
+}
+
+.aws-segment-btn:hover:not(.active) {
+  color: #111827;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.aws-segment-btn.active {
+  background: #ffffff;
+  color: var(--earth-green-950);
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* ── 5. Botões de Ação do Wizard ── */
+.aws-wizard-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.aws-btn-primary {
+  background-color: var(--earth-green-800);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--earth-green-900);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: background-color 140ms ease;
+}
+
+.aws-btn-primary:hover {
+  background-color: var(--earth-green-900);
+  color: #ffffff;
+}
+
+.aws-btn-secondary {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  color: #374151;
+  font-weight: 500;
+  font-size: 0.85rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-xs);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 140ms ease;
+}
+
+.aws-btn-secondary:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  color: #111827;
+}
+
+/* ── 6. Card Container Padrão AWS ── */
+.aws-container {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+
+.aws-container-header {
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--border-subtle);
+  background: #fafaf8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.aws-container-header h6 {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.aws-container-body {
+  padding: 1.25rem;
+}
+
+.aws-form-hint {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+  line-height: 1.3;
+}
+
+/* ── 7. Tabela de Revisão (Estilo AWS Review Screen) ── */
+.aws-review-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+
+.aws-review-table tr {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.aws-review-table tr:last-child {
+  border-bottom: none;
+}
+
+.aws-review-table td {
+  padding: 0.6rem 0.5rem;
+  vertical-align: middle;
+}
+
+.aws-review-table td.label-cell {
+  width: 35%;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.aws-review-table td.value-cell {
+  width: 50%;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.aws-review-table td.action-cell {
+  width: 15%;
+  text-align: right;
+}
+
+/* ── 8. Painel Lateral de Ajuda (Estilo AWS Console Info Drawer) ── */
+.aws-help-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 440px;
+  max-width: 90vw;
+  height: 100vh;
+  background: #ffffff;
+  border-left: 1px solid #e5e7eb;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
+  z-index: 1070;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.aws-help-drawer.open {
+  transform: translateX(0);
+}
+
+.aws-help-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 1065;
+  display: none;
+  backdrop-filter: blur(1px);
+}
+
+.aws-help-backdrop.open {
+  display: block;
+}
+
+.aws-help-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fafaf8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.aws-help-header h6 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.aws-help-close {
+  background: transparent;
+  border: none;
+  font-size: 1.1rem;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+  border-radius: var(--radius-xs);
+}
+
+.aws-help-close:hover {
+  color: #111827;
+  background: #e5e7eb;
+}
+
+.aws-help-body {
+  padding: 1.25rem;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #374151;
+}
+
+.aws-help-section {
+  margin-bottom: 1.5rem;
+}
+
+.aws-help-section h7 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--earth-green-950);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.5rem;
+}
+
+.aws-help-tip-box {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-left: 3px solid #15803d;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-xs);
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: #166534;
+}
+
+.aws-help-step-item {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.aws-help-step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--earth-green-700);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ── 9. Callout de Métrica (Arroba @ / Ganho de Peso) ── */
+.aws-metric-callout {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  background: #f8faf6;
+  border: 1px solid #d9e6d5;
+  border-radius: var(--radius-xs);
+  font-size: 0.82rem;
+  color: #1b3116;
+  margin-top: 0.4rem;
+}
+
+.aws-metric-callout strong {
+  color: var(--earth-green-800);
+}
+
+/* ── 10. Seletores Rápidos de Modo em Compras / Vendas ── */
+.aws-mode-tabs {
+  display: flex;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 1.25rem;
+  gap: 1.5rem;
+}
+
+.aws-mode-tab {
+  padding: 0.65rem 0.25rem;
+  border-bottom: 2px solid transparent;
+  color: #6b7280;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 140ms ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.aws-mode-tab:hover {
+  color: var(--earth-green-800);
+}
+
+.aws-mode-tab.active {
+  color: var(--earth-green-900);
+  font-weight: 700;
+  border-bottom-color: var(--earth-green-700);
+}
+
+
+
 
 
 
