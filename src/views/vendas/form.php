@@ -66,20 +66,10 @@ if (!isset($pastos)) {
   </div>
 </div>
 
-<!-- Seletor de Modo de Operação (Estilo AWS Mode Tabs) -->
-<div class="aws-mode-tabs" id="vendaModeTabs">
-  <div class="aws-mode-tab active" id="tabModeXmlVenda" onclick="setVendaModo('xml')">
-    <i class="bi bi-file-earmark-code text-success"></i> 1. Importar com Nota Fiscal (XML)
-  </div>
-  <div class="aws-mode-tab" id="tabModeManualVenda" onclick="setVendaModo('manual')">
-    <i class="bi bi-pencil-square text-primary"></i> 2. Digitação Direta / Negócio Fechado
-  </div>
-</div>
-
 <form method="POST" action="<?= $actionUrl ?>" enctype="multipart/form-data" id="formVenda">
   <?= csrf_field() ?>
 
-  <!-- 1. BLOCO SUPERIOR: Importação de XML e Painel de Conferência (Largura Total) -->
+  <!-- 1. BLOCO SUPERIOR: Importação de XML (Opcional para preenchimento rápido) -->
   <div class="mb-4" id="blocoImportacaoXmlVenda">
     <!-- Informação de XML existente em modo de Edição -->
     <?php if ($isEdit && !empty($venda['arquivo_xml'])): ?>
@@ -966,25 +956,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnTop = document.getElementById('btnTopHelp');
   if (btnTop) btnTop.onclick = abrirAjudaVenda;
 });
-
-// ── Alternância de Modo (XML vs Manual) ──
-function setVendaModo(modo) {
-  const tabXml = document.getElementById('tabModeXmlVenda');
-  const tabManual = document.getElementById('tabModeManualVenda');
-  const boxXml = document.getElementById('blocoImportacaoXmlVenda');
-
-  if (modo === 'xml') {
-    tabXml.classList.add('active');
-    tabManual.classList.remove('active');
-    boxXml.style.display = 'block';
-  } else {
-    tabManual.classList.add('active');
-    tabXml.classList.remove('active');
-    boxXml.style.display = 'none';
-    const inDesc = document.getElementById('venda_descricao');
-    if (inDesc) inDesc.focus();
-  }
-}
 
 // ── Guia e Ajuda Lateral AWS para Vendas ──
 window.abrirAjudaVenda = function() {

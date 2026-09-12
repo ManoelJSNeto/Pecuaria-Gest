@@ -37,20 +37,10 @@ $animaisLote = $animaisLote ?? [];
   </div>
 </div>
 
-<!-- Seletor de Modo de Operação (Estilo AWS Mode Tabs) -->
-<div class="aws-mode-tabs" id="compraModeTabs">
-  <div class="aws-mode-tab active" id="tabModeXml" onclick="setCompraModo('xml')">
-    <i class="bi bi-file-earmark-code text-success"></i> 1. Importar com Nota Fiscal (XML)
-  </div>
-  <div class="aws-mode-tab" id="tabModeManual" onclick="setCompraModo('manual')">
-    <i class="bi bi-pencil-square text-primary"></i> 2. Digitação Manual / Leilão
-  </div>
-</div>
-
 <form method="POST" action="<?= $actionUrl ?>" enctype="multipart/form-data" id="formCompra">
   <?= csrf_field() ?>
 
-  <!-- 1. BLOCO SUPERIOR: Importação de XML e Painel de Conferência (Largura Total) -->
+  <!-- 1. BLOCO SUPERIOR: Importação de XML (Opcional para preenchimento rápido) -->
   <div class="mb-4" id="blocoImportacaoXml">
     <!-- Informação de XML existente em modo de Edição -->
     <?php if ($isEdit && !empty($compra['arquivo_xml'])): ?>
@@ -1326,25 +1316,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnTop = document.getElementById('btnTopHelp');
   if (btnTop) btnTop.onclick = abrirAjudaCompra;
 });
-
-// ── Alternância de Modo (XML vs Manual) ──
-function setCompraModo(modo) {
-  const tabXml = document.getElementById('tabModeXml');
-  const tabManual = document.getElementById('tabModeManual');
-  const boxXml = document.getElementById('blocoImportacaoXml');
-
-  if (modo === 'xml') {
-    tabXml.classList.add('active');
-    tabManual.classList.remove('active');
-    boxXml.style.display = 'block';
-  } else {
-    tabManual.classList.add('active');
-    tabXml.classList.remove('active');
-    boxXml.style.display = 'none';
-    const inDesc = document.getElementById('compra_descricao');
-    if (inDesc) inDesc.focus();
-  }
-}
 
 // ── Guia e Ajuda Lateral AWS para Compras ──
 window.abrirAjudaCompra = function() {

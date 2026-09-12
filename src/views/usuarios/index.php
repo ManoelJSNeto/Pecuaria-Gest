@@ -9,11 +9,16 @@ $loggedUser = currentUser();
     <h5 class="mb-1 fw-bold text-dark"><i class="bi bi-people-fill me-2 text-primary"></i>Gestão de Equipe & Permissões</h5>
     <small class="text-muted">Cadastre colaboradores e defina exatamente o que cada membro pode visualizar, lançar ou editar</small>
   </div>
-  <?php if (can('gerenciar_usuarios')): ?>
-    <a href="/usuarios/novo" class="btn btn-primary btn-sm fw-bold px-3">
-      <i class="bi bi-person-plus-fill me-1"></i> Novo Colaborador
-    </a>
-  <?php endif; ?>
+  <div class="d-flex align-items-center gap-2">
+    <button type="button" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1" onclick="abrirAjudaUsuarios()">
+      <i class="bi bi-info-circle"></i> <span>Instruções de Acesso</span>
+    </button>
+    <?php if (can('gerenciar_usuarios')): ?>
+      <a href="/usuarios/novo" class="btn btn-primary btn-sm fw-bold px-3">
+        <i class="bi bi-person-plus-fill me-1"></i> Novo Colaborador
+      </a>
+    <?php endif; ?>
+  </div>
 </div>
 
 <div class="card border-0 shadow-sm">
@@ -131,4 +136,37 @@ function confirmarExclusaoUsuario(id, nome) {
     form.submit();
   }
 }
+
+window.abrirAjudaUsuarios = function() {
+  const title = 'Guia: Perfis de Acesso e Gestão de Equipe';
+  const html = `
+    <div class="aws-help-section">
+      <h7><i class="bi bi-shield-check"></i> Controle de Acesso Baseado em Funções (RBAC)</h7>
+      <p>O PecuáriaGest permite atribuir exatamente o que cada membro da fazenda pode fazer, garantindo segurança contra exclusões acidentais de dados de animais ou pesagens.</p>
+    </div>
+
+    <div class="aws-help-section">
+      <h7><i class="bi bi-people"></i> Perfis Sugeridos</h7>
+      <ul>
+        <li><strong>Gerente:</strong> Acesso a relatórios, pesagens, compras e vendas, sem permissão de excluir o banco.</li>
+        <li><strong>Veterinário:</strong> Focado em saúde, protocolos sanitários, carência de medicamentos e reprodução.</li>
+        <li><strong>Vaqueiro / Curral:</strong> Acesso à balança, marcação de brincos e sincronização com o celular.</li>
+        <li><strong>Consulta / Leitura:</strong> Ideal para consultores e contabilidade externa inspecionarem relatórios sem alterar registros.</li>
+      </ul>
+    </div>
+
+    <div class="aws-help-section">
+      <h7><i class="bi bi-phone"></i> Permissão Mobile</h7>
+      <div class="aws-help-tip-box">
+        Para que um funcionário consiga autenticar no aplicativo Android/iOS no curral (mesmo offline), a opção <strong>"Sincronizar no App Mobile"</strong> deve estar marcada no cadastro dele.
+      </div>
+    </div>
+  `;
+  openAwsHelpDrawer(title, html);
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btnTop = document.getElementById('btnTopHelp');
+  if (btnTop) btnTop.onclick = abrirAjudaUsuarios;
+});
 </script>
