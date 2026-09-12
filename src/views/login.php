@@ -16,7 +16,7 @@
 <link href="/assets/css/style.css" rel="stylesheet">
 </head>
 <body>
-<div class="login-page">
+<div class="login-page" style="flex-direction: column;">
   <div class="login-card">
     <div class="text-center mb-3">
       <img src="/favicon.svg" alt="PecuáriaGest Logo" class="brand-logo mb-2">
@@ -59,6 +59,20 @@
         Ambiente Dev: <code>admin@fazenda.com</code> / <code>admin123</code>
       </div>
     <?php endif; ?>
+  </div>
+
+  <!-- Rodapé Discreto na Tela de Login (Teste) -->
+  <div class="login-footer text-center mt-3 text-muted" style="max-width: 480px; font-size: 0.74rem; line-height: 1.5;">
+    <div class="d-inline-flex align-items-center gap-1 mb-1">
+      <i class="bi bi-mortarboard text-secondary"></i>
+      <span class="fw-semibold text-secondary">Trabalho Educacional</span>
+    </div>
+    <div class="text-muted">
+      Desenvolvido por:
+      <a href="https://github.com/ManoelJSNeto" target="_blank" rel="noopener noreferrer" class="text-decoration-none fw-semibold text-secondary" title="GitHub de Manoel"><i class="bi bi-github"></i> Manoel Neto</a> &bull;
+      <a href="https://github.com/pedro-henrique-vs" target="_blank" rel="noopener noreferrer" class="text-decoration-none fw-semibold text-secondary" title="GitHub de Pedro Vargas"><i class="bi bi-github"></i> Pedro Vargas</a> &bull;
+      <a href="https://github.com/PedroRoman444" target="_blank" rel="noopener noreferrer" class="text-decoration-none fw-semibold text-secondary" title="GitHub de Pedro Roman"><i class="bi bi-github"></i> Pedro Roman</a>
+    </div>
   </div>
 </div>
 </body>

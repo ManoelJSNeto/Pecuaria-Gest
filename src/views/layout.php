@@ -158,7 +158,7 @@ $alertasNaoLidos = $db->query("SELECT COUNT(*) FROM alertas WHERE lido=0")->fetc
         </a>
       <?php endif; ?>
       <?php if ($user): ?>
-        <span class="text-secondary small d-none d-md-block fw-500">Fazenda Modelo</span>
+        <span class="text-secondary small d-none d-md-block fw-500"><i class="bi bi-geo-alt me-1"></i><?= e(getSysConfig('fazenda_nome', 'fazenda pecuGest')) ?></span>
       <?php else: ?>
         <a href="/login" class="btn btn-sm btn-primary">
           <i class="bi bi-box-arrow-in-right me-1"></i>Entrar no Painel
@@ -177,6 +177,20 @@ $alertasNaoLidos = $db->query("SELECT COUNT(*) FROM alertas WHERE lido=0")->fetc
 
     <?= $content ?>
   </section>
+
+  <!-- Rodapé Geral do Painel (Discreto / Teste) -->
+  <footer class="app-site-footer py-2 px-3 px-md-4 border-top d-flex flex-wrap justify-content-between align-items-center gap-2" style="font-size: 0.74rem; background: var(--bg-surface); border-color: var(--border-subtle) !important; color: var(--text-secondary);">
+    <div class="d-flex align-items-center gap-2">
+      <span class="fw-semibold text-dark">PecuáriaGest</span>
+      <span class="text-muted d-none d-sm-inline">&bull; Trabalho Educacional</span>
+    </div>
+    <div class="text-secondary">
+      by
+      <a href="https://github.com/ManoelJSNeto" target="_blank" rel="noopener noreferrer" class="text-decoration-none fw-semibold text-secondary" title="GitHub de Manoel"><i class="bi bi-github"></i> Manoel Neto</a>,
+      <a href="https://github.com/pedro-henrique-vs" target="_blank" rel="noopener noreferrer" class="text-decoration-none fw-semibold text-secondary" title="GitHub de Pedro Vargas"><i class="bi bi-github"></i> Pedro Vargas</a> &amp;
+      <a href="https://github.com/PedroRoman444" target="_blank" rel="noopener noreferrer" class="text-decoration-none fw-semibold text-secondary" title="GitHub de Pedro Roman"><i class="bi bi-github"></i> Pedro Roman</a>
+    </div>
+  </footer>
 </main>
 
 <!-- Backdrop e Painel de Ajuda Lateral (Estilo AWS Info Drawer) -->
@@ -195,6 +209,20 @@ $alertasNaoLidos = $db->query("SELECT COUNT(*) FROM alertas WHERE lido=0")->fetc
       <p>O <strong>PecuáriaGest</strong> foi projetado para gestão simples e precisa do rebanho, unindo dados de balança, controle sanitário e movimentação comercial.</p>
       <div class="aws-help-tip-box">
         <strong>Dica Rápida:</strong> Você pode alternar a unidade de peso entre <strong>Quilogramas (kg)</strong> e <strong>Arrobas (@)</strong> a qualquer momento no topo da tela.
+      </div>
+    </div>
+
+    <!-- Seção Educacional / Créditos (Teste) -->
+    <div class="aws-help-section mt-3 pt-3 border-top" style="border-color: var(--border-subtle) !important;">
+      <h7><i class="bi bi-mortarboard text-primary"></i> Trabalho Educacional</h7>
+      <p class="small text-secondary mb-2">Este software foi desenvolvido como um <strong>Trabalho Educacional</strong> focado em gestão pecuária simplificada.</p>
+      <div class="small">
+        <strong class="text-dark">Autores:</strong>
+        <ul class="mb-0 ps-3 mt-1 text-secondary">
+          <li><strong>Manoel Jorge dos Santos Neto</strong> &bull; <a href="https://github.com/ManoelJSNeto" target="_blank" rel="noopener noreferrer" class="text-decoration-none fw-semibold"><i class="bi bi-github"></i> ManoelJSNeto</a></li>
+          <li><strong>Pedro Henrique Vargas da Silva</strong> &bull; <a href="https://github.com/pedro-henrique-vs" target="_blank" rel="noopener noreferrer" class="text-decoration-none fw-semibold"><i class="bi bi-github"></i> pedro-henrique-vs</a></li>
+          <li><strong>Pedro Henrique da Silva Roman</strong> &bull; <a href="https://github.com/PedroRoman444" target="_blank" rel="noopener noreferrer" class="text-decoration-none fw-semibold"><i class="bi bi-github"></i> PedroRoman444</a></li>
+        </ul>
       </div>
     </div>
   </div>

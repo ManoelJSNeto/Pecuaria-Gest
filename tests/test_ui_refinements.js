@@ -87,5 +87,31 @@ function request(options, postData) {
     "| Drawer Ajuda:", resAlNovo.body.includes('abrirAjudaAlertas') ? "✅ OK" : "❌ Falhou"
   );
 
+  // 8. /configuracoes
+  const resConf = await request({ hostname: 'localhost', port: 8080, path: '/configuracoes', method: 'GET', headers: { 'Cookie': sessionCookie } });
+  console.log("8. /configuracoes -> HTTP", resConf.statusCode,
+    "| Explicações por Input (aws-form-hint):", resConf.body.includes('aws-form-hint') ? "✅ OK" : "❌ Falhou",
+    "| Módulo de Backup Presente:", resConf.body.includes('Backup Manual de Segurança') ? "✅ OK" : "❌ Falhou",
+    "| Drawer Ajuda:", resConf.body.includes('abrirAjudaConfiguracoes') ? "✅ OK" : "❌ Falhou"
+  );
+
+  // 9. /configuracoes/backup?formato=sql
+  const resBackSql = await request({ hostname: 'localhost', port: 8080, path: '/configuracoes/backup?formato=sql', method: 'GET', headers: { 'Cookie': sessionCookie } });
+  console.log("9. /configuracoes/backup?formato=sql -> HTTP", resBackSql.statusCode,
+    "| Header Attachment SQL:", (resBackSql.headers['content-disposition'] || '').includes('.sql') ? "✅ OK" : "❌ Falhou",
+    "| Contém Inserts de Animais/Pesagens:", resBackSql.body.includes('INSERT INTO') ? "✅ OK" : "❌ Falhou"
+  );
+
+  // 10. /configuracoes/backup?formato=json
+  const resBackJson = await request({ hostname: 'localhost', port: 8080, path: '/configuracoes/backup?formato=json', method: 'GET', headers: { 'Cookie': sessionCookie } });
+  let jsonOk = false;
+  try {
+    const parsed = JSON.parse(resBackJson.body);
+    jsonOk = !!(parsed.tabelas && parsed.tabelas.animais);
+  } catch (e) {}
+  console.log("10. /configuracoes/backup?formato=json -> HTTP", resBackJson.statusCode,
+    "| JSON Válido com Tabelas:", jsonOk ? "✅ OK" : "❌ Falhou"
+  );
+
   console.log("=== TODAS AS VERIFICAÇÕES CONCLUÍDAS ===");
 })();
