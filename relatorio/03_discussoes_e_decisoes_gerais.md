@@ -342,3 +342,32 @@ Executado via orquestrador unificado (`node tests/benchmark/executar_triade.js -
 * 💾 `tests/benchmark/resultados/dataset_bruto_unificado_tcc.csv`: O arquivo mestre com 100% dos dados brutos.
 * 📘 `tests/benchmark/README.md`: Manual operacional completo passo a passo.
 
+---
+
+### 🆔 [IAC-TERRAFORM-AWS-2026-09-11] Infraestrutura como Código (Terraform) Multi-Cloud: Módulo AWS com Zero SSH e Custo Zero
+
+> **Status:** 🟢 **IMPLEMENTADO, DOCUMENTADO E PRONTO PARA DEPLOY**  
+> **Identificador Único:** `[IAC-TERRAFORM-AWS-2026-09-11]`  
+> **Data de Registro:** 11/09/2026  
+> **Branch de Desenvolvimento:** `feature/triade-testes-benchmark`
+
+#### 1. Contexto e Justificativa Acadêmica
+Para garantir simetria rigorosa, reprodutibilidade científica e controle de custos entre os provedores de nuvem (AWS, GCP e Azure), foi adotado o **Terraform (HashiCorp)** como padrão de Infraestrutura como Código (IaC). Isso elimina o viés de configuração manual em painéis web e permite criar e destruir instâncias completas sob demanda (`terraform apply` e `terraform destroy`).
+
+#### 2. Componentes Arquiteturais Implementados (`infra/aws/`)
+1. **Rede e Isolamento (`vpc.tf`):**
+   * VPC dedicada (`10.0.0.0/16`) com Internet Gateway na região de São Paulo (`sa-east-1`).
+   * Subnets públicas em duas Zonas de Disponibilidade distintas com `DB Subnet Group` para atender às exigências do Amazon RDS.
+2. **Segurança Avançada em Camadas (`security_groups.tf` e `iam.tf`):**
+   * **Erradicação do SSH (Porta 22 Fechada):** Toda a gestão administrativa é realizada através do **AWS Systems Manager (SSM Session Manager)** com IAM Role `AmazonSSMManagedInstanceCore`.
+   * **Firewall Relacional:** A porta 5432 do banco de dados aceita tráfego exclusivamente originado do Security Group da aplicação web (`sg-web`), mantendo o banco invisível para a internet.
+3. **Banco de Dados Gerenciado (`rds.tf`):**
+   * Instância **Amazon RDS PostgreSQL 16.3** (`db.t3.micro`, 20 GB gp3).
+   * **Trava Financeira:** `max_allocated_storage = 20` impedindo autoscaling de disco oneroso da AWS. `skip_final_snapshot = true` para descarte imediato.
+4. **Aplicação e Bootstrap Automático (`ec2.tf` e `user_data.sh`):**
+   * Instância **EC2 `t3.micro`** com Ubuntu Server 24.04 LTS oficial (Canonical).
+   * Script `user_data.sh` que instala Docker CE, clona o repositório, gera o `.env` conectado ao RDS, sobe os contêineres Nginx e PHP-FPM desacoplados e inicializa o schema com os 30 animais seed padronizados no prefixo `T`.
+5. **Automação de Testes e Saídas (`outputs.tf`):**
+   * Exporta a URL pública da aplicação (`http://<IP>:8080`), o endpoint do RDS e o comando exato já formatado para disparar a Tríade de Testes contra a nuvem.
+
+
