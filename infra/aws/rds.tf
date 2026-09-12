@@ -14,7 +14,7 @@ resource "aws_db_instance" "postgres" {
   # Motor de Banco de Dados: PostgreSQL 16 oficial
   # Garante simetria exata com a imagem "postgres:16-alpine" utilizada no Docker local
   engine         = "postgres"
-  engine_version = "16.3"
+  engine_version = "16.9"
 
   # Dimensionamento do Hardware (Elegível ao Free Tier do RDS: 750 horas/mês gratuitas)
   instance_class = var.rds_instance_class # db.t3.micro (2 vCPUs, 1 GB de RAM)

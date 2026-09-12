@@ -1,5 +1,121 @@
 {
   "pilar1": {
+    "aws_100": [
+      {
+        "run": 1,
+        "throughput": 47.21063813045873,
+        "avg": 1978.2593333333346,
+        "p50": 2031.92,
+        "p95": 2614.7,
+        "p99": 2682.58,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_aws_100users_run1_1789182098737.csv"
+      },
+      {
+        "run": 2,
+        "throughput": 49.21259842519685,
+        "avg": 1894.060533333331,
+        "p50": 2010.31,
+        "p95": 2183.13,
+        "p99": 2229.02,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_aws_100users_run2_1789182114397.csv"
+      },
+      {
+        "run": 3,
+        "throughput": 45.18752824220515,
+        "avg": 2126.2543500000015,
+        "p50": 2062.34,
+        "p95": 3096.86,
+        "p99": 3350.72,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_aws_100users_run3_1789182131695.csv"
+      }
+    ],
+    "aws_20": [
+      {
+        "run": 1,
+        "throughput": 38.30194701563996,
+        "avg": 520.1526666666667,
+        "p50": 480.54,
+        "p95": 767.73,
+        "p99": 867.72,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_aws_20users_run1_1789181995885.csv"
+      },
+      {
+        "run": 1,
+        "throughput": 41.33654839820875,
+        "avg": 473.8994166666666,
+        "p50": 446.77,
+        "p95": 648.61,
+        "p99": 1549.58,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_aws_20users_run1_1789182038527.csv"
+      },
+      {
+        "run": 2,
+        "throughput": 45.36862003780718,
+        "avg": 442.95358333333337,
+        "p50": 452.83,
+        "p95": 546.85,
+        "p99": 588.27,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_aws_20users_run2_1789182044824.csv"
+      },
+      {
+        "run": 3,
+        "throughput": 48.582995951417,
+        "avg": 414.4184166666667,
+        "p50": 411.26,
+        "p95": 517.62,
+        "p99": 598.93,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_aws_20users_run3_1789182050901.csv"
+      }
+    ],
+    "aws_50": [
+      {
+        "run": 1,
+        "throughput": 35.82517315500358,
+        "avg": 1304.864433333334,
+        "p50": 1073.27,
+        "p95": 2805.05,
+        "p99": 3161.75,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_aws_50users_run1_1789182062860.csv"
+      },
+      {
+        "run": 2,
+        "throughput": 50.1002004008016,
+        "avg": 942.8475000000002,
+        "p50": 983.17,
+        "p95": 1118.64,
+        "p99": 1151.6,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_aws_50users_run2_1789182072502.csv"
+      },
+      {
+        "run": 3,
+        "throughput": 47.11795193968902,
+        "avg": 1002.9697000000001,
+        "p50": 1008.32,
+        "p95": 1325.88,
+        "p99": 1417.83,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_aws_50users_run3_1789182082445.csv"
+      }
+    ],
     "local_100": [
       {
         "run": 1,
@@ -162,6 +278,102 @@
     ]
   },
   "pilar2": {
+    "aws_10": [
+      {
+        "run": 1,
+        "totalMb": 20.02579116821289,
+        "throughputMBs": 2.79728889065692,
+        "p50Photo": 1424.16,
+        "p95Photo": 7336.17,
+        "successRate": 100,
+        "file": "heavy_uploads_aws_10users_run1_1789182148887.csv"
+      },
+      {
+        "run": 2,
+        "totalMb": 20.02579116821289,
+        "throughputMBs": 9.446127909534383,
+        "p50Photo": 1448.93,
+        "p95Photo": 3176.76,
+        "successRate": 100,
+        "file": "heavy_uploads_aws_10users_run2_1789182153872.csv"
+      },
+      {
+        "run": 3,
+        "totalMb": 20.02579116821289,
+        "throughputMBs": 7.441765577187994,
+        "p50Photo": 734.95,
+        "p95Photo": 2993.22,
+        "successRate": 100,
+        "file": "heavy_uploads_aws_10users_run3_1789182158657.csv"
+      }
+    ],
+    "aws_20": [
+      {
+        "run": 1,
+        "totalMb": 40.05161666870117,
+        "throughputMBs": 15.944114915884224,
+        "p50Photo": 1677.49,
+        "p95Photo": 2987.03,
+        "successRate": 100,
+        "file": "heavy_uploads_aws_20users_run1_1789182163406.csv"
+      },
+      {
+        "run": 2,
+        "totalMb": 40.05161666870117,
+        "throughputMBs": 11.420478092016301,
+        "p50Photo": 1396.68,
+        "p95Photo": 4073.73,
+        "successRate": 100,
+        "file": "heavy_uploads_aws_20users_run2_1789182169261.csv"
+      },
+      {
+        "run": 3,
+        "totalMb": 40.05161666870117,
+        "throughputMBs": 5.348773593576545,
+        "p50Photo": 2611.39,
+        "p95Photo": 7931.31,
+        "successRate": 100,
+        "file": "heavy_uploads_aws_20users_run3_1789182178983.csv"
+      }
+    ],
+    "aws_5": [
+      {
+        "run": 1,
+        "totalMb": 10.012893676757812,
+        "throughputMBs": 8.691747983296713,
+        "p50Photo": 4272.58,
+        "p95Photo": 4986.09,
+        "successRate": 100,
+        "file": "heavy_uploads_aws_5users_run1_1789182002227.csv"
+      },
+      {
+        "run": 1,
+        "totalMb": 10.012893676757812,
+        "throughputMBs": 16.123822345825786,
+        "p50Photo": 1343.77,
+        "p95Photo": 1360.13,
+        "successRate": 100,
+        "file": "heavy_uploads_aws_5users_run1_1789182135082.csv"
+      },
+      {
+        "run": 2,
+        "totalMb": 10.012893676757812,
+        "throughputMBs": 32.50939505440848,
+        "p50Photo": 578.04,
+        "p95Photo": 643.64,
+        "successRate": 100,
+        "file": "heavy_uploads_aws_5users_run2_1789182137494.csv"
+      },
+      {
+        "run": 3,
+        "totalMb": 10.012893676757812,
+        "throughputMBs": 32.50939505440848,
+        "p50Photo": 426.94,
+        "p95Photo": 550.56,
+        "successRate": 100,
+        "file": "heavy_uploads_aws_5users_run3_1789182139763.csv"
+      }
+    ],
     "local_10": [
       {
         "run": 1,
@@ -305,6 +517,56 @@
     ]
   },
   "pilar3": {
+    "aws": [
+      {
+        "env": "aws",
+        "engine": "msedge (Chromium)",
+        "timestamp": "2026-09-12T03:00:13.755Z",
+        "login_ms": 3637.1,
+        "dashboard_total_ms": 961.1,
+        "ttfb_ms": 200.5,
+        "dom_content_loaded_ms": 0,
+        "page_load_ms": 0,
+        "xml_parse_client_ms": 205.4,
+        "xml_items": 3
+      },
+      {
+        "env": "aws",
+        "engine": "msedge (Chromium)",
+        "timestamp": "2026-09-12T03:03:06.137Z",
+        "login_ms": 2271.5,
+        "dashboard_total_ms": 873.6,
+        "ttfb_ms": 198.7,
+        "dom_content_loaded_ms": 0,
+        "page_load_ms": 0,
+        "xml_parse_client_ms": 183.5,
+        "xml_items": 3
+      },
+      {
+        "env": "aws",
+        "engine": "msedge (Chromium)",
+        "timestamp": "2026-09-12T03:03:13.548Z",
+        "login_ms": 2296.9,
+        "dashboard_total_ms": 811.4,
+        "ttfb_ms": 201.2,
+        "dom_content_loaded_ms": 0,
+        "page_load_ms": 0,
+        "xml_parse_client_ms": 135,
+        "xml_items": 3
+      },
+      {
+        "env": "aws",
+        "engine": "msedge (Chromium)",
+        "timestamp": "2026-09-12T03:03:19.930Z",
+        "login_ms": 2173.2,
+        "dashboard_total_ms": 808.5,
+        "ttfb_ms": 226.3,
+        "dom_content_loaded_ms": 0,
+        "page_load_ms": 0,
+        "xml_parse_client_ms": 67.3,
+        "xml_items": 3
+      }
+    ],
     "local": [
       {
         "env": "local",
