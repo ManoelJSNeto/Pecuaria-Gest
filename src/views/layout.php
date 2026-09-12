@@ -145,6 +145,12 @@ $alertasNaoLidos = $db->query("SELECT COUNT(*) FROM alertas WHERE lido=0")->fetc
         <button type="button" class="btn-unit-opt" id="btnTopUnitArr" onclick="setGlobalPesoUnit('arroba')" title="Exibir pesos em Arrobas (@ comercial - 50% carcaça)">@ Arroba</button>
       </div>
 
+      <!-- Botão de Ajuda do Painel (Estilo AWS Info Trigger) -->
+      <button type="button" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" id="btnTopHelp" onclick="toggleAwsHelpDrawer()" title="Abrir guia prático e instruções deste painel">
+        <i class="bi bi-question-circle"></i>
+        <span class="d-none d-md-inline">Ajuda</span>
+      </button>
+
       <?php if ($alertasNaoLidos > 0 && $user): ?>
         <a href="/alertas" class="btn btn-sm btn-outline-danger position-relative" title="Alertas Pendentes">
           <i class="bi bi-bell-fill"></i>
@@ -173,11 +179,60 @@ $alertasNaoLidos = $db->query("SELECT COUNT(*) FROM alertas WHERE lido=0")->fetc
   </section>
 </main>
 
+<!-- Backdrop e Painel de Ajuda Lateral (Estilo AWS Info Drawer) -->
+<div class="aws-help-backdrop" id="awsHelpBackdrop" onclick="closeAwsHelpDrawer()"></div>
+<aside class="aws-help-drawer" id="awsHelpDrawer" aria-label="Painel de Ajuda e Instruções">
+  <div class="aws-help-header">
+    <h6><i class="bi bi-info-circle text-primary"></i> <span id="awsHelpTitle">Ajuda do Painel</span></h6>
+    <button type="button" class="aws-help-close" onclick="closeAwsHelpDrawer()" title="Fechar ajuda (Esc)">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+  <div class="aws-help-body" id="awsHelpBody">
+    <!-- Conteúdo default de ajuda caso a página não forneça customizado -->
+    <div class="aws-help-section">
+      <h7><i class="bi bi-compass"></i> Guia Geral do Sistema</h7>
+      <p>O <strong>PecuáriaGest</strong> foi projetado para gestão simples e precisa do rebanho, unindo dados de balança, controle sanitário e movimentação comercial.</p>
+      <div class="aws-help-tip-box">
+        <strong>Dica Rápida:</strong> Você pode alternar a unidade de peso entre <strong>Quilogramas (kg)</strong> e <strong>Arrobas (@)</strong> a qualquer momento no topo da tela.
+      </div>
+    </div>
+  </div>
+</aside>
+
 <script src="/assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
 <script src="/assets/vendor/chartjs/chart.umd.min.js"></script>
 <script>
 document.getElementById('sidebarToggle')?.addEventListener('click', () => {
   document.querySelector('.sidebar').classList.toggle('open');
+});
+
+// ── Painel de Ajuda Lateral (Estilo AWS Console Info Drawer) ──
+function toggleAwsHelpDrawer() {
+  const drawer = document.getElementById('awsHelpDrawer');
+  if (drawer.classList.contains('open')) {
+    closeAwsHelpDrawer();
+  } else {
+    openAwsHelpDrawer();
+  }
+}
+
+function openAwsHelpDrawer(customTitle, customHtml) {
+  const drawer = document.getElementById('awsHelpDrawer');
+  const backdrop = document.getElementById('awsHelpBackdrop');
+  if (customTitle) document.getElementById('awsHelpTitle').textContent = customTitle;
+  if (customHtml) document.getElementById('awsHelpBody').innerHTML = customHtml;
+  drawer.classList.add('open');
+  backdrop.classList.add('open');
+}
+
+function closeAwsHelpDrawer() {
+  document.getElementById('awsHelpDrawer')?.classList.remove('open');
+  document.getElementById('awsHelpBackdrop')?.classList.remove('open');
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeAwsHelpDrawer();
 });
 
 // ── Gestão Global de Unidade de Peso (kg ⟷ Arrobas) ──
@@ -198,7 +253,6 @@ function setGlobalPesoUnit(unit) {
     document.documentElement.classList.remove('mode-arroba');
   }
 
-  // Atualiza os botões do seletor
   const btnKg = document.getElementById('btnTopUnitKg');
   const btnArr = document.getElementById('btnTopUnitArr');
   if (btnKg && btnArr) {
@@ -212,7 +266,6 @@ function toggleGlobalPesoUnit() {
   setGlobalPesoUnit(current === 'arroba' ? 'kg' : 'arroba');
 }
 
-// Inicializa botões no carregamento
 document.addEventListener('DOMContentLoaded', () => {
   const unit = getGlobalPesoUnit();
   setGlobalPesoUnit(unit);

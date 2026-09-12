@@ -18,119 +18,97 @@ $isEdit    = isset($pesagem);
 $p         = $pesagem ?? [];
 $preAnimal = $p['animal_id'] ?? ($_GET['animal_id'] ?? null);
 ?>
-<div class="mb-3 d-flex align-items-center justify-content-between">
-  <a href="<?= !empty($preAnimal) ? '/animais/'.$preAnimal : '/pesagens' ?>" class="btn btn-sm btn-outline-secondary">
-    <i class="bi bi-arrow-left me-1"></i> Voltar
-  </a>
-  <span class="text-muted small"><i class="bi bi-shield-check text-success me-1"></i>Manejo seguro • Gravação instantânea</span>
+<!-- Topo com Breadcrumbs e Ajuda -->
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div class="d-flex align-items-center gap-2">
+    <a href="<?= !empty($preAnimal) ? '/animais/'.$preAnimal : '/pesagens' ?>" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Voltar
+    </a>
+    <span class="text-muted small">
+      Pesagens &gt; <?= $isEdit ? 'Editar Pesagem' : 'Anotar na Balança' ?>
+    </span>
+  </div>
+  <button type="button" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" onclick="abrirAjudaPesagem()">
+    <i class="bi bi-info-circle"></i> <span>Instruções de Pesagem</span>
+  </button>
 </div>
 
 <div class="row justify-content-center">
-  <div class="col-lg-7">
-    <div class="card shadow-sm border">
-      <div class="card-header bg-white py-3 border-bottom">
-        <div class="d-flex align-items-center gap-2">
-          <div class="action-icon-box icon-amber" style="width:40px; height:40px; font-size:1.2rem;">
-            <i class="bi bi-rulers"></i>
-          </div>
-          <div>
-            <h6 class="mb-0 fw-bold" style="font-size:1.05rem;"><?= $isEdit ? 'Editar Pesagem' : 'Anotar Nova Pesagem na Balança' ?></h6>
-            <small class="text-muted">Acompanhamento de ganho de peso e conversão em arrobas (@)</small>
-          </div>
-        </div>
+  <div class="col-lg-7 col-xl-6">
+    <div class="aws-container">
+      <div class="aws-container-header">
+        <h6><i class="bi bi-rulers text-primary"></i> <?= $isEdit ? 'Editar Registro de Pesagem' : 'Lançar Pesagem de Manejo' ?></h6>
+        <span class="text-muted small">Acompanhamento de GMD e conversão @</span>
       </div>
 
-      <div class="card-body p-4">
-        <!-- Banner de Ajuda Amigável -->
-        <div class="flow-helper-banner mb-4">
-          <i class="bi bi-info-circle-fill text-success fs-5"></i>
-          <div>
-            <strong>Passo Simples:</strong> Selecione o brinco do animal, confira o histórico anterior e digite o peso que marcou na balança.
-          </div>
-        </div>
-
+      <div class="aws-container-body">
         <form method="POST" action="<?= $isEdit ? '/pesagens/'.$p['id'].'/atualizar' : '/pesagens/salvar' ?>" id="formPesagem">
           <?= csrf_field() ?>
 
-          <!-- 1. Seleção do Animal -->
-          <div class="mb-3">
-            <label class="form-label fw-bold text-dark" style="font-size:0.95rem;">
-              <i class="bi bi-tag-fill text-success me-1"></i> Qual é o animal? *
-            </label>
-            <select name="animal_id" id="selectAnimal" class="form-select form-select-lg" required style="font-size:1rem; padding:0.65rem 1rem;">
-              <option value="">— Clique aqui para escolher o brinco —</option>
-              <?php foreach ($animais as $a): ?>
-                <option value="<?= $a['id'] ?>"
-                        data-peso="<?= (float)($a['ultimo_peso'] ?? 0) ?>"
-                        data-data="<?= !empty($a['ultima_data']) ? formatDate($a['ultima_data']) : 'Cadastro' ?>"
-                        <?= $preAnimal == $a['id'] ? 'selected' : '' ?>>
-                  <?= e($a['brinco']) ?><?= $a['nome'] ? ' — '.e($a['nome']) : '' ?> <?= !empty($a['ultimo_peso']) ? ' (Último: '.number_format($a['ultimo_peso'], 1, ',', '.').' kg)' : '' ?>
-                </option>
-              <?php endforeach; ?>
-            </select>
-          </div>
+          <div class="row g-3">
+            <!-- 1. Animal -->
+            <div class="col-12">
+              <label class="form-label fw-bold">Animal (Brinco) *</label>
+              <select name="animal_id" id="selectAnimal" class="form-select" required>
+                <option value="">— Selecione o brinco do animal —</option>
+                <?php foreach ($animais as $a): ?>
+                  <option value="<?= $a['id'] ?>"
+                          data-peso="<?= (float)($a['ultimo_peso'] ?? 0) ?>"
+                          data-data="<?= !empty($a['ultima_data']) ? formatDate($a['ultima_data']) : 'Cadastro' ?>"
+                          <?= $preAnimal == $a['id'] ? 'selected' : '' ?>>
+                    <?= e($a['brinco']) ?><?= $a['nome'] ? ' — '.e($a['nome']) : '' ?> <?= !empty($a['ultimo_peso']) ? ' (Último: '.number_format($a['ultimo_peso'], 1, ',', '.').' kg)' : '' ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
 
-          <!-- Card de Histórico Anterior do Animal (Aparece ao selecionar) -->
-          <div id="cardHistorico" class="p-3 mb-3 rounded border bg-light d-none" style="border-left: 4px solid var(--earth-green-600) !important;">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <span class="text-muted small text-uppercase fw-bold" style="font-size:0.75rem;">Último Registro Conhecido:</span>
-                <div class="fw-bold text-dark" style="font-size:1.05rem;" id="histPesoTexto">—</div>
+              <!-- Callout sutil com último peso -->
+              <div id="histCallout" class="aws-form-hint text-success d-none">
+                <i class="bi bi-clock-history me-1"></i>
+                <span id="histCalloutText">—</span>
               </div>
-              <div class="text-end">
-                <span class="badge bg-secondary text-white" id="histDataTexto">—</span>
+            </div>
+
+            <!-- 2. Peso Balança -->
+            <div class="col-12">
+              <label class="form-label fw-bold">Peso Atual na Balança (kg) *</label>
+              <div class="input-group">
+                <input type="number" step="0.01" name="peso" id="inputPeso" class="form-control fw-600" required
+                       placeholder="Ex: 420.50" min="1" max="2000"
+                       value="<?= e($p['peso'] ?? '') ?>">
+                <span class="input-group-text">kg</span>
               </div>
+
+              <!-- Indicador de Arrobas e Variação em Linha (AWS Metric Callout) -->
+              <div id="metricCallout" class="d-none mt-2">
+                <div class="aws-metric-callout">
+                  <i class="bi bi-calculator"></i>
+                  <span>Equivale a: <strong id="valArroba">0,00</strong> @ carcaça (50%)</span>
+                  <span id="sepGain" class="text-muted">•</span>
+                  <span id="valGanho" class="fw-bold">0,00 kg</span>
+                </div>
+              </div>
+              <div class="aws-form-hint">Digite o peso indicado no visor da balança eletrônica ou mecânica.</div>
+            </div>
+
+            <!-- 3. Data da Pesagem -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Data da Pesagem *</label>
+              <input type="date" name="data" class="form-control" required
+                     value="<?= e($p['data'] ?? date('Y-m-d')) ?>">
+            </div>
+
+            <!-- 4. Observação -->
+            <div class="col-md-6">
+              <label class="form-label">Lote / Motivo (Opcional)</label>
+              <input type="text" name="observacao" class="form-control" placeholder="Ex: Pesagem periódica, troca de pasto" value="<?= e($p['observacao'] ?? '') ?>">
             </div>
           </div>
 
-          <!-- 2. Peso na Balança e Conversão em Arroba -->
-          <div class="mb-3">
-            <label class="form-label fw-bold text-dark" style="font-size:0.95rem;">
-              <i class="bi bi-speedometer text-primary me-1"></i> Peso Atual da Balança (kg) *
-            </label>
-            <div class="input-group input-group-lg">
-              <input type="number" step="0.01" name="peso" id="inputPeso" class="form-control fw-bold" required
-                     placeholder="Ex: 420.50" min="1" max="2000"
-                     value="<?= e($p['peso'] ?? '') ?>"
-                     style="font-size:1.25rem; letter-spacing:0.02em;">
-              <span class="input-group-text bg-light fw-bold text-muted" style="font-size:1rem;">kg</span>
-            </div>
-
-            <!-- Indicadores Inteligentes em Tempo Real -->
-            <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
-              <div id="badgeArroba" class="live-arroba-badge d-none">
-                <i class="bi bi-calculator me-1"></i> <span id="valArroba">0,00</span> @ carcaça (50% rendimento)
-              </div>
-              <div id="badgeGanho" class="badge p-2 d-none" style="font-size:0.85rem;">
-                <i class="bi bi-arrow-up-right me-1"></i> <span id="valGanho">0,00 kg</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 3. Data da Pesagem -->
-          <div class="mb-3">
-            <label class="form-label fw-bold text-dark" style="font-size:0.95rem;">
-              <i class="bi bi-calendar-event text-secondary me-1"></i> Data da Pesagem *
-            </label>
-            <input type="date" name="data" class="form-control" required
-                   value="<?= e($p['data'] ?? date('Y-m-d')) ?>"
-                   style="font-size:0.95rem; padding:0.6rem;">
-          </div>
-
-          <!-- 4. Observações (Opcional) -->
-          <div class="mb-4">
-            <label class="form-label small text-muted">Observação do Lote / Manejo (Opcional)</label>
-            <textarea name="observacao" class="form-control" rows="2" placeholder="Ex: Pesagem pós-vermifugação, troca de pasto..."><?= e($p['observacao'] ?? '') ?></textarea>
-          </div>
-
-          <!-- Botões de Ação Grandes e Seguros -->
-          <div class="d-grid gap-2 pt-2 border-top">
-            <button type="submit" class="btn btn-flow-primary py-3 justify-content-center" style="font-size:1.05rem;">
-              <i class="bi bi-check-circle-fill me-2 fs-5"></i> <?= $isEdit ? 'Salvar Alterações da Pesagem' : 'Confirmar e Gravar Pesagem' ?>
+          <div class="aws-wizard-actions">
+            <a href="<?= !empty($preAnimal) ? '/animais/'.$preAnimal : '/pesagens' ?>" class="aws-btn-secondary">Cancelar</a>
+            <button type="submit" class="aws-btn-primary">
+              <i class="bi bi-check-lg me-1"></i> <?= $isEdit ? 'Salvar Alterações' : 'Gravar Pesagem' ?>
             </button>
-            <a href="<?= !empty($preAnimal) ? '/animais/'.$preAnimal : '/pesagens' ?>" class="btn btn-link text-muted text-decoration-none text-center">
-              Cancelar e voltar
-            </a>
           </div>
         </form>
       </div>
@@ -142,13 +120,12 @@ $preAnimal = $p['animal_id'] ?? ($_GET['animal_id'] ?? null);
 document.addEventListener('DOMContentLoaded', function() {
   const selectAnimal = document.getElementById('selectAnimal');
   const inputPeso = document.getElementById('inputPeso');
-  const cardHist = document.getElementById('cardHistorico');
-  const histPesoTexto = document.getElementById('histPesoTexto');
-  const histDataTexto = document.getElementById('histDataTexto');
-  const badgeArroba = document.getElementById('badgeArroba');
+  const histCallout = document.getElementById('histCallout');
+  const histCalloutText = document.getElementById('histCalloutText');
+  const metricCallout = document.getElementById('metricCallout');
   const valArroba = document.getElementById('valArroba');
-  const badgeGanho = document.getElementById('badgeGanho');
   const valGanho = document.getElementById('valGanho');
+  const sepGain = document.getElementById('sepGain');
 
   function atualizarCalculos() {
     const selectedOpt = selectAnimal.options[selectAnimal.selectedIndex];
@@ -156,50 +133,76 @@ document.addEventListener('DOMContentLoaded', function() {
     const ultimaData = selectedOpt ? (selectedOpt.dataset.data || '') : '';
     const pesoDigitado = parseFloat(inputPeso.value || 0);
 
-    // 1. Atualiza histórico do animal
     if (selectedOpt && selectAnimal.value && ultimoPeso > 0) {
-      cardHist.classList.remove('d-none');
-      const arrobasAntigas = (ultimoPeso * 0.5 / 15).toFixed(2).replace('.', ',');
-      histPesoTexto.innerHTML = `<strong>${ultimoPeso.toFixed(1).replace('.', ',')} kg</strong> <span class="text-muted small">(${arrobasAntigas} @)</span>`;
-      histDataTexto.textContent = 'Registrado em: ' + ultimaData;
+      histCallout.classList.remove('d-none');
+      histCalloutText.textContent = `Último registro em ${ultimaData}: ${ultimoPeso.toFixed(1)} kg (${(ultimoPeso*0.5/15).toFixed(2)} @)`;
     } else {
-      cardHist.classList.add('d-none');
+      histCallout.classList.add('d-none');
     }
 
-    // 2. Converte em Arrobas (@) com rendimento estimado de 50%
     if (pesoDigitado > 0) {
-      badgeArroba.classList.remove('d-none');
-      const arrobas = (pesoDigitado * 0.5 / 15).toFixed(2).replace('.', ',');
-      valArroba.textContent = arrobas;
+      metricCallout.classList.remove('d-none');
+      const arr = (pesoDigitado * 0.5 / 15).toFixed(2).replace('.', ',');
+      valArroba.textContent = arr;
 
-      // 3. Calcula Ganho/Perda se houver histórico
       if (ultimoPeso > 0) {
-        badgeGanho.classList.remove('d-none');
+        sepGain.classList.remove('d-none');
+        valGanho.classList.remove('d-none');
         const diff = pesoDigitado - ultimoPeso;
-        const diffArr = (Math.abs(diff) * 0.5 / 15).toFixed(2).replace('.', ',');
         if (diff > 0) {
-          badgeGanho.className = 'badge p-2 bg-success text-white';
-          badgeGanho.innerHTML = `<i class="bi bi-arrow-up-right me-1"></i> Ganho: +${diff.toFixed(1).replace('.', ',')} kg (+${diffArr} @)`;
+          valGanho.className = 'fw-bold text-success';
+          valGanho.textContent = `Ganho de +${diff.toFixed(1)} kg`;
         } else if (diff < 0) {
-          badgeGanho.className = 'badge p-2 bg-warning text-dark';
-          badgeGanho.innerHTML = `<i class="bi bi-arrow-down-right me-1"></i> Variação: ${diff.toFixed(1).replace('.', ',')} kg (-${diffArr} @)`;
+          valGanho.className = 'fw-bold text-warning';
+          valGanho.textContent = `Variação de ${diff.toFixed(1)} kg`;
         } else {
-          badgeGanho.className = 'badge p-2 bg-secondary text-white';
-          badgeGanho.innerHTML = `<i class="bi bi-dash me-1"></i> Manteve o mesmo peso`;
+          valGanho.className = 'fw-bold text-muted';
+          valGanho.textContent = 'Manteve o mesmo peso';
         }
       } else {
-        badgeGanho.classList.add('d-none');
+        sepGain.classList.add('d-none');
+        valGanho.classList.add('d-none');
       }
     } else {
-      badgeArroba.classList.add('d-none');
-      badgeGanho.classList.add('d-none');
+      metricCallout.classList.add('d-none');
     }
   }
 
   selectAnimal.addEventListener('change', atualizarCalculos);
   inputPeso.addEventListener('input', atualizarCalculos);
-
-  // Executa no carregamento se já houver valor
   atualizarCalculos();
+});
+
+window.abrirAjudaPesagem = function() {
+  const title = 'Guia: Pesagem e Acompanhamento de Ganho';
+  const html = `
+    <div class="aws-help-section">
+      <h7><i class="bi bi-rulers"></i> Como funciona a Pesagem</h7>
+      <p>Registrar o peso permite acompanhar o Ganho Médio Diário (GMD) e saber o momento ideal para abate, desmame ou troca de piquete.</p>
+    </div>
+
+    <div class="aws-help-section">
+      <h7><i class="bi bi-calculator"></i> Conversão em Arrobas (@)</h7>
+      <p>No mercado de gado de corte, os negócios são cotados em <strong>Arrobas (@) de carcaça</strong>. A regra prática comercial considera:</p>
+      <ul class="small ps-3 mb-2">
+        <li><strong>Rendimento estimado:</strong> 50% de peso de carcaça limpa.</li>
+        <li><strong>Fórmula:</strong> <code>(Peso Vivo × 0,50) ÷ 15</code></li>
+        <li><strong>Exemplo:</strong> Um boi de 450 kg vivo possui 225 kg de carcaça, o que equivale exatamente a <strong>15 @</strong>.</li>
+      </ul>
+    </div>
+
+    <div class="aws-help-section">
+      <h7><i class="bi bi-check-circle"></i> Dica de Manejo na Balança</h7>
+      <div class="aws-help-tip-box">
+        Procure pesar o lote sempre no mesmo horário (de preferência pela manhã, em jejum hídrico/sólido moderado) para evitar distorções por ingestão de água.
+      </div>
+    </div>
+  `;
+  openAwsHelpDrawer(title, html);
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btnTop = document.getElementById('btnTopHelp');
+  if (btnTop) btnTop.onclick = abrirAjudaPesagem;
 });
 </script>

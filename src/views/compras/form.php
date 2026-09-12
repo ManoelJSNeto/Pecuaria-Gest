@@ -13,42 +13,45 @@ $animaisLote = $animaisLote ?? [];
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
   <div class="d-flex align-items-center gap-2">
     <a href="/compras" class="btn btn-sm btn-outline-secondary">
-      <i class="bi bi-arrow-left me-1"></i> Voltar para Compras
+      <i class="bi bi-arrow-left me-1"></i> Voltar
     </a>
-    <?php if ($isEdit): ?>
-      <span class="badge bg-light text-primary border px-2 py-1">
-        <i class="bi bi-pencil-square me-1"></i> Modo Edição • Lote #<?= $compraId ?>
-      </span>
-    <?php endif; ?>
+    <span class="text-muted small">
+      Compras &gt; <?= $isEdit ? 'Editar Lote #'.$compraId : 'Nova Entrada de Gado' ?>
+    </span>
   </div>
 
-  <?php if ($isEdit): ?>
-    <div class="d-flex align-items-center gap-2">
+  <div class="d-flex align-items-center gap-2">
+    <?php if ($isEdit): ?>
       <a href="/compras/<?= $compraId ?>/pdf" target="_blank" class="btn btn-sm btn-outline-success">
         <i class="bi bi-file-earmark-pdf-fill me-1"></i> Espelho PDF
       </a>
       <?php if (!empty($compra['arquivo_xml'])): ?>
         <a href="/compras/<?= $compraId ?>/nfe" target="_blank" class="btn btn-sm btn-outline-primary">
-          <i class="bi bi-receipt-cutoff me-1"></i> Ver NF-e Completa
+          <i class="bi bi-receipt-cutoff me-1"></i> Ver NF-e
         </a>
       <?php endif; ?>
-    </div>
-  <?php endif; ?>
+    <?php endif; ?>
+    <button type="button" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" onclick="abrirAjudaCompra()">
+      <i class="bi bi-info-circle"></i> <span>Instruções de Compra</span>
+    </button>
+  </div>
+</div>
+
+<!-- Seletor de Modo de Operação (Estilo AWS Mode Tabs) -->
+<div class="aws-mode-tabs" id="compraModeTabs">
+  <div class="aws-mode-tab active" id="tabModeXml" onclick="setCompraModo('xml')">
+    <i class="bi bi-file-earmark-code text-success"></i> 1. Importar com Nota Fiscal (XML)
+  </div>
+  <div class="aws-mode-tab" id="tabModeManual" onclick="setCompraModo('manual')">
+    <i class="bi bi-pencil-square text-primary"></i> 2. Digitação Manual / Leilão
+  </div>
 </div>
 
 <form method="POST" action="<?= $actionUrl ?>" enctype="multipart/form-data" id="formCompra">
   <?= csrf_field() ?>
 
-  <!-- Banner de Orientação Amigável -->
-  <div class="flow-helper-banner mb-3">
-    <i class="bi bi-info-circle-fill text-success fs-5"></i>
-    <div>
-      <strong>Como funciona esta tela:</strong> Você pode <strong>arrastar o arquivo XML da Nota Fiscal (NF-e)</strong> para preencher os dados sozinho, ou se preferir, pode <strong>digitar diretamente abaixo</strong> a quantidade de cabeças, valor da compra e pasto de destino.
-    </div>
-  </div>
-
   <!-- 1. BLOCO SUPERIOR: Importação de XML e Painel de Conferência (Largura Total) -->
-  <div class="mb-4">
+  <div class="mb-4" id="blocoImportacaoXml">
     <!-- Informação de XML existente em modo de Edição -->
     <?php if ($isEdit && !empty($compra['arquivo_xml'])): ?>
       <div class="p-3 mb-3 bg-white rounded border d-flex justify-content-between align-items-center flex-wrap gap-2 shadow-sm">
@@ -1319,5 +1322,65 @@ document.addEventListener('DOMContentLoaded', () => {
       sincronizarRomaneioComQtdCabecas();
     }
   });
+
+  const btnTop = document.getElementById('btnTopHelp');
+  if (btnTop) btnTop.onclick = abrirAjudaCompra;
 });
+
+// ── Alternância de Modo (XML vs Manual) ──
+function setCompraModo(modo) {
+  const tabXml = document.getElementById('tabModeXml');
+  const tabManual = document.getElementById('tabModeManual');
+  const boxXml = document.getElementById('blocoImportacaoXml');
+
+  if (modo === 'xml') {
+    tabXml.classList.add('active');
+    tabManual.classList.remove('active');
+    boxXml.style.display = 'block';
+  } else {
+    tabManual.classList.add('active');
+    tabXml.classList.remove('active');
+    boxXml.style.display = 'none';
+    const inDesc = document.getElementById('compra_descricao');
+    if (inDesc) inDesc.focus();
+  }
+}
+
+// ── Guia e Ajuda Lateral AWS para Compras ──
+window.abrirAjudaCompra = function() {
+  const title = 'Guia: Compra e Entrada de Gado';
+  const html = `
+    <div class="aws-help-section">
+      <h7><i class="bi bi-truck"></i> Finalidade da Entrada</h7>
+      <p>Registrar uma compra formaliza a entrada de animais no estoque do rebanho, alimentando o custo contábil de aquisição e a lotação das pastagens.</p>
+    </div>
+
+    <div class="aws-help-section">
+      <h7><i class="bi bi-sliders"></i> Escolhendo o Modo de Entrada</h7>
+      <div class="aws-help-step-item">
+        <div class="aws-help-step-num">1</div>
+        <div>
+          <strong>Modo 1: Com Nota Fiscal (XML):</strong> Se você recebeu o arquivo <code>.xml</code> emitido pelo vendedor ou leilão, arraste o arquivo na caixa tracejada. O sistema preenche automaticamente fornecedor, chave de 44 dígitos, GTA, quantidade de cabeças, peso e valor total.
+        </div>
+      </div>
+      <div class="aws-help-step-item">
+        <div class="aws-help-step-num">2</div>
+        <div>
+          <strong>Modo 2: Digitação Manual:</strong> Se comprou de produtor vizinho ou ainda não tem o arquivo XML em mãos, clique em <em>Digitação Manual</em> e informe diretamente a quantidade de cabeças, valor negociado e pasto de destino.
+        </div>
+      </div>
+    </div>
+
+    <div class="aws-help-section">
+      <h7><i class="bi bi-tags"></i> Cadastrar Brincos Agora?</h7>
+      <p>Ao marcar <em>"Gerar e cadastrar os brincos individuais deste lote agora"</em>, o sistema já cria as fichas de cada animal:</p>
+      <ul class="small ps-3 mb-2">
+        <li><strong>Lote Automático:</strong> Gera brincos sequenciais (ex: <code>C-001</code> até <code>C-020</code>) e rateia a média de peso.</li>
+        <li><strong>Romaneio Cabeça a Cabeça:</strong> Permite colar ou digitar brinco por brinco e peso individual aferido na balança do curral.</li>
+      </ul>
+    </div>
+  `;
+  openAwsHelpDrawer(title, html);
+};
 </script>
+

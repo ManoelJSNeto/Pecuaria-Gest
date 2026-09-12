@@ -42,34 +42,45 @@ if (!isset($pastos)) {
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
   <div class="d-flex align-items-center gap-2">
     <a href="/vendas" class="btn btn-sm btn-outline-secondary">
-      <i class="bi bi-arrow-left me-1"></i> Voltar para Vendas
+      <i class="bi bi-arrow-left me-1"></i> Voltar
     </a>
-    <?php if ($isEdit): ?>
-      <span class="badge bg-light text-primary border px-2 py-1">
-        <i class="bi bi-pencil-square me-1"></i> Modo Edição • Venda #<?= $vendaId ?>
-      </span>
-    <?php endif; ?>
+    <span class="text-muted small">
+      Vendas &gt; <?= $isEdit ? 'Editar Venda #'.$vendaId : 'Nova Venda / Abate' ?>
+    </span>
   </div>
 
-  <?php if ($isEdit): ?>
-    <div class="d-flex align-items-center gap-2">
+  <div class="d-flex align-items-center gap-2">
+    <?php if ($isEdit): ?>
       <a href="/vendas/<?= $vendaId ?>/pdf" target="_blank" class="btn btn-sm btn-outline-success">
         <i class="bi bi-file-earmark-pdf-fill me-1"></i> Comprovante PDF
       </a>
       <?php if (!empty($venda['arquivo_xml'])): ?>
         <a href="/vendas/<?= $vendaId ?>/nfe" target="_blank" class="btn btn-sm btn-outline-primary">
-          <i class="bi bi-receipt-cutoff me-1"></i> Ver NF-e Completa
+          <i class="bi bi-receipt-cutoff me-1"></i> Ver NF-e
         </a>
       <?php endif; ?>
-    </div>
-  <?php endif; ?>
+    <?php endif; ?>
+    <button type="button" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" onclick="abrirAjudaVenda()">
+      <i class="bi bi-info-circle"></i> <span>Instruções de Venda</span>
+    </button>
+  </div>
+</div>
+
+<!-- Seletor de Modo de Operação (Estilo AWS Mode Tabs) -->
+<div class="aws-mode-tabs" id="vendaModeTabs">
+  <div class="aws-mode-tab active" id="tabModeXmlVenda" onclick="setVendaModo('xml')">
+    <i class="bi bi-file-earmark-code text-success"></i> 1. Importar com Nota Fiscal (XML)
+  </div>
+  <div class="aws-mode-tab" id="tabModeManualVenda" onclick="setVendaModo('manual')">
+    <i class="bi bi-pencil-square text-primary"></i> 2. Digitação Direta / Negócio Fechado
+  </div>
 </div>
 
 <form method="POST" action="<?= $actionUrl ?>" enctype="multipart/form-data" id="formVenda">
   <?= csrf_field() ?>
 
   <!-- 1. BLOCO SUPERIOR: Importação de XML e Painel de Conferência (Largura Total) -->
-  <div class="mb-4">
+  <div class="mb-4" id="blocoImportacaoXmlVenda">
     <!-- Informação de XML existente em modo de Edição -->
     <?php if ($isEdit && !empty($venda['arquivo_xml'])): ?>
       <div class="p-3 mb-3 bg-white rounded border d-flex justify-content-between align-items-center flex-wrap gap-2 shadow-sm">
@@ -952,5 +963,59 @@ document.getElementById('venda_peso_total')?.addEventListener('input', function(
 
 document.addEventListener('DOMContentLoaded', () => {
   atualizarSelecaoAnimais();
+  const btnTop = document.getElementById('btnTopHelp');
+  if (btnTop) btnTop.onclick = abrirAjudaVenda;
 });
+
+// ── Alternância de Modo (XML vs Manual) ──
+function setVendaModo(modo) {
+  const tabXml = document.getElementById('tabModeXmlVenda');
+  const tabManual = document.getElementById('tabModeManualVenda');
+  const boxXml = document.getElementById('blocoImportacaoXmlVenda');
+
+  if (modo === 'xml') {
+    tabXml.classList.add('active');
+    tabManual.classList.remove('active');
+    boxXml.style.display = 'block';
+  } else {
+    tabManual.classList.add('active');
+    tabXml.classList.remove('active');
+    boxXml.style.display = 'none';
+    const inDesc = document.getElementById('venda_descricao');
+    if (inDesc) inDesc.focus();
+  }
+}
+
+// ── Guia e Ajuda Lateral AWS para Vendas ──
+window.abrirAjudaVenda = function() {
+  const title = 'Guia: Venda e Baixa de Animais';
+  const html = `
+    <div class="aws-help-section">
+      <h7><i class="bi bi-cash-coin"></i> Finalidade da Venda</h7>
+      <p>Registrar uma venda formaliza a saída dos animais do rebanho, calculando o ganho financeiro obtido e liberando a capacidade das pastagens.</p>
+    </div>
+
+    <div class="aws-help-section">
+      <h7><i class="bi bi-sliders"></i> Modos de Operação</h7>
+      <div class="aws-help-step-item">
+        <div class="aws-help-step-num">1</div>
+        <div>
+          <strong>Modo 1: Com Nota Fiscal (XML):</strong> Para abates em frigorífico ou vendas interestaduais com NF-e emitida. O XML extrai comprador, chave, GTA e valores.
+        </div>
+      </div>
+      <div class="aws-help-step-item">
+        <div class="aws-help-step-num">2</div>
+        <div>
+          <strong>Modo 2: Digitação Direta:</strong> Para negociações locais ou negócios com pesagem na balança da fazenda.
+        </div>
+      </div>
+    </div>
+
+    <div class="aws-help-section">
+      <h7><i class="bi bi-check2-square"></i> Seleção de Animais</h7>
+      <p>Na lista abaixo, marque as caixas de seleção dos bois que estão saindo. O sistema calcula a soma dos pesos e dá baixa automática no status para <em>Vendido</em>.</p>
+    </div>
+  `;
+  openAwsHelpDrawer(title, html);
+};
 </script>
