@@ -46,6 +46,82 @@ try {
     $pesoTrend = [];
 }
 ?>
+<!-- Trilha de Ações Rápidas de Manejo (Fluxo Guiado para o Produtor) -->
+<div class="quick-flow-section mb-4">
+  <div class="d-flex align-items-center justify-content-between mb-2">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-compass text-success fs-5"></i>
+      <span style="font-size:0.95rem; font-weight:700; color:var(--text-primary); letter-spacing:-0.01em;">Ações Rápidas — O que você deseja fazer agora?</span>
+    </div>
+    <span class="text-muted small d-none d-md-inline"><i class="bi bi-hand-index me-1"></i>Clique no cartão para iniciar o fluxo</span>
+  </div>
+
+  <div class="row g-3">
+    <!-- 1. Cadastrar Animal -->
+    <div class="col-md-6 col-xl-3">
+      <a href="/animais/novo" class="quick-action-card">
+        <div class="action-icon-box icon-green">
+          <i class="bi bi-tag-fill"></i>
+        </div>
+        <div class="action-card-text">
+          <div class="action-card-title">Novo Animal</div>
+          <div class="action-card-desc">Cadastrar bezerro, matriz ou reprodutor</div>
+        </div>
+        <div class="action-card-arrow">
+          <i class="bi bi-chevron-right"></i>
+        </div>
+      </a>
+    </div>
+
+    <!-- 2. Lançar Pesagem -->
+    <div class="col-md-6 col-xl-3">
+      <a href="/pesagens/novo" class="quick-action-card">
+        <div class="action-icon-box icon-amber">
+          <i class="bi bi-rulers"></i>
+        </div>
+        <div class="action-card-text">
+          <div class="action-card-title">Anotar Pesagem</div>
+          <div class="action-card-desc">Lançar peso na balança e ver ganho</div>
+        </div>
+        <div class="action-card-arrow">
+          <i class="bi bi-chevron-right"></i>
+        </div>
+      </a>
+    </div>
+
+    <!-- 3. Entrada / Compra -->
+    <div class="col-md-6 col-xl-3">
+      <a href="/compras/novo" class="quick-action-card">
+        <div class="action-icon-box icon-blue">
+          <i class="bi bi-truck"></i>
+        </div>
+        <div class="action-card-text">
+          <div class="action-card-title">Comprar Gado</div>
+          <div class="action-card-desc">Entrada de lote com ou sem NF-e</div>
+        </div>
+        <div class="action-card-arrow">
+          <i class="bi bi-chevron-right"></i>
+        </div>
+      </a>
+    </div>
+
+    <!-- 4. Saúde & Vacinas -->
+    <div class="col-md-6 col-xl-3">
+      <a href="/saude/novo" class="quick-action-card">
+        <div class="action-icon-box icon-purple">
+          <i class="bi bi-heart-pulse"></i>
+        </div>
+        <div class="action-card-text">
+          <div class="action-card-title">Vacina & Remédio</div>
+          <div class="action-card-desc">Registrar vacinação ou tratamento</div>
+        </div>
+        <div class="action-card-arrow">
+          <i class="bi bi-chevron-right"></i>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
 
 <!-- Cockpit de Indicadores Chave (Anti-Card Soup) -->
 <div class="metric-cockpit">

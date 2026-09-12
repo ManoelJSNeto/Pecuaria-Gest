@@ -1416,6 +1416,419 @@ body.mode-arroba .peso-hero-sub-kg {
   backdrop-filter: blur(2px);
 }
 
+/* ============================================================
+   FLUXO GUIADO & AÇÕES RÁPIDAS (ERGONOMIA VISUAL & UX RURAL)
+   Desenvolvido para produtores tradicionais e operadores ágeis
+   ============================================================ */
+
+/* ── Cartões de Ações Rápidas (Dashboard) ── */
+.quick-action-card {
+  display: flex;
+  align-items: center;
+  padding: 1.1rem 1.25rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  gap: 1rem;
+  text-decoration: none;
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-card);
+  height: 100%;
+}
+
+.quick-action-card:hover {
+  background: #ffffff;
+  border-color: var(--earth-green-600);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(27, 49, 22, 0.08);
+}
+
+.action-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.45rem;
+  flex-shrink: 0;
+  transition: transform 180ms ease;
+}
+
+.quick-action-card:hover .action-icon-box {
+  transform: scale(1.08);
+}
+
+.action-icon-box.icon-green  { background: #eaf3e8; color: var(--earth-green-700); }
+.action-icon-box.icon-amber  { background: #fef3c7; color: #b45309; }
+.action-icon-box.icon-blue   { background: #e0f2fe; color: #0369a1; }
+.action-icon-box.icon-purple { background: #f3e8ff; color: #7e22ce; }
+
+.action-card-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.action-card-title {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 0.98rem;
+  letter-spacing: -0.01em;
+  margin-bottom: 2px;
+}
+
+.action-card-desc {
+  font-size: 0.81rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+  white-space: normal;
+}
+
+.action-card-arrow {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  opacity: 0.5;
+  transition: all 180ms ease;
+}
+
+.quick-action-card:hover .action-card-arrow {
+  opacity: 1;
+  color: var(--earth-green-700);
+  transform: translateX(3px);
+}
+
+/* ── Stepper Visual do Fluxo Guiado (Formulários) ── */
+.flow-stepper {
+  display: flex;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 0.5rem;
+  margin-bottom: 1.5rem;
+  gap: 0.5rem;
+  box-shadow: var(--shadow-subtle);
+}
+
+.step-item {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid transparent;
+  transition: all 180ms ease;
+  user-select: none;
+}
+
+.step-item:hover:not(.active) {
+  background: var(--bg-subtle);
+}
+
+.step-item.active {
+  background: var(--earth-green-50);
+  border-color: var(--earth-green-600);
+}
+
+.step-item.completed {
+  opacity: 0.85;
+}
+
+.step-bullet {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.88rem;
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-strong);
+  flex-shrink: 0;
+  transition: all 180ms ease;
+}
+
+.step-item.active .step-bullet {
+  background: var(--earth-green-800);
+  color: #ffffff;
+  border-color: var(--earth-green-800);
+}
+
+.step-item.completed .step-bullet {
+  background: var(--earth-green-600);
+  color: #ffffff;
+  border-color: var(--earth-green-600);
+}
+
+.step-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.step-number-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.step-item.active .step-number-tag {
+  color: var(--earth-green-700);
+}
+
+.step-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+/* Painéis de Conteúdo das Etapas */
+.step-pane {
+  display: none;
+  animation: fadeInStep 200ms ease-out;
+}
+
+.step-pane.active-step {
+  display: block;
+}
+
+@keyframes fadeInStep {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Botões de Ação do Fluxo */
+.step-footer-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1.25rem;
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.btn-flow-primary {
+  background-color: var(--earth-green-800);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.7rem 1.6rem;
+  border-radius: var(--radius-md);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 150ms ease;
+  box-shadow: 0 1px 3px rgba(27, 49, 22, 0.2);
+}
+
+.btn-flow-primary:hover {
+  background-color: var(--earth-green-900);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.btn-flow-secondary {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 0.7rem 1.25rem;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 150ms ease;
+}
+
+.btn-flow-secondary:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+/* Dica Guiada para o Produtor */
+.flow-helper-banner {
+  background: #f8faf6;
+  border: 1px solid #d9e6d5;
+  border-left: 4px solid var(--earth-green-700);
+  padding: 0.85rem 1.1rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.25rem;
+  font-size: 0.86rem;
+  color: var(--earth-green-950);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Badge de Arrobas (@) em tempo real */
+.live-arroba-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  background: var(--earth-green-100);
+  color: var(--earth-green-800);
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: 9999px;
+  border: 1px solid var(--earth-green-300, #c2d8bc);
+  margin-top: 0.4rem;
+}
+
+/* Botões de Seleção Visual de Sexo (Macho / Fêmea) */
+.sexo-toggle-group {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.sexo-toggle-btn {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--border-strong);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 160ms ease;
+  user-select: none;
+}
+
+.sexo-toggle-btn:hover {
+  border-color: var(--earth-green-600);
+  background: var(--bg-subtle);
+}
+
+.sexo-toggle-btn.active-macho {
+  border-color: #0284c7;
+  background: #f0f9ff;
+  color: #0369a1;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.sexo-toggle-btn.active-femea {
+  border-color: #e11d48;
+  background: #fff1f2;
+  color: #be123c;
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.15);
+}
+
+/* Pílulas de Seleção Rápida de Raça/Manejo */
+.quick-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.45rem;
+}
+
+.quick-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 120ms ease;
+  user-select: none;
+}
+
+.quick-chip:hover {
+  background: var(--earth-green-100);
+  border-color: var(--earth-green-600);
+  color: var(--earth-green-900);
+}
+
+.quick-chip.selected {
+  background: var(--earth-green-700);
+  border-color: var(--earth-green-700);
+  color: #ffffff;
+}
+
+/* Faixa de Conferência Pré-Salvar */
+.flow-summary-strip {
+  background: #fbfbf9;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.flow-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.75rem;
+}
+
+.flow-summary-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.flow-summary-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.flow-summary-val {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Foto Upload com Preview Instantâneo */
+.photo-drop-card {
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  text-align: center;
+  background: var(--bg-subtle);
+  transition: all 180ms ease;
+  cursor: pointer;
+}
+
+.photo-drop-card:hover {
+  border-color: var(--earth-green-700);
+  background: var(--earth-green-50);
+}
+
+.photo-preview-wrapper {
+  max-width: 220px;
+  max-height: 180px;
+  margin: 0 auto 0.75rem auto;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.photo-preview-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+
 
 
 

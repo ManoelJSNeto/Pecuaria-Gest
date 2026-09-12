@@ -39,6 +39,14 @@ $animaisLote = $animaisLote ?? [];
 <form method="POST" action="<?= $actionUrl ?>" enctype="multipart/form-data" id="formCompra">
   <?= csrf_field() ?>
 
+  <!-- Banner de Orientação Amigável -->
+  <div class="flow-helper-banner mb-3">
+    <i class="bi bi-info-circle-fill text-success fs-5"></i>
+    <div>
+      <strong>Como funciona esta tela:</strong> Você pode <strong>arrastar o arquivo XML da Nota Fiscal (NF-e)</strong> para preencher os dados sozinho, ou se preferir, pode <strong>digitar diretamente abaixo</strong> a quantidade de cabeças, valor da compra e pasto de destino.
+    </div>
+  </div>
+
   <!-- 1. BLOCO SUPERIOR: Importação de XML e Painel de Conferência (Largura Total) -->
   <div class="mb-4">
     <!-- Informação de XML existente em modo de Edição -->
