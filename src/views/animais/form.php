@@ -193,18 +193,18 @@ $sexoInicial = $a['sexo'] ?? 'M';
             <div class="aws-form-hint">Animais em tratamento ou prenhas recebem acompanhamento no painel de alertas.</div>
           </div>
 
-          <!-- Origem -->
+          <!-- Procedência / Origem Zootécnica -->
           <div class="col-12">
-            <label class="form-label">Origem do Animal</label>
+            <label class="form-label">Procedência do Animal (Como entrou na propriedade?)</label>
             <input type="text" name="origem" id="inputOrigem" class="form-control" list="origemList"
-                   value="<?= e($a['origem'] ?? 'Nascido na fazenda') ?>" placeholder="Ex: Nascido na fazenda, Comprado...">
+                   value="<?= e($a['origem'] ?? 'Nascido na fazenda') ?>" placeholder="Ex: Nascido na fazenda, Comprado em leilão...">
             <datalist id="origemList">
-              <option value="Nascido na fazenda">
-              <option value="Comprado">
-              <option value="Próprio">
-              <option value="Leilão">
+              <option value="Nascido na fazenda (Cria própria)">
+              <option value="Comprado de terceiros">
+              <option value="Comprado em leilão">
+              <option value="Transferência entre fazendas">
             </datalist>
-            <div class="aws-form-hint">Procedência para rastreabilidade de custos e compras.</div>
+            <div class="aws-form-hint">Indica se o animal é cria própria da fazenda ou se foi comprado fora (diferente da origem técnica de sincronização de dados).</div>
           </div>
         </div>
 
