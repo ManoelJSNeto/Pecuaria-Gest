@@ -72,5 +72,20 @@ function request(options, postData) {
     "| XML Dropzone permanente:", resVen.body.includes('xml-import-zone') ? "✅ OK" : "❌ Falhou"
   );
 
+  // 6. /alertas
+  const resAl = await request({ hostname: 'localhost', port: 8080, path: '/alertas', method: 'GET', headers: { 'Cookie': sessionCookie } });
+  console.log("6. /alertas -> HTTP", resAl.statusCode,
+    "| AWS Container:", resAl.body.includes('aws-container') ? "✅ OK" : "❌ Falhou",
+    "| Drawer Ajuda:", resAl.body.includes('abrirAjudaAlertas') ? "✅ OK" : "❌ Falhou"
+  );
+
+  // 7. /alertas/novo
+  const resAlNovo = await request({ hostname: 'localhost', port: 8080, path: '/alertas/novo', method: 'GET', headers: { 'Cookie': sessionCookie } });
+  console.log("7. /alertas/novo -> HTTP", resAlNovo.statusCode,
+    "| Layout 2 Colunas (col-lg-7 / col-lg-5):", resAlNovo.body.includes('col-lg-7') && resAlNovo.body.includes('col-lg-5') ? "✅ OK" : "❌ Falhou",
+    "| Cockpit Lateral:", resAlNovo.body.includes('cockpitAlertaContainer') ? "✅ OK" : "❌ Falhou",
+    "| Drawer Ajuda:", resAlNovo.body.includes('abrirAjudaAlertas') ? "✅ OK" : "❌ Falhou"
+  );
+
   console.log("=== TODAS AS VERIFICAÇÕES CONCLUÍDAS ===");
 })();
