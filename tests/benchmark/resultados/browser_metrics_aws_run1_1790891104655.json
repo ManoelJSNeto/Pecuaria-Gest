@@ -1,0 +1,11 @@
+{
+  "env": "aws",
+  "engine": "msedge (Chromium)",
+  "timestamp": "2026-10-01T21:45:04.655Z",
+  "login_ms": 1879.3,
+  "dashboard_total_ms": 308.8,
+  "ttfb_ms": 233.6,
+  "dom_content_loaded_ms": 299.5,
+  "page_load_ms": 300.1,
+  "compras_module_ms": 268.2
+}

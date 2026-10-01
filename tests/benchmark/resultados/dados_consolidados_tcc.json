@@ -13,6 +13,17 @@
         "file": "benchmark_aws_100users_run1_1789182098737.csv"
       },
       {
+        "run": 1,
+        "throughput": 44.73272198613286,
+        "avg": 2075.9550499999996,
+        "p50": 2155.92,
+        "p95": 2675.84,
+        "p99": 2779.13,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_aws_100users_run1_1790891018211.csv"
+      },
+      {
         "run": 2,
         "throughput": 49.21259842519685,
         "avg": 1894.060533333331,
@@ -24,6 +35,17 @@
         "file": "benchmark_aws_100users_run2_1789182114397.csv"
       },
       {
+        "run": 2,
+        "throughput": 38.610038610038615,
+        "avg": 2353.0630166666665,
+        "p50": 2210.86,
+        "p95": 4174.47,
+        "p99": 4383.76,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_aws_100users_run2_1790891037408.csv"
+      },
+      {
         "run": 3,
         "throughput": 45.18752824220515,
         "avg": 2126.2543500000015,
@@ -33,6 +55,17 @@
         "errRate": 0,
         "auditRate": 100,
         "file": "benchmark_aws_100users_run3_1789182131695.csv"
+      },
+      {
+        "run": 3,
+        "throughput": 45.91368227731864,
+        "avg": 2025.9787500000011,
+        "p50": 2127.75,
+        "p95": 2435.87,
+        "p99": 2568.21,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_aws_100users_run3_1790891054335.csv"
       }
     ],
     "aws_20": [
@@ -48,6 +81,17 @@
         "file": "benchmark_aws_20users_run1_1789182038527.csv"
       },
       {
+        "run": 1,
+        "throughput": 34.04255319148936,
+        "avg": 583.9791666666666,
+        "p50": 491.46,
+        "p95": 1009.98,
+        "p99": 1125.92,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_aws_20users_run1_1790890956378.csv"
+      },
+      {
         "run": 2,
         "throughput": 45.36862003780718,
         "avg": 442.95358333333337,
@@ -59,6 +103,17 @@
         "file": "benchmark_aws_20users_run2_1789182044824.csv"
       },
       {
+        "run": 2,
+        "throughput": 42.96455424274973,
+        "avg": 464.4041666666669,
+        "p50": 461.26,
+        "p95": 635.69,
+        "p99": 667.99,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_aws_20users_run2_1790890962624.csv"
+      },
+      {
         "run": 3,
         "throughput": 48.582995951417,
         "avg": 414.4184166666667,
@@ -68,6 +123,17 @@
         "errRate": 0,
         "auditRate": 100,
         "file": "benchmark_aws_20users_run3_1789182050901.csv"
+      },
+      {
+        "run": 3,
+        "throughput": 39.88035892323031,
+        "avg": 494.67475,
+        "p50": 474.38,
+        "p95": 697.82,
+        "p99": 707.65,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_aws_20users_run3_1790890969094.csv"
       }
     ],
     "aws_50": [
@@ -83,6 +149,17 @@
         "file": "benchmark_aws_50users_run1_1789182062860.csv"
       },
       {
+        "run": 1,
+        "throughput": 36.90036900369003,
+        "avg": 1330.1456666666666,
+        "p50": 1138.95,
+        "p95": 2460.29,
+        "p99": 2687.18,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_aws_50users_run1_1790890981101.csv"
+      },
+      {
         "run": 2,
         "throughput": 50.1002004008016,
         "avg": 942.8475000000002,
@@ -94,6 +171,17 @@
         "file": "benchmark_aws_50users_run2_1789182072502.csv"
       },
       {
+        "run": 2,
+        "throughput": 48,
+        "avg": 987.0077666666667,
+        "p50": 1031.27,
+        "p95": 1173.3,
+        "p99": 1224.76,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_aws_50users_run2_1790890991012.csv"
+      },
+      {
         "run": 3,
         "throughput": 47.11795193968902,
         "avg": 1002.9697000000001,
@@ -103,6 +191,17 @@
         "errRate": 0,
         "auditRate": 100,
         "file": "benchmark_aws_50users_run3_1789182082445.csv"
+      },
+      {
+        "run": 3,
+        "throughput": 46.41089108910891,
+        "avg": 1021.3213333333342,
+        "p50": 1067.07,
+        "p95": 1240.65,
+        "p99": 1286.55,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_aws_50users_run3_1790891001108.csv"
       }
     ],
     "local_100": [
@@ -421,6 +520,15 @@
         "file": "heavy_uploads_aws_10users_run1_1789182148887.csv"
       },
       {
+        "run": 1,
+        "totalMb": 20.02579116821289,
+        "throughputMBs": 13.926141285266267,
+        "p50Photo": 1658.69,
+        "p95Photo": 1752.99,
+        "successRate": 100,
+        "file": "heavy_uploads_aws_10users_run1_1790891065968.csv"
+      },
+      {
         "run": 2,
         "totalMb": 20.02579116821289,
         "throughputMBs": 9.446127909534383,
@@ -430,6 +538,15 @@
         "file": "heavy_uploads_aws_10users_run2_1789182153872.csv"
       },
       {
+        "run": 2,
+        "totalMb": 20.02579116821289,
+        "throughputMBs": 32.50940124709885,
+        "p50Photo": 809.75,
+        "p95Photo": 1134.81,
+        "successRate": 100,
+        "file": "heavy_uploads_aws_10users_run2_1790891068838.csv"
+      },
+      {
         "run": 3,
         "totalMb": 20.02579116821289,
         "throughputMBs": 7.441765577187994,
@@ -437,6 +554,15 @@
         "p95Photo": 2993.22,
         "successRate": 100,
         "file": "heavy_uploads_aws_10users_run3_1789182158657.csv"
+      },
+      {
+        "run": 3,
+        "totalMb": 20.02579116821289,
+        "throughputMBs": 25.445732107004943,
+        "p50Photo": 810.62,
+        "p95Photo": 1107.37,
+        "successRate": 100,
+        "file": "heavy_uploads_aws_10users_run3_1790891071793.csv"
       }
     ],
     "aws_20": [
@@ -450,6 +576,15 @@
         "file": "heavy_uploads_aws_20users_run1_1789182163406.csv"
       },
       {
+        "run": 1,
+        "totalMb": 40.05161666870117,
+        "throughputMBs": 13.834755325976225,
+        "p50Photo": 1527.7,
+        "p95Photo": 3277.85,
+        "successRate": 100,
+        "file": "heavy_uploads_aws_20users_run1_1790891077030.csv"
+      },
+      {
         "run": 2,
         "totalMb": 40.05161666870117,
         "throughputMBs": 11.420478092016301,
@@ -459,6 +594,15 @@
         "file": "heavy_uploads_aws_20users_run2_1789182169261.csv"
       },
       {
+        "run": 2,
+        "totalMb": 40.05161666870117,
+        "throughputMBs": 15.434149005279833,
+        "p50Photo": 1498.64,
+        "p95Photo": 2937.03,
+        "successRate": 100,
+        "file": "heavy_uploads_aws_20users_run2_1790891081991.csv"
+      },
+      {
         "run": 3,
         "totalMb": 40.05161666870117,
         "throughputMBs": 5.348773593576545,
@@ -466,6 +610,15 @@
         "p95Photo": 7931.31,
         "successRate": 100,
         "file": "heavy_uploads_aws_20users_run3_1789182178983.csv"
+      },
+      {
+        "run": 3,
+        "totalMb": 40.05161666870117,
+        "throughputMBs": 14.866969810208305,
+        "p50Photo": 1000.29,
+        "p95Photo": 3062.42,
+        "successRate": 100,
+        "file": "heavy_uploads_aws_20users_run3_1790891086987.csv"
       }
     ],
     "aws_5": [
@@ -479,6 +632,15 @@
         "file": "heavy_uploads_aws_5users_run1_1789182135082.csv"
       },
       {
+        "run": 1,
+        "totalMb": 10.012893676757812,
+        "throughputMBs": 28.365137894498055,
+        "p50Photo": 1384.9,
+        "p95Photo": 1436.43,
+        "successRate": 100,
+        "file": "heavy_uploads_aws_5users_run1_1790891057554.csv"
+      },
+      {
         "run": 2,
         "totalMb": 10.012893676757812,
         "throughputMBs": 32.50939505440848,
@@ -488,6 +650,15 @@
         "file": "heavy_uploads_aws_5users_run2_1789182137494.csv"
       },
       {
+        "run": 2,
+        "totalMb": 10.012893676757812,
+        "throughputMBs": 27.583729137073863,
+        "p50Photo": 530.29,
+        "p95Photo": 629.17,
+        "successRate": 100,
+        "file": "heavy_uploads_aws_5users_run2_1790891059967.csv"
+      },
+      {
         "run": 3,
         "totalMb": 10.012893676757812,
         "throughputMBs": 32.50939505440848,
@@ -495,6 +666,15 @@
         "p95Photo": 550.56,
         "successRate": 100,
         "file": "heavy_uploads_aws_5users_run3_1789182139763.csv"
+      },
+      {
+        "run": 3,
+        "totalMb": 10.012893676757812,
+        "throughputMBs": 23.124465766184326,
+        "p50Photo": 496.59,
+        "p95Photo": 666.39,
+        "successRate": 100,
+        "file": "heavy_uploads_aws_5users_run3_1790891062353.csv"
       }
     ],
     "local_10": [
@@ -811,6 +991,39 @@
         "page_load_ms": 0,
         "xml_parse_client_ms": 67.3,
         "xml_items": 3
+      },
+      {
+        "env": "aws",
+        "engine": "msedge (Chromium)",
+        "timestamp": "2026-10-01T21:44:59.137Z",
+        "login_ms": 2379.3,
+        "dashboard_total_ms": 528.9,
+        "ttfb_ms": 282,
+        "dom_content_loaded_ms": 498,
+        "page_load_ms": 501.9,
+        "compras_module_ms": 441.3
+      },
+      {
+        "env": "aws",
+        "engine": "msedge (Chromium)",
+        "timestamp": "2026-10-01T21:45:04.655Z",
+        "login_ms": 1879.3,
+        "dashboard_total_ms": 308.8,
+        "ttfb_ms": 233.6,
+        "dom_content_loaded_ms": 299.5,
+        "page_load_ms": 300.1,
+        "compras_module_ms": 268.2
+      },
+      {
+        "env": "aws",
+        "engine": "msedge (Chromium)",
+        "timestamp": "2026-10-01T21:45:09.743Z",
+        "login_ms": 1665.8,
+        "dashboard_total_ms": 318,
+        "ttfb_ms": 214.3,
+        "dom_content_loaded_ms": 308.7,
+        "page_load_ms": 309.1,
+        "compras_module_ms": 260.6
       }
     ],
     "local": [

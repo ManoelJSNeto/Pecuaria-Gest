@@ -1,0 +1,12 @@
+{
+  "InstanceIds": ["i-0864cfbdc7a3d0bf6"],
+  "DocumentName": "AWS-RunShellScript",
+  "Parameters": {
+    "commands": [
+      "systemctl reset-failed benchmark-telemetry 2>/dev/null || true",
+      "systemd-run --unit=benchmark-telemetry /bin/bash /opt/pecuaria-gest/tests/benchmark/monitor_docker.sh aws 100 1",
+      "sleep 2",
+      "systemctl status benchmark-telemetry"
+    ]
+  }
+}

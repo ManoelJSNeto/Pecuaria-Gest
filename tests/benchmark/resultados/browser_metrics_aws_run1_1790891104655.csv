@@ -1,0 +1,4 @@
+Timestamp,Env,Run,Engine,Step,Status,Latency_ms,TTFB_ms,DomContentLoaded_ms,XmlItems
+2026-10-01T21:45:04.655Z,aws,1,"msedge (Chromium)",login,200,1879.32,,,
+2026-10-01T21:45:04.655Z,aws,1,"msedge (Chromium)",dashboard_w3c,200,308.83,233.60,299.50,
+2026-10-01T21:45:04.655Z,aws,1,"msedge (Chromium)",compras_nav,200,268.25,,,

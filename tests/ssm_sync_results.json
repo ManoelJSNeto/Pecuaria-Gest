@@ -1,0 +1,11 @@
+{
+  "InstanceIds": ["i-0864cfbdc7a3d0bf6"],
+  "DocumentName": "AWS-RunShellScript",
+  "Parameters": {
+    "commands": [
+      "systemctl stop benchmark-telemetry 2>/dev/null || true",
+      "aws s3 sync /opt/pecuaria-gest/tests/benchmark/resultados/ s3://pecuaria-deploy-tcc-587620872560/resultados/ --exclude '*' --include 'telemetria_hardware_aws*'",
+      "aws s3 ls s3://pecuaria-deploy-tcc-587620872560/resultados/"
+    ]
+  }
+}
