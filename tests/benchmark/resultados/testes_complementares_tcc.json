@@ -1,0 +1,63 @@
+{
+  "timestamp": "2026-10-01T22:10:43.272Z",
+  "loteCampo": {
+    "local": {
+      "env": "local",
+      "totalDurationMs": 478.7,
+      "successRate": 100,
+      "totalRecords": 225,
+      "avgLatencyMs": 395.9,
+      "throughputKbps": 400.2
+    },
+    "aws": {
+      "env": "aws",
+      "totalDurationMs": 985.3,
+      "successRate": 100,
+      "totalRecords": 225,
+      "avgLatencyMs": 799.8,
+      "throughputKbps": 194
+    }
+  },
+  "relatorios": {
+    "local": {
+      "env": "local",
+      "reports": [
+        {
+          "report": "Inventário Geral do Rebanho",
+          "status": 200,
+          "latencyMs": 62.5,
+          "sizeKb": 3.6
+        },
+        {
+          "report": "Prontuário Individual do Animal",
+          "status": 200,
+          "latencyMs": 70.4,
+          "sizeKb": 3.6
+        }
+      ]
+    },
+    "aws": {
+      "env": "aws",
+      "reports": [
+        {
+          "report": "Inventário Geral do Rebanho",
+          "status": 200,
+          "latencyMs": 399.6,
+          "sizeKb": 3.4
+        },
+        {
+          "report": "Prontuário Individual do Animal",
+          "status": 200,
+          "latencyMs": 342.6,
+          "sizeKb": 3.4
+        }
+      ]
+    }
+  },
+  "segurancaRds": {
+    "target": "tcc-benchmark-postgres16.c9zbftik2z4d.us-east-1.rds.amazonaws.com:5432",
+    "isolated": true,
+    "diagnostic": "TIMEOUT (Pacote descartado silenciosamente pelo Security Group da AWS)",
+    "durationMs": 4072.1
+  }
+}
