@@ -183,6 +183,39 @@ Para que a nuvem compita em igualdade de condições de rede com a infraestrutur
 * **Solução:** Configuração de conexões persistentes no driver PDO (`PDO::ATTR_PERSISTENT => true`) ou ativação de *Connection Pooling*, permitindo que os processos reutilizem canais já autenticados instantaneamente.
 
 ### 8.4 Ajuste Fino dos Workers do PHP-FPM e Nginx
-* Reconfiguração do gestor de processos do PHP-FPM (`pm = dynamic`, `pm.max_children = 30`, `pm.start_servers = 10`, `pm.min_spare_servers = 5`, `pm.max_spare_servers = 15`), impedindo que as requisições simultâneas dos 50 ou 100 usuários enfileirem no socket do sistema operacional.
 * Habilitação de keep-alive de longa duração (`keepalive_timeout 65;`) e buffers de conexão adequados no Nginx.
+
+---
+
+## 9. A Tríade Experimental Oficial: PostgreSQL 16 com MVCC (Local Docker vs AWS)
+
+A segunda bateria experimental consolidou o método definitivo do TCC, aplicando a **Tríade de Testes Simétrica N=3** com controle estrito de concorrência multiversão (MVCC) do PostgreSQL 16 e verificação de integridade transacional ACID em tempo real.
+
+### 9.1 Resultados Consolidados Oficiais ($N=3$ Rodadas Independentes)
+
+#### Pilar 1: API Transacional (Carga Concorrente de 20, 50 e 100 Usuários)
+| Ambiente | Concorrência | N (Runs) | Vazão Média (req/s) | Desvio Padrão | Latência Mediana (P50) | Percentil 95 (P95) | Erro HTTP | Auditoria ACID |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| 🏠 **Local (Docker)** | **20 users** | 3 | **127.52 req/s** | ±6.85 | **147.4 ms** | 189.8 ms | **0.00%** | **100.0%** |
+| 🏠 **Local (Docker)** | **50 users** | 3 | **105.14 req/s** | ±30.49 | **529.4 ms** | 657.4 ms | **0.00%** | **100.0%** |
+| 🏠 **Local (Docker)** | **100 users** | 3 | **90.65 req/s** | ±5.31 | **1094.2 ms** | 1349.7 ms | **0.00%** | **100.0%** |
+| ☁️ **AWS (EC2 + RDS)** | **20 users** | 3 | **45.09 req/s** | ±3.64 | **446.8 ms** | 546.9 ms | **0.00%** | **100.0%** |
+| ☁️ **AWS (EC2 + RDS)** | **50 users** | 3 | **44.35 req/s** | ±7.54 | **1008.3 ms** | 1325.9 ms | **0.00%** | **100.0%** |
+| ☁️ **AWS (EC2 + RDS)** | **100 users** | 3 | **47.21 req/s** | ±2.01 | **2031.9 ms** | 2614.7 ms | **0.00%** | **100.0%** |
+
+#### Pilar 2: Ingestão de Mídia & I/O Pesado (Fotos de 1,5 MB e NF-e)
+* **Local (Docker):** Throughput de ingestão de **119.2 MB/s** sob 10 uploads simultâneos (latência mediana de 152 ms por foto de 1,5 MB).
+* **AWS (EC2 + RDS):** Throughput de ingestão de **15.9 MB/s** sob 20 uploads simultâneos, refletindo a saturação do link de envio (banda de upload da conexão WAN). 100% de sucesso sem corrupção de imagens.
+
+#### Pilar 3: Experiência Real E2E Headless (Microsoft Edge / Chromium)
+* **Login E2E:** 1.321 ms no Local versus 2.271 ms na AWS.
+* **TTFB (Time to First Byte):** 49,5 ms no Local versus 200,5 ms na AWS.
+* **Renderização Completa do Dashboard:** 617,8 ms no Local versus 873,6 ms na AWS.
+
+#### Pilar 4: Telemetria de Hardware Nativa (`tests/benchmark/monitor_docker.js`)
+* Monitoramento de hardware a cada 1 segundo acoplado ao benchmark:
+  - **CPU Peak e Média (%):** Isolamento do esforço de processamento sob 100 usuários.
+  - **Memória RAM Efetiva (MB):** Verificação de vazamento de memória do PHP-FPM e PostgreSQL.
+  - **Pegada de Disco do Banco (Storage MB):** Mensuração do crescimento físico do banco via `/var/lib/postgresql/data`.
+
 

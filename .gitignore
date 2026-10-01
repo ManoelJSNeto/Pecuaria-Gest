@@ -53,4 +53,8 @@ override.tf.json
 .terraformrc
 terraform.rc
 
-
+# Python & Office Temp Files
+__pycache__/
+*.py[cod]
+*.~lock.*#
+.~lock.*#

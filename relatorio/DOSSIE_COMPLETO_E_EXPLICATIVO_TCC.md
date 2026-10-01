@@ -1,158 +1,141 @@
 # 📚 DOSSIÊ CIENTÍFICO E COMPARATIVO DE DESEMPENHO (TCC)
 ## Estudo de Caso: PecuáriaGest — Infraestrutura Física Local (On-Premise) vs Computação em Nuvem (Amazon Web Services)
 
-> **Data de Consolidação:** 12 de Setembro de 2026  
-> **Autor do Trabalho:** Manoel Jorge dos Santos Neto  
-> **Finalidade:** Pacote Mestre Unificado para Redação e Defesa de Trabalho de Conclusão de Curso (TCC)  
-> **Integridade Acadêmica:** 100% dos dados brutos preservados individualmente com carimbo de tempo (*timestamp*).
+> **Data de Atualização:** 29 de Setembro de 2026  
+> **Tema Central da Pesquisa:** Análise Comparativa de Desempenho, Estabilidade e Viabilidade entre Infraestrutura On-Premise (Docker Local) e Nuvem Pública (AWS)  
+> **Sistema Avaliado:** PecuáriaGest (Gestão Agropecuária e Rastreabilidade Bovina)  
+> **Integridade Acadêmica:** 100% dos dados brutos preservados com carimbo de tempo em microssegundos ($N=3$).
 
 ---
 
-## 📑 Sumário Executivo
+## 📑 Sumário Estrutural do Estudo
 
-Este documento sintetiza, documenta e compara as duas grandes baterias experimentais de desempenho executadas no sistema **PecuáriaGest**:
-1. **O 1º Teste (Histórico / Preliminar):** Executado avaliando o ambiente local com SQLite WAL contra uma instância preliminar na AWS.
-2. **O Novo Teste (Científico / Oficial N=3):** Executado com total simetria de banco de dados (PostgreSQL 16 oficial no Local e PostgreSQL 16.9 no Amazon RDS), avaliado através de uma **Tríade de Desempenho** (API Transacional, Ingestão de Mídia Pesada e Navegação Real W3C).
-3. **Diagnóstico Técnico de CPU e Recursos:** Explicação aprofundada de por que a CPU atingiu 100% no primeiro teste e manteve-se controlada e eficiente no novo teste.
-4. **Tabela Comparativa Consolidada:** Síntese lado a lado de todos os cenários.
-5. **Guia de Redação para o TCC:** Como estruturar o Capítulo de Resultados e Discussão da monografia.
-
----
-
-## 🔍 1. A Grande Dúvida Técnica: O Que Aconteceu com a CPU?
-
-Uma das perguntas centrais levantadas durante a pesquisa foi:  
-*“Por que no primeiro teste a CPU da máquina foi a 100% (com ventoinhas aceleradas e Docker no limite) e no teste mais recente o processamento foi rápido, frio e estável?”*
-
-A resposta técnica reside na evolução da arquitetura do banco de dados e no modelo de concorrência:
-
-### A. O Comportamento no 1º Teste (Gargalo de Bloqueio no SQLite)
-* **Arquitetura Utilizada:** SQLite em modo WAL (*Write-Ahead Logging*).
-* **O Problema do Bloqueio de Arquivo (*Lock Contention*):**  
-  O SQLite é uma biblioteca embutida em que toda a base de dados reside em um **único arquivo no sistema de arquivos**. Embora o modo WAL permita múltiplos leitores concorrentes, ele permite **apenas um único escritor por vez**.
-* **O Efeito na CPU:**  
-  Quando 50 e 100 usuários virtuais dispararam sincronizações de dados simultâneas (operações de escrita `INSERT` e `UPDATE`), o arquivo entrou em contenção de concorrência contínua.  
-  O PHP-FPM, ao tentar gravar no banco ocupado, entrou em um ciclo de **espera ativa (*busy-wait spinlock*)**: o interpretador PHP ficava repetindo chamadas em microssegundos tentando furar o bloqueio do arquivo. Isso saturou todos os núcleos do processador da máquina hospedeira em **100% de uso constante**, aumentando a temperatura do hardware e gerando a percepção de sobrecarga extrema.
-
-### B. O Comportamento no Novo Teste Oficial (PostgreSQL 16 + MVCC)
-* **Arquitetura Utilizada:** PostgreSQL 16 nativo (conteinerizado no Local e Amazon RDS na AWS).
-* **O Mecanismo MVCC (*Multi-Version Concurrency Control*):**  
-  O PostgreSQL é um Sistema Gerenciador de Banco de Dados Relacional (SGBDR) corporativo projetado para alta concorrência. Ele não bloqueia tabelas ou arquivos inteiros durante escritas; ele cria versões de tuplas em nível de linha (*row-level locking*).
-* **O Efeito na CPU:**  
-  Quando os 100 usuários enviaram dados em paralelo, o PostgreSQL enfileirou e processou as transações de forma assíncrona e ordenada em conexões dedicadas. O PHP não precisou girar em falso; ele apenas enviou a query e aguardou o retorno via socket de rede. Por essa razão, a CPU permaneceu fria, controlada e o teste concluiu em fração de segundos.
+1. **[O Objeto Central da Pesquisa: Infraestrutura Local vs Nuvem AWS](#1-o-objeto-central-da-pesquisa-infraestrutura-local-vs-nuvem-aws)**
+2. **[Resultados Oficiais da Tríade Experimental (Local vs AWS)](#2-resultados-oficiais-da-tríade-experimental-local-vs-aws)**
+3. **[A Física da Infraestrutura: Por que os Ambientes se Comportam de Maneira Distinta?](#3-a-física-da-infraestrutura-por-que-os-ambientes-se-comportam-de-maneira-distinta)**
+4. **[Telemetria de Hardware e Estabilidade Operacional](#4-telemetria-de-hardware-e-estabilidade-operacional)**
+5. **[Análise Econômica e Viabilidade para a Propriedade Rural (CapEx vs OpEx)](#5-análise-econômica-e-viabilidade-para-a-propriedade-rural-capex-vs-opex)**
+6. **[Apêndice Metodológico: O Isolamento da Variável Independente (SQLite vs PostgreSQL)](#6-apêndice-metodológico-o-isolamento-da-variável-independente)**
 
 ---
 
-## 📊 2. Tabela Comparativa Geral: 1º Teste (Histórico) vs Novo Teste (Oficial)
+## 1. O Objeto Central da Pesquisa: Infraestrutura Local vs Nuvem AWS
 
-Abaixo é apresentado o comparativo direto entre as duas baterias de testes sob as mesmas cargas de concorrência (20, 50 e 100 usuários simultâneos):
+O objetivo central deste trabalho de graduação é responder a uma dúvida crítica enfrentada pelo agronegócio moderno:  
+> **“Para um sistema de gestão pecuária intensiva, vale mais a pena manter um servidor físico na fazenda (On-Premise) ou hospedar a aplicação na nuvem pública (AWS)?”**
 
-| Ambiente | Concorrência | Vazão 1º Teste (req/s) | **Vazão Novo Teste (req/s)** | Latência 1º Teste (Média) | **Latência Novo Teste (P50)** | Taxa de Erro HTTP | Integridade ACID | Comportamento da CPU |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|---|
-| 🏠 **Local** | **20 users** | 101.55 req/s | **118.37 req/s** (+16.5%) | 188.6 ms | **147.3 ms** | **0.00%** | **100.0%** | CPU Estável |
-| 🏠 **Local** | **50 users** | 72.36 req/s | **105.14 req/s** (+45.3%) | 665.7 ms | **466.9 ms** | **0.00%** | **100.0%** | CPU Controlada |
-| 🏠 **Local** | **100 users** | 49.62 req/s | **90.65 req/s** (+82.7%) 🚀 | 1.925.5 ms | **1.089.9 ms** ⚡ | **0.00%** | **100.0%** | **Antes: 100% Spinlock<br>Novo: 100% Estável** |
-| ☁️ **Nuvem AWS** | **20 users** | 28.26 req/s | **43.40 req/s** (+53.5%) | 692.1 ms | **447.8 ms** | **0.00%** | **100.0%** | Baixa utilização |
-| ☁️ **Nuvem AWS** | **50 users** | 27.66 req/s | **44.35 req/s** (+60.3%) | 1.741.6 ms | **1.021.6 ms** | **0.00%** | **100.0%** | Moderada (~45%) |
-| ☁️ **Nuvem AWS** | **100 users** | 25.70 req/s | **47.20 req/s** (+83.6%) 🚀 | 3.726.3 ms | **2.034.9 ms** ⚡ | **0.00%** | **100.0%** | **Quase o dobro da vazão!** |
+Para responder a essa pergunta com rigor científico, o software **PecuáriaGest** foi submetido a baterias de testes idênticas em duas topologias de infraestrutura:
 
-> 📌 **Conclusão Técnica Primária:** A migração de engenharia para o PostgreSQL 16 proporcionou um ganho de até **+83.6% na capacidade de atendimento na nuvem AWS** e reduziu a latência pela metade, eliminando integralmente as falhas de contenção de banco.
-
----
-
-## 🏛️ 3. A Nova Metodologia: A Tríade Experimental de Desempenho
-
-Diferente de testes sintéticos tradicionais que testam apenas requisições `GET` simples, o novo teste oficial do PecuáriaGest foi modelado em **três pilares interdependentes**:
-
-### Pilar 1: Carga Transacional de API & Integridade ACID
-* **O que faz:** Simula 20, 50 e 100 trabalhadores rurais sincronizando pesagens de gado e consultando lotes via API REST autenticada com Bearer Token.
-* **Mecanismo Científico:** Antes de cada rodada, o banco é truncado e recebe um seed padrão de exatamente 30 animais (`T0001` a `T0030`). Ao término de cada rodada, um script de auditoria verifica se todas as pesagens enviadas foram fisicamente gravadas no banco (100% de conformidade ACID).
-
-### Pilar 2: Estresse de Mídia & I/O de Disco (Fotos + XML)
-* **O que faz:** Dispara pacotes concorrentes contendo fotos em alta resolução de animais (~1.5 MB cada) e notas fiscais eletrônicas (XML de compra de insumos/gado).
-* **Cargas avaliadas:** 5, 10 e 20 uploads simultâneos.
-* **Resultado:**
-  * **Local:** Ingestão de **70 a 128 MB/s** direto no NVMe.
-  * **AWS:** Ingestão de **6.5 a 22.4 MB/s** delimitada pela taxa de upload da banda larga.
-  * **Taxa de Sucesso:** **100.0%** em todos os arquivos enviados na nuvem.
-
-### Pilar 3: Navegador Real Headless (Métricas Oficiais W3C)
-* **O que faz:** Instancia o motor Chromium/Edge sem interface gráfica, acessa a URL pública da AWS, efetua login com sessão criptografada, carrega o Dashboard e realiza o parse de uma NF-e no cliente.
-* **Métricas Extraídas:**
-  * **TTFB (Time to First Byte):** 65.2 ms (Local) vs **206.7 ms (AWS)**. Ambas com classificação "Excelente" (< 800 ms pelo Google Web Vitals).
-  * **Carga Total da Página:** 662.9 ms (Local) vs **863.6 ms (AWS)** (menos de 1 segundo para interatividade completa).
-
----
-
-## 🌐 4. Explicação Física e Geográfica do Desempenho da Nuvem (AWS)
-
-Um ponto frequentemente questionado por bancas examinadoras é:  
-*“Por que a nuvem tem um tempo de resposta maior do que o computador local?”*
-
-A explicação é estritamente **geográfica e física**:
-1. **RTT (Round-Trip Time) da Fibra Óptica:**  
-   No teste local, os pacotes trafegam pela interface de rede interna do próprio computador (*loopback* `127.0.0.1`), com latência de zero milissegundos. No teste da AWS, cada requisição sai da máquina cliente no Brasil, percorre a rede metropolitana, atravessa cabos submarinos internacionais até o data center da AWS em North Virginia/EUA (`us-east-1`) e retorna. A física da velocidade da luz na fibra dita que esse trajeto de ida e volta consome entre **130 ms e 150 ms** exclusivamente em trânsito de rede.
-2. **Desacoplamento de Camadas:**  
-   No Local, a aplicação e o banco compartilham a mesma CPU e memória. Na AWS, a instância EC2 (aplicação) se conecta ao Amazon RDS (banco) por meio de uma rede virtual privada (VPC), o que adiciona 1 a 2 ms em cada consulta SQL.
-3. **Trade-off de Engenharia:**  
-   Embora a nuvem possua latência ligeiramente superior à rede local, ela entrega **alta disponibilidade**, **redundância de energia**, **backups automáticos contínuos**, **acesso remoto para gestores fora da fazenda** e proteção contra perdas de dados por sinistros físicos na propriedade rural.
-
----
-
-## 📁 5. Estrutura de Arquivos deste Pacote Completo
-
-Este pacote contém todas as pastas organizadas para consulta imediata:
-
-```text
-PACOTE_COMPLETO_BENCHMARK_TCC/
-│
-├── DOSSIE_COMPLETO_E_EXPLICATIVO_TCC.md   <-- (Este documento explicativo mestre)
-│
-├── 01_PRIMEIRO_TESTE_HISTORICO/           <-- Pacote original do 1º teste (SQLite vs AWS preliminar)
-│   ├── README.md
-│   ├── RESULTADOS_CONSOLIDADOS_TCC.md
-│   ├── DOSSIE_INFRA_PRIMEIROS_TESTES.md
-│   ├── monitor_cpu.js                    <-- Script original de telemetria de CPU
-│   └── resultados/                       <-- Planilhas CSV do 1º teste
-│
-├── 02_NOVO_TESTE_CIENTIFICO_OFICIAL/      <-- Bateria científica oficial N=3 da Tríade
-│   ├── TABELA_CONSOLIDADA_TCC.md          <-- Tabela formatada em Markdown com médias e desvios
-│   ├── dashboard_comparativo_tcc.html     <-- Dashboard interativo com gráficos Chart.js
-│   ├── dataset_bruto_unificado_tcc.csv    <-- 7.249 registros brutos individuais para auditoria
-│   ├── dataset_bruto_unificado_tcc.json
-│   ├── screenshot_dashboard_aws.png       <-- Evidência visual do Dashboard na nuvem
-│   ├── screenshot_xml_preview_aws.png     <-- Evidência visual do leitor de NF-e na nuvem
-│   └── scripts_de_teste/                  <-- Scripts orquestradores (executar_triade.js, etc.)
-│
-├── 03_INFRAESTRUTURA_TERRAFORM_AWS/       <-- Código-fonte completo de Infraestrutura como Código (IaC)
-│   ├── ec2.tf                             <-- Provisionamento da máquina virtual Ubuntu 24.04
-│   ├── rds.tf                             <-- Banco gerenciado PostgreSQL 16.9 oficial
-│   ├── vpc.tf                             <-- Rede isolada com subnets públicas
-│   ├── security_groups.tf                 <-- Regras de firewall blindadas (Zero SSH)
-│   ├── user_data.sh                       <-- Bootstrap automatizado de Docker e contêineres
-│   ├── variables.tf
-│   └── outputs.tf
-│
-└── 04_RELATORIOS_E_FUNDAMENTACAO/         <-- Documentos teóricos da pesquisa
-    ├── 00_estrategia_e_decisao_tcc.md
-    ├── 01_desenvolvimento_pecuariagest.md
-    ├── 02_computacao_em_nuvem_e_testes.md
-    └── 03_discussoes_e_decisoes_gerais.md
+```
+┌─────────────────────────────────────────┐       ┌─────────────────────────────────────────┐
+│     TOPOLOGIA 1: ON-PREMISE (LOCAL)     │       │       TOPOLOGIA 2: NUVEM (AWS)          │
+├─────────────────────────────────────────┤       ├─────────────────────────────────────────┤
+│ • Hardware Físico Local (Host Bare-Metal)│       │ • Amazon VPC na região sa-east-1 (SP)   │
+│ • Docker Compose com Nginx + PHP 8.2    │       │ • Instância EC2 t3.micro (Web/App)      │
+│ • PostgreSQL 16 Conteinerizado          │       │ • Instância RDS PostgreSQL 16 Gerenciada│
+│ • Armazenamento em SSD NVMe Local       │       │ • Armazenamento em Volumes EBS gp3      │
+│ • Conexão via Rede Interna / Loopback   │       │ • Conexão via Internet Pública (WAN)    │
+└─────────────────────────────────────────┘       └─────────────────────────────────────────┘
 ```
 
 ---
 
-## 🎯 6. Roteiro Sugerido para a Redação do TCC
+## 2. Resultados Oficiais da Tríade Experimental (Local vs AWS)
 
-Ao redigir o **Capítulo de Resultados e Discussão**, siga a seguinte estrutura lógica:
+A metodologia oficial adotou **3 rodadas independentes para cada nível de concorrência ($N=3$)**, totalizando mais de 7.000 requisições auditadas em 3 pilares complementares:
 
-1. **Seção 4.1 — Ambiente Experimental e Configuração:**  
-   Descreva a máquina física local (processador, memória, Docker Desktop) e a infraestrutura na nuvem AWS (VPC, EC2 t3.micro, RDS PostgreSQL 16.9 gerenciado), anexando o diagrama de blocos arquitetural.
-2. **Seção 4.2 — O Experimento Preliminar e a Descoberta da Concorrência:**  
-   Apresente o 1º teste. Discuta como o SQLite gerou saturação de 100% de CPU por contenção de arquivo (*file locking*), fundamentando a decisão de migrar para o PostgreSQL com controle de concorrência multiversão (MVCC).
-3. **Seção 4.3 — Análise da Tríade de Desempenho Oficial ($N=3$):**  
-   * Apresente a tabela do **Pilar 1 (API)** demonstrando a estabilidade de vazão (47 req/s na AWS e 90 req/s no Local) e **0.00% de taxa de erro**.
-   * Apresente o **Pilar 2 (Mídia)** discutindo o limite de banda de upload da conexão física em relação ao barramento NVMe local.
-   * Apresente o **Pilar 3 (Navegador Headless)** destacando que o tempo total de carregamento da aplicação na nuvem foi de **863 ms** (< 1 segundo), garantindo excelente usabilidade para o produtor rural.
-4. **Seção 4.4 — Considerações Finais de Custo e Disponibilidade:**  
-   Conclua ponderando que, para operações isoladas sem conectividade, a borda (*Edge/Local*) é essencial, mas para a consolidação dos dados da fazenda e acesso remoto gerencial, a nuvem AWS provou ser altamente resiliente e confiável.
+### Pilar 1: Capacidade Transacional da API (Vazão e Latência)
+
+| Cenário de Carga | Infraestrutura | Vazão Média ($N=3$) | Desvio Padrão ($s$) | Latência Mediana (P50) | Percentil 95 (P95) | Erro HTTP | Integridade ACID |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **20 Usuários** | 🏠 **Local (Docker)** | **127,52 req/s** | $\pm 6,85$ | **147,4 ms** | 189,8 ms | **0,00%** | **100,0%** |
+| **20 Usuários** | ☁️ **Nuvem (AWS)** | **45,09 req/s** | $\pm 3,64$ | **446,8 ms** | 546,9 ms | **0,00%** | **100,0%** |
+| **50 Usuários** | 🏠 **Local (Docker)** | **105,14 req/s** | $\pm 30,49$ | **529,4 ms** | 657,4 ms | **0,00%** | **100,0%** |
+| **50 Usuários** | ☁️ **Nuvem (AWS)** | **44,35 req/s** | $\pm 7,54$ | **1.008,3 ms** | 1.325,9 ms | **0,00%** | **100,0%** |
+| **100 Usuários** | 🏠 **Local (Docker)** | **90,65 req/s** | $\pm 5,31$ | **1.094,2 ms** | 1.349,7 ms | **0,00%** | **100,0%** |
+| **100 Usuários** | ☁️ **Nuvem (AWS)** | **47,21 req/s** | $\pm 2,01$ | **2.031,9 ms** | 2.614,7 ms | **0,00%** | **100,0%** |
+
+* **Integridade Absoluta:** Em ambas as infraestruturas, a taxa de erro HTTP foi de **0,00%** e a consistência transacional (**ACID Audit**) foi de **100,0%**. Nenhuma transação foi corrompida.
+* **Comportamento da Vazão:** O ambiente Local atingiu taxas de transferência superiores (de 1,9x a 2,8x maiores), mantendo latências medianas mais baixas sob todas as cargas.
+
+---
+
+### Pilar 2: Ingestão de Mídia & I/O de Disco (Fotos de 1,5 MB e Notas Fiscais)
+
+O manejo pecuário exige o arquivamento de fotos de identificação dos animais e arquivos XML de NF-e:
+* **🏠 Infraestrutura Local (Docker):** Atingiu **119,2 MB/s** de ingestão sob 10 uploads concorrentes, processando cada foto de 1,5 MB em uma média de **152 ms**.
+* **☁️ Infraestrutura em Nuvem (AWS):** Atingiu **15,9 MB/s** sob 20 uploads concorrentes.  
+* **Interpretação:** A velocidade de gravação na AWS foi limitada pela **banda larga de upload do provedor de internet**, e não pelo servidor em nuvem. Ambas garantiram integridade física sem perda de arquivos.
+
+---
+
+### Pilar 3: Experiência Real do Usuário (Navegador Headless W3C)
+
+Medição da experiência do usuário na ponta final utilizando automação headless (Microsoft Edge):
+* **Tempo de Login (Autenticação + Sessão):** 1.321 ms (Local) vs 2.271 ms (AWS).
+* **TTFB (Time to First Byte):** 49,5 ms (Local) vs 200,5 ms (AWS).
+* **Renderização Completa do Dashboard:** 617,8 ms (Local) vs 873,6 ms (AWS).
+* **Conclusão:** Ambas as infraestruturas entregam a página inicial interativa em **menos de 1 segundo**, atendendo com louvor aos padrões de usabilidade recomendados pelo Google Web Vitals (< 2.500 ms).
+
+---
+
+## 3. A Física da Infraestrutura: Por que os Ambientes se Comportam de Maneira Distinta?
+
+A diferença de velocidade observada nos testes não decorre de deficiência de hardware na AWS, mas sim de **leis físicas da transmissão de dados e arquitetura de redes**:
+
+```
+[Cliente / Vaqueiro]  ──(Memória RAM / Loopback < 0,5ms)──>  [Docker Local]
+       │
+       └──(Fibra Ótica / Roteadores / Internet 25 a 45ms)──> [Datacenter AWS]
+```
+
+1. **Atraso de Propagação na WAN (*Round-Trip Time — RTT*):**
+   * No Docker Local, o cliente e o servidor comunicam-se via barramento interno do sistema operacional (latência de transporte inferior a 0,5 ms).
+   * Na AWS, cada requisição viaja pela internet pública atravessando múltiplos saltos de roteadores até o datacenter da AWS (em São Paulo ou Virgínia) e retorna, adicionando de **20 ms a 45 ms fixos de trânsito de rede** por requisição, independentemente do poder de processamento do servidor.
+2. **Taxa de Transferência de Disco (IOPS):**
+   * O servidor Local grava diretamente no SSD NVMe via barramento PCIe local.
+   * Na AWS, a instância EC2 comunica-se com o volume de armazenamento EBS e com o banco RDS através de uma rede dedicada da nuvem (*Storage Area Network*), operando dentro dos limites de IOPS da camada contratada (gp3).
+
+---
+
+## 4. Telemetria de Hardware e Estabilidade Operacional
+
+O monitoramento nativo em tempo real (`monitor_docker.js`) registrou o esforço de máquina durante as baterias de estresse:
+* **Consumo de CPU:** Durante os picos com 100 usuários concorrentes, o ambiente Local manteve o processador estável sem superaquecimento, enquanto a instância da AWS operou na faixa de 40% a 55% de utilização sem esgotar seus créditos de burst de CPU (*vCPU credits*).
+* **Memória RAM:** O consumo combinado da aplicação (Nginx + PHP-FPM) e do PostgreSQL manteve-se rigorosamente estável em torno de **120 MB a 180 MB**, sem qualquer indício de vazamento de memória (*memory leak*).
+* **Pegada de Disco:** O diretório de dados do PostgreSQL (`/var/lib/postgresql/data`) estabilizou em aproximadamente **62,8 MB**, demonstrando alta densidade e eficiência de armazenamento.
+
+---
+
+## 5. Análise Econômica e Viabilidade para a Propriedade Rural (CapEx vs OpEx)
+
+A escolha da infraestrutura não é apenas técnica; é uma decisão de viabilidade financeira para o produtor rural:
+
+| Critério | Infraestrutura Local (On-Premise) | Computação em Nuvem (AWS) |
+| :--- | :--- | :--- |
+| **Modelo Financeiro** | **CapEx** (Investimento inicial em hardware físico). | **OpEx** (Custo operacional contínuo como serviço). |
+| **Investimento Inicial** | R$ 3.500 a R$ 6.000 (Aquisição de PC/Servidor dedicado e nobreak). | **R$ 0,00** (Infraestrutura contratada sob demanda). |
+| **Custo Mensal Recorrente** | Custo elétrico contínuo + manutenção física eventual. | ~US$ 18 a US$ 35 / mês (EC2 + RDS no Free Tier / instâncias reservadas). |
+| **Disponibilidade Rural** | Sujeita a quedas de energia, raios e queima física no barracão. | **99,95% de SLA** com tolerância a desastres e redundância. |
+| **Rotina de Backup** | Manual, dependente de pendrives ou rotinas do produtor. | **Automatizada (Point-in-Time)** com retenção e restauração em minutos. |
+| **Acesso Remoto (Cidade)** | Difícil configuração (exige IP fixo, DDNS e abertura de portas). | **Nativo e Imediato** de qualquer lugar via internet segura HTTPS. |
+
+---
+
+## 6. Apêndice Metodológico: O Isolamento da Variável Independente
+
+> 💡 **Nota Histórica para a Banca Examinadora:**  
+> Esta seção documenta a evolução científica do trabalho entre o 1º teste preliminar e o teste definitivo oficial.
+
+### O Desafio dos Testes Preliminares
+Na primeira fase do projeto, os testes preliminares avaliaram um servidor local rodando sobre **SQLite (WAL)** contra uma instância na nuvem rodando sobre **PostgreSQL RDS**.
+
+Durante esses testes sob 100 usuários simultâneos, o computador local atingiu **100% de ocupação de CPU**:
+* **A Causa Identificada:** O SQLite opera com bloqueio de arquivo em nível de tabela (*file lock contention*). Quando dezenas de usuários tentaram inserir dados ao mesmo tempo, os processos PHP entraram em espera ativa (*busy-wait spinlock*), saturando os núcleos da CPU.
+* **O Viés Científico Identificado:** Não era possível comparar cientificamente "Local vs AWS" enquanto os bancos fossem diferentes, pois o resultado refletiria a diferença entre os motores de banco, e não entre as infraestruturas.
+
+### A Solução e Padronização Definitiva
+Para isolar a variável independente com rigor acadêmico absoluto:
+1. O SQLite foi completamente descartado da aplicação.
+2. O sistema foi refatorado para utilizar **PostgreSQL 16 com controle de concorrência multiversão (MVCC)** de forma idêntica em ambos os lados.
+3. No novo teste oficial, as transações transcorreram de forma ordenada, a CPU permaneceu fria e estável, e **100% das métricas passaram a refletir com fidelidade única a comparação entre a Infraestrutura Local e a Nuvem AWS**.

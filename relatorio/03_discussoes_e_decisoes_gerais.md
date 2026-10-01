@@ -370,4 +370,41 @@ Para garantir simetria rigorosa, reprodutibilidade científica e controle de cus
 5. **Automação de Testes e Saídas (`outputs.tf`):**
    * Exporta a URL pública da aplicação (`http://<IP>:8080`), o endpoint do RDS e o comando exato já formatado para disparar a Tríade de Testes contra a nuvem.
 
+---
+
+### 🆔 [TCC-DIRETRIZES-VISUAIS-E-DADOS-2026-09-29] Consolidação do Ecossistema TCC: Título Refinado, Pasta de Figuras, Telemetria de Hardware e Automação Mista (Node + Python)
+
+> **Status:** 🟢 **DECIDIDO, ESTRUTURADO E REGISTRADO**  
+> **Identificador Único:** `[TCC-DIRETRIZES-VISUAIS-E-DADOS-2026-09-29]`  
+> **Data de Registro:** 29/09/2026  
+> **Branch de Desenvolvimento:** `main`
+
+#### 1. Refinamento do Título da Monografia
+* **Diretriz da Orientação:** O professor orientador recomendou suprimir listas exaustivas no título ("com foco em custo, desempenho...") e explicitar o estudo de caso prático.
+* **Título Oficial Adotado:**  
+  * *"INFRAESTRUTURA EM NUVEM VERSUS ON-PREMISE: ESTUDO DE CASO E BENCHMARK DO SISTEMA PECUÁRIAGEST NA AMAZON WEB SERVICES"*
+
+#### 2. Organização Estrutural de Figuras e Imagens (`relatorio/figuras_tcc/`)
+* Para evitar dispersão de arquivos e facilitar a importação na monografia em Word/LaTeX, foi padronizado o diretório `relatorio/figuras_tcc/`:
+  - `figura1_arquitetura_local.png`: Topologia Docker Compose On-Premise.
+  - `figura2_arquitetura_nuvem.png`: Topologia AWS VPC, EC2 e RDS.
+  - `figura3_software_telas_compostas.png`: Painel composto de interfaces do PecuáriaGest (Login, Dashboard, Pesagens) para o Capítulo 3 (Metodologia).
+  - `figura4_evidencia_docker.png`: Captura do Docker Desktop e status de containers.
+  - `figura5_evidencia_aws_ec2.png`: Captura do console AWS EC2 (t2/t3.micro).
+  - `figura6_evidencia_aws_rds.png`: Captura do console Amazon RDS PostgreSQL 16.
+  - `figura7_terminal_benchmark.png`: Captura do orquestrador de benchmark em execução.
+
+#### 3. Motor de Telemetria de Hardware em Tempo Real (`monitor_docker.js`)
+* Implementação de monitor nativo que realiza amostragem a cada 1 segundo:
+  - CPU (%) e Memória RAM (MB e %) via `docker stats --no-stream`.
+  - Tráfego de Rede (Net I/O) e Operações de Disco (Block I/O).
+  - Espaço Físico Ocupado em Disco pelo PostgreSQL via `du -sk /var/lib/postgresql/data`.
+
+#### 4. Estratégia de Automação Mista (Node.js + Python + Dashboard HTML)
+* **Coleta (Node.js):** Execução assíncrona leve dos testes de carga e gravação dos CSVs brutos em `tests/benchmark/resultados/`.
+* **Tratamento Científico (Python com Pandas & OpenPyXL):** Script `processar_dados_tcc.py` para calcular médias, desvios padrão ($N=3$), P50/P95 e gerar a planilha compilada `DADOS_CONSOLIDADOS_TCC.xlsx` para o grupo.
+* **Visualização e Exportação (Dashboard HTML):** Modos Dark e ABNT (fundo branco), com botões de 1 clique para baixar gráficos em 300 DPI e copiar tabelas prontas para o Word.
+* **Inteligência Assistida (Skill Antigravity):** Skill `tcc-benchmark-analyst` em `.agents/skills/` para guiar a IA na redação e interpretação dos dados.
+
+
 
