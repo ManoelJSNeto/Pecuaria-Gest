@@ -1,0 +1,4 @@
+Timestamp,Env,Run,Engine,Step,Status,Latency_ms,TTFB_ms,DomContentLoaded_ms,XmlItems
+2026-10-01T20:16:56.155Z,local,1,"msedge (Chromium)",login,200,26850.62,,,
+2026-10-01T20:16:56.155Z,local,1,"msedge (Chromium)",dashboard_w3c,200,8010.33,61.30,143.30,
+2026-10-01T20:16:56.155Z,local,1,"msedge (Chromium)",compras_nav,200,6067.13,,,

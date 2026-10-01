@@ -118,6 +118,28 @@
         "file": "benchmark_local_100users_run1_1789163315322.csv"
       },
       {
+        "run": 1,
+        "throughput": 0,
+        "avg": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "errRate": 100,
+        "auditRate": 0,
+        "file": "benchmark_local_100users_run1_1790816157295.csv"
+      },
+      {
+        "run": 1,
+        "throughput": 9.117571079064536,
+        "avg": 3637.705116666669,
+        "p50": 3978.32,
+        "p95": 6097.75,
+        "p99": 6105.81,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_local_100users_run1_1790886122765.csv"
+      },
+      {
         "run": 2,
         "throughput": 89.20606601248885,
         "avg": 1019.7455166666659,
@@ -129,6 +151,28 @@
         "file": "benchmark_local_100users_run2_1789163325103.csv"
       },
       {
+        "run": 2,
+        "throughput": 0,
+        "avg": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "errRate": 100,
+        "auditRate": 0,
+        "file": "benchmark_local_100users_run2_1790816163075.csv"
+      },
+      {
+        "run": 2,
+        "throughput": 8.83912787271656,
+        "avg": 3423.7458333333348,
+        "p50": 4004.46,
+        "p95": 6083.34,
+        "p99": 6090.37,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_local_100users_run2_1790886196427.csv"
+      },
+      {
         "run": 3,
         "throughput": 96.52509652509652,
         "avg": 928.9410999999991,
@@ -138,6 +182,28 @@
         "errRate": 0,
         "auditRate": 100,
         "file": "benchmark_local_100users_run3_1789163334355.csv"
+      },
+      {
+        "run": 3,
+        "throughput": 0,
+        "avg": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "errRate": 100,
+        "auditRate": 0,
+        "file": "benchmark_local_100users_run3_1790816168434.csv"
+      },
+      {
+        "run": 3,
+        "throughput": 9.448521306415545,
+        "avg": 3481.040483333333,
+        "p50": 3907.86,
+        "p95": 6100.07,
+        "p99": 6102.97,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_local_100users_run3_1790886265638.csv"
       }
     ],
     "local_20": [
@@ -153,6 +219,28 @@
         "file": "benchmark_local_20users_run1_1789163279018.csv"
       },
       {
+        "run": 1,
+        "throughput": 0,
+        "avg": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "errRate": 100,
+        "auditRate": 0,
+        "file": "benchmark_local_20users_run1_1790816124635.csv"
+      },
+      {
+        "run": 1,
+        "throughput": 4.074702886247878,
+        "avg": 1556.7110833333334,
+        "p50": 327.77,
+        "p95": 6132.67,
+        "p99": 6138.77,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_local_20users_run1_1790885882176.csv"
+      },
+      {
         "run": 2,
         "throughput": 119.88011988011989,
         "avg": 156.08566666666667,
@@ -164,6 +252,28 @@
         "file": "benchmark_local_20users_run2_1789163283075.csv"
       },
       {
+        "run": 2,
+        "throughput": 0,
+        "avg": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "errRate": 100,
+        "auditRate": 0,
+        "file": "benchmark_local_20users_run2_1790816130197.csv"
+      },
+      {
+        "run": 2,
+        "throughput": 16.400164001640015,
+        "avg": 293.5450833333333,
+        "p50": 152.28,
+        "p95": 2429.03,
+        "p99": 2450.04,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_local_20users_run2_1790885895275.csv"
+      },
+      {
         "run": 3,
         "throughput": 142.51781472684087,
         "avg": 130.14708333333334,
@@ -173,6 +283,28 @@
         "errRate": 0,
         "auditRate": 100,
         "file": "benchmark_local_20users_run3_1789163286949.csv"
+      },
+      {
+        "run": 3,
+        "throughput": 0,
+        "avg": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "errRate": 100,
+        "auditRate": 0,
+        "file": "benchmark_local_20users_run3_1790816135569.csv"
+      },
+      {
+        "run": 3,
+        "throughput": 132.15859030837004,
+        "avg": 148.47250000000003,
+        "p50": 150.5,
+        "p95": 193.66,
+        "p99": 223.76,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_local_20users_run3_1790885902011.csv"
       }
     ],
     "local_50": [
@@ -188,6 +320,28 @@
         "file": "benchmark_local_50users_run1_1789163292223.csv"
       },
       {
+        "run": 1,
+        "throughput": 0,
+        "avg": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "errRate": 100,
+        "auditRate": 0,
+        "file": "benchmark_local_50users_run1_1790816141073.csv"
+      },
+      {
+        "run": 1,
+        "throughput": 5.560601286352431,
+        "avg": 3245.659466666668,
+        "p50": 4012.98,
+        "p95": 6116.05,
+        "p99": 6117.56,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_local_50users_run1_1790885961760.csv"
+      },
+      {
         "run": 2,
         "throughput": 82.23684210526315,
         "avg": 548.6262666666668,
@@ -199,6 +353,28 @@
         "file": "benchmark_local_50users_run2_1789163299025.csv"
       },
       {
+        "run": 2,
+        "throughput": 0,
+        "avg": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "errRate": 100,
+        "auditRate": 0,
+        "file": "benchmark_local_50users_run2_1790816146617.csv"
+      },
+      {
+        "run": 2,
+        "throughput": 8.94534394847482,
+        "avg": 2210.781933333333,
+        "p50": 393.9,
+        "p95": 6110.39,
+        "p99": 6112.61,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_local_50users_run2_1790886001045.csv"
+      },
+      {
         "run": 3,
         "throughput": 93.3125972006221,
         "avg": 489.94409999999965,
@@ -208,6 +384,28 @@
         "errRate": 0,
         "auditRate": 100,
         "file": "benchmark_local_50users_run3_1789163305329.csv"
+      },
+      {
+        "run": 3,
+        "throughput": 0,
+        "avg": 0,
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "errRate": 100,
+        "auditRate": 0,
+        "file": "benchmark_local_50users_run3_1790816152180.csv"
+      },
+      {
+        "run": 3,
+        "throughput": 6.5705900389855,
+        "avg": 2630.502466666666,
+        "p50": 2550.43,
+        "p95": 6077.1,
+        "p99": 6079.53,
+        "errRate": 0,
+        "auditRate": 100,
+        "file": "benchmark_local_50users_run3_1790886051556.csv"
       }
     ]
   },
@@ -310,6 +508,33 @@
         "file": "heavy_uploads_local_10users_run1_1789163341337.csv"
       },
       {
+        "run": 1,
+        "totalMb": 20.025829315185547,
+        "throughputMBs": 0.016425627441338166,
+        "p50Photo": 86.61,
+        "p95Photo": 1215290.96,
+        "successRate": 0,
+        "file": "heavy_uploads_local_10users_run1_1790818625316.csv"
+      },
+      {
+        "run": 1,
+        "totalMb": 20.025829315185547,
+        "throughputMBs": 67.65482876751874,
+        "p50Photo": 300.16,
+        "p95Photo": 338.23,
+        "successRate": 100,
+        "file": "heavy_uploads_local_10users_run1_1790823952849.csv"
+      },
+      {
+        "run": 1,
+        "totalMb": 20.025829315185547,
+        "throughputMBs": 114.43331037248885,
+        "p50Photo": 348.7,
+        "p95Photo": 448.08,
+        "successRate": 100,
+        "file": "heavy_uploads_local_10users_run1_1790886283182.csv"
+      },
+      {
         "run": 2,
         "totalMb": 20.025829315185547,
         "throughputMBs": 117.79899597167967,
@@ -319,6 +544,24 @@
         "file": "heavy_uploads_local_10users_run2_1789163343196.csv"
       },
       {
+        "run": 2,
+        "totalMb": 20.025829315185547,
+        "throughputMBs": 400.51658630371094,
+        "p50Photo": 88.66,
+        "p95Photo": 125.62,
+        "successRate": 0,
+        "file": "heavy_uploads_local_10users_run2_1790818628909.csv"
+      },
+      {
+        "run": 2,
+        "totalMb": 20.025829315185547,
+        "throughputMBs": 108.83602888687797,
+        "p50Photo": 320.54,
+        "p95Photo": 431.91,
+        "successRate": 100,
+        "file": "heavy_uploads_local_10users_run2_1790886287304.csv"
+      },
+      {
         "run": 3,
         "totalMb": 20.025829315185547,
         "throughputMBs": 149.4464874267578,
@@ -326,6 +569,24 @@
         "p95Photo": 183.21,
         "successRate": 100,
         "file": "heavy_uploads_local_10users_run3_1789163345005.csv"
+      },
+      {
+        "run": 3,
+        "totalMb": 20.025829315185547,
+        "throughputMBs": 400.51658630371094,
+        "p50Photo": 100.35,
+        "p95Photo": 155.86,
+        "successRate": 0,
+        "file": "heavy_uploads_local_10users_run3_1790818633289.csv"
+      },
+      {
+        "run": 3,
+        "totalMb": 20.025829315185547,
+        "throughputMBs": 100.12914657592773,
+        "p50Photo": 226.09,
+        "p95Photo": 304.99,
+        "successRate": 100,
+        "file": "heavy_uploads_local_10users_run3_1790886291785.csv"
       }
     ],
     "local_20": [
@@ -339,6 +600,33 @@
         "file": "heavy_uploads_local_20users_run1_1789163347250.csv"
       },
       {
+        "run": 1,
+        "totalMb": 40.051692962646484,
+        "throughputMBs": 678.8422536041777,
+        "p50Photo": 161.22,
+        "p95Photo": 249.7,
+        "successRate": 0,
+        "file": "heavy_uploads_local_20users_run1_1790818637623.csv"
+      },
+      {
+        "run": 1,
+        "totalMb": 40.051692962646484,
+        "throughputMBs": 13.576845072083554,
+        "p50Photo": 469.41,
+        "p95Photo": 569.59,
+        "successRate": 100,
+        "file": "heavy_uploads_local_20users_run1_1790824030206.csv"
+      },
+      {
+        "run": 1,
+        "totalMb": 40.051692962646484,
+        "throughputMBs": 102.17268612920022,
+        "p50Photo": 414.93,
+        "p95Photo": 440.66,
+        "successRate": 100,
+        "file": "heavy_uploads_local_20users_run1_1790886295830.csv"
+      },
+      {
         "run": 2,
         "totalMb": 40.051692962646484,
         "throughputMBs": 61.80816815223223,
@@ -348,6 +636,24 @@
         "file": "heavy_uploads_local_20users_run2_1789163349685.csv"
       },
       {
+        "run": 2,
+        "totalMb": 40.051692962646484,
+        "throughputMBs": 678.8422536041777,
+        "p50Photo": 193.99,
+        "p95Photo": 273.04,
+        "successRate": 0,
+        "file": "heavy_uploads_local_20users_run2_1790818642109.csv"
+      },
+      {
+        "run": 2,
+        "totalMb": 40.051692962646484,
+        "throughputMBs": 95.588766020636,
+        "p50Photo": 513.91,
+        "p95Photo": 732.66,
+        "successRate": 100,
+        "file": "heavy_uploads_local_20users_run2_1790886300869.csv"
+      },
+      {
         "run": 3,
         "totalMb": 40.051692962646484,
         "throughputMBs": 62.974360004161134,
@@ -355,6 +661,24 @@
         "p95Photo": 557.35,
         "successRate": 100,
         "file": "heavy_uploads_local_20users_run3_1789163352099.csv"
+      },
+      {
+        "run": 3,
+        "totalMb": 40.051692962646484,
+        "throughputMBs": 606.8438327673709,
+        "p50Photo": 192.16,
+        "p95Photo": 264.96,
+        "successRate": 0,
+        "file": "heavy_uploads_local_20users_run3_1790818646554.csv"
+      },
+      {
+        "run": 3,
+        "totalMb": 40.051692962646484,
+        "throughputMBs": 93.36058965651861,
+        "p50Photo": 389.39,
+        "p95Photo": 434.59,
+        "successRate": 100,
+        "file": "heavy_uploads_local_20users_run3_1790886305738.csv"
       }
     ],
     "local_5": [
@@ -368,6 +692,33 @@
         "file": "heavy_uploads_local_5users_run1_1789163336068.csv"
       },
       {
+        "run": 1,
+        "totalMb": 10.01291275024414,
+        "throughputMBs": 200.2582550048828,
+        "p50Photo": 57.29,
+        "p95Photo": 88.86,
+        "successRate": 0,
+        "file": "heavy_uploads_local_5users_run1_1790816172806.csv"
+      },
+      {
+        "run": 1,
+        "totalMb": 10.01291275024414,
+        "throughputMBs": 97.21274514800137,
+        "p50Photo": 253.45,
+        "p95Photo": 274.19,
+        "successRate": 100,
+        "file": "heavy_uploads_local_5users_run1_1790823941828.csv"
+      },
+      {
+        "run": 1,
+        "totalMb": 10.01291275024414,
+        "throughputMBs": 120.63750301498963,
+        "p50Photo": 241.05,
+        "p95Photo": 254.84,
+        "successRate": 100,
+        "file": "heavy_uploads_local_5users_run1_1790886270064.csv"
+      },
+      {
         "run": 2,
         "totalMb": 10.01291275024414,
         "throughputMBs": 139.06823264227975,
@@ -377,6 +728,24 @@
         "file": "heavy_uploads_local_5users_run2_1789163337774.csv"
       },
       {
+        "run": 2,
+        "totalMb": 10.01291275024414,
+        "throughputMBs": 0.008203620627983611,
+        "p50Photo": 32.68,
+        "p95Photo": 1216576.01,
+        "successRate": 0,
+        "file": "heavy_uploads_local_5users_run2_1790817397538.csv"
+      },
+      {
+        "run": 2,
+        "totalMb": 10.01291275024414,
+        "throughputMBs": 105.39908158151727,
+        "p50Photo": 167.23,
+        "p95Photo": 234.63,
+        "successRate": 100,
+        "file": "heavy_uploads_local_5users_run2_1790886274376.csv"
+      },
+      {
         "run": 3,
         "totalMb": 10.01291275024414,
         "throughputMBs": 103.22590464169217,
@@ -384,6 +753,24 @@
         "p95Photo": 139.31,
         "successRate": 100,
         "file": "heavy_uploads_local_5users_run3_1789163339486.csv"
+      },
+      {
+        "run": 3,
+        "totalMb": 10.01291275024414,
+        "throughputMBs": 200.2582550048828,
+        "p50Photo": 50.98,
+        "p95Photo": 83.53,
+        "successRate": 0,
+        "file": "heavy_uploads_local_5users_run3_1790817401825.csv"
+      },
+      {
+        "run": 3,
+        "totalMb": 10.01291275024414,
+        "throughputMBs": 123.61620679313754,
+        "p50Photo": 164.93,
+        "p95Photo": 186.55,
+        "successRate": 100,
+        "file": "heavy_uploads_local_5users_run3_1790886278640.csv"
       }
     ]
   },
@@ -462,6 +849,74 @@
         "page_load_ms": 0,
         "xml_parse_client_ms": 41.3,
         "xml_items": 3
+      },
+      {
+        "env": "local",
+        "engine": "msedge (Chromium)",
+        "timestamp": "2026-10-01T03:04:02.905Z",
+        "login_ms": 12707,
+        "dashboard_total_ms": 10155.7,
+        "ttfb_ms": 62.9,
+        "dom_content_loaded_ms": 130.5,
+        "page_load_ms": 130.7,
+        "xml_parse_client_ms": 0,
+        "xml_items": 0
+      },
+      {
+        "env": "local",
+        "engine": "msedge (Chromium)",
+        "timestamp": "2026-10-01T03:11:20.725Z",
+        "login_ms": 26488,
+        "dashboard_total_ms": 8027.8,
+        "ttfb_ms": 93.6,
+        "dom_content_loaded_ms": 147.7,
+        "page_load_ms": 148,
+        "xml_parse_client_ms": 0,
+        "xml_items": 0
+      },
+      {
+        "env": "local",
+        "engine": "msedge (Chromium)",
+        "timestamp": "2026-10-01T20:16:56.155Z",
+        "login_ms": 26850.6,
+        "dashboard_total_ms": 8010.3,
+        "ttfb_ms": 61.3,
+        "dom_content_loaded_ms": 143.3,
+        "page_load_ms": 143.6,
+        "compras_module_ms": 6067.1
+      },
+      {
+        "env": "local",
+        "engine": "msedge (Chromium)",
+        "timestamp": "2026-10-01T20:27:58.554Z",
+        "login_ms": 8400.9,
+        "dashboard_total_ms": 8050.4,
+        "ttfb_ms": 64.7,
+        "dom_content_loaded_ms": 145.1,
+        "page_load_ms": 145.6,
+        "compras_module_ms": 6082.7
+      },
+      {
+        "env": "local",
+        "engine": "msedge (Chromium)",
+        "timestamp": "2026-10-01T20:30:47.358Z",
+        "login_ms": 8589.2,
+        "dashboard_total_ms": 8130.2,
+        "ttfb_ms": 59,
+        "dom_content_loaded_ms": 131.3,
+        "page_load_ms": 131.7,
+        "compras_module_ms": 6067.1
+      },
+      {
+        "env": "local",
+        "engine": "msedge (Chromium)",
+        "timestamp": "2026-10-01T20:33:36.519Z",
+        "login_ms": 9006.4,
+        "dashboard_total_ms": 8079.7,
+        "ttfb_ms": 70.9,
+        "dom_content_loaded_ms": 151.7,
+        "page_load_ms": 152.3,
+        "compras_module_ms": 6060.5
       }
     ]
   }

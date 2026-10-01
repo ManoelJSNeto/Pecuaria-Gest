@@ -1,0 +1,4 @@
+Timestamp,Env,Pilar,Concurrency,Run,Container,CPU_Perc,Mem_MB,Mem_Limit_MB,Mem_Perc,Block_Read_MB,Block_Write_MB,Net_In_MB,Net_Out_MB,DB_Size_MB
+2026-10-01T03:05:51.988Z,local,"Pilar 2 (Mídia)",10,1,pecuaria-gest-web,0.00,16.53,7806.98,0.21,1.58,0.00,11.00,11.30,62.87
+2026-10-01T03:05:51.988Z,local,"Pilar 2 (Mídia)",10,1,pecuaria-gest-app,0.01,16.71,7806.98,0.21,47.90,0.02,10.90,0.72,62.87
+2026-10-01T03:05:51.988Z,local,"Pilar 2 (Mídia)",10,1,pecuaria-gest-db,1.01,37.29,7806.98,0.48,82.90,0.60,0.08,0.13,62.87

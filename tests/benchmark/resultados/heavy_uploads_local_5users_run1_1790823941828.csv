@@ -1,0 +1,11 @@
+Timestamp,Worker,Type,Bytes,Latency_ms,Status,Ok,Env,Concurrency,Run
+2026-10-01T03:05:41.590Z,4,foto_app_sync,2097458,198.73,200,1,local,5,1
+2026-10-01T03:05:41.591Z,1,foto_app_sync,2097458,265.32,200,1,local,5,1
+2026-10-01T03:05:41.622Z,2,foto_app_sync,2097458,253.45,200,1,local,5,1
+2026-10-01T03:05:41.623Z,5,foto_app_sync,2097458,220.89,200,1,local,5,1
+2026-10-01T03:05:41.642Z,1,xml_nfe_check,2402,50.45,200,1,local,5,1
+2026-10-01T03:05:41.654Z,3,foto_app_sync,2097458,274.19,200,1,local,5,1
+2026-10-01T03:05:41.661Z,4,xml_nfe_check,2402,71.11,200,1,local,5,1
+2026-10-01T03:05:41.672Z,2,xml_nfe_check,2402,50.09,200,1,local,5,1
+2026-10-01T03:05:41.681Z,5,xml_nfe_check,2402,57.83,200,1,local,5,1
+2026-10-01T03:05:41.693Z,3,xml_nfe_check,2402,39.24,200,1,local,5,1

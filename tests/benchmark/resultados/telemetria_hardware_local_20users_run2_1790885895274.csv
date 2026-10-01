@@ -1,0 +1,13 @@
+Timestamp,Env,Pilar,Concurrency,Run,Container,CPU_Perc,Mem_MB,Mem_Limit_MB,Mem_Perc,Block_Read_MB,Block_Write_MB,Net_In_MB,Net_Out_MB,DB_Size_MB
+2026-10-01T20:18:07.588Z,local,"Pilar 1 (API Transacional)",20,2,pecuaria-gest-web,0.00,15.50,7806.98,0.20,3.17,0.00,2.03,1.07,62.85
+2026-10-01T20:18:07.588Z,local,"Pilar 1 (API Transacional)",20,2,pecuaria-gest-app,0.01,15.88,7806.98,0.20,47.90,0.01,1.39,2.58,62.85
+2026-10-01T20:18:07.588Z,local,"Pilar 1 (API Transacional)",20,2,pecuaria-gest-db,0.02,40.59,7806.98,0.52,63.20,6.68,0.64,1.20,62.85
+2026-10-01T20:18:10.920Z,local,"Pilar 1 (API Transacional)",20,2,pecuaria-gest-web,0.00,15.83,7806.98,0.20,3.17,0.00,3.73,1.46,62.93
+2026-10-01T20:18:10.920Z,local,"Pilar 1 (API Transacional)",20,2,pecuaria-gest-app,0.01,15.64,7806.98,0.20,48.10,0.01,2.65,4.72,62.93
+2026-10-01T20:18:10.920Z,local,"Pilar 1 (API Transacional)",20,2,pecuaria-gest-db,0.04,41.14,7806.98,0.53,63.20,8.18,1.17,2.28,62.93
+2026-10-01T20:18:12.941Z,local,"Pilar 1 (API Transacional)",20,2,pecuaria-gest-web,0.00,15.83,7806.98,0.20,3.17,0.00,3.73,1.46,62.93
+2026-10-01T20:18:12.941Z,local,"Pilar 1 (API Transacional)",20,2,pecuaria-gest-app,0.00,15.49,7806.98,0.20,48.10,0.01,2.65,4.72,62.93
+2026-10-01T20:18:12.941Z,local,"Pilar 1 (API Transacional)",20,2,pecuaria-gest-db,0.05,40.43,7806.98,0.52,63.20,8.18,1.17,2.28,62.93
+2026-10-01T20:18:14.962Z,local,"Pilar 1 (API Transacional)",20,2,pecuaria-gest-web,0.00,15.83,7806.98,0.20,3.17,0.00,3.73,1.46,62.93
+2026-10-01T20:18:14.962Z,local,"Pilar 1 (API Transacional)",20,2,pecuaria-gest-app,0.01,15.48,7806.98,0.20,48.10,0.01,2.65,4.72,62.93
+2026-10-01T20:18:14.962Z,local,"Pilar 1 (API Transacional)",20,2,pecuaria-gest-db,0.00,41.06,7806.98,0.53,63.20,8.18,1.17,2.28,62.93

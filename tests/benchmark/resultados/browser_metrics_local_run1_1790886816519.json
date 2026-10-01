@@ -1,0 +1,11 @@
+{
+  "env": "local",
+  "engine": "msedge (Chromium)",
+  "timestamp": "2026-10-01T20:33:36.519Z",
+  "login_ms": 9006.4,
+  "dashboard_total_ms": 8079.7,
+  "ttfb_ms": 70.9,
+  "dom_content_loaded_ms": 151.7,
+  "page_load_ms": 152.3,
+  "compras_module_ms": 6060.5
+}

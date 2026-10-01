@@ -22,7 +22,7 @@ function getArg(flag, defaultValue) {
   return (index !== -1 && args[index + 1]) ? args[index + 1] : defaultValue;
 }
 
-const TARGET_URL = getArg('--url', 'http://localhost:8080');
+const TARGET_URL = getArg('--url', 'http://127.0.0.1:8080');
 const ENV_LABEL = getArg('--env', 'local');
 const IS_OFICIAL = args.includes('--modo') && (args[args.indexOf('--modo') + 1] === 'oficial' || args[args.indexOf('--modo') + 1] === 'completo');
 
@@ -77,6 +77,9 @@ async function main() {
     }
 
     // PILAR 3: 3 sessões de navegador
+    console.log('\n⏳ Aguardando cooldown de 4s para estabilização de sockets de rede...');
+    await sleep(4000);
+
     for (let runNum = 1; runNum <= 3; runNum++) {
       console.log(`\n▶️ [PILAR 3] Navegador Headless — Repetição ${runNum}/3...`);
       await runPilar3({ url: TARGET_URL, env: ENV_LABEL, run: runNum }).catch(console.error);
@@ -87,10 +90,15 @@ async function main() {
   // CONSOLIDAÇÃO FINAL AUTOMÁTICA
   console.log('\n>>> CONSOLIDANDO TODAS AS TELEMETRIAS E GERANDO RELATÓRIO DO TCC...');
   consolidar();
+  console.log('\n✨ [SUCESSO] Triade de benchmarks e telemetria concluida com exito!\n');
+  process.exit(0);
 }
 
 if (require.main === module) {
-  main().catch(console.error);
+  main().catch(err => {
+    console.error(err);
+    process.exit(1);
+  });
 }
 
 module.exports = { main };
