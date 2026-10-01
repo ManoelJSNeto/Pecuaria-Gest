@@ -223,6 +223,40 @@ class DockerMonitor {
 // Instância singleton para uso simples nos scripts
 const monitor = new DockerMonitor();
 
+// Execução Standalone via CLI (útil para rodar na EC2 via SSH)
+if (require.main === module) {
+  const args = process.argv.slice(2);
+  const env = args.includes('--env') ? args[args.indexOf('--env') + 1] : 'aws';
+  const concurrency = args.includes('--concurrency') ? parseInt(args[args.indexOf('--concurrency') + 1], 10) : 100;
+  const run = args.includes('--run') ? parseInt(args[args.indexOf('--run') + 1], 10) : 1;
+
+  console.log('================================================================');
+  console.log(`📡 MONITOR DE TELEMETRIA DOCKER STANDALONE [${env.toUpperCase()}]`);
+  console.log('================================================================');
+  console.log('Coletando CPU %, Memória RAM, I/O e Storage a cada 1 segundo...');
+  console.log('⚡ Pressione Ctrl+C a qualquer momento para finalizar e salvar o CSV.\n');
+
+  monitor.start({ env, pilar: 'Bateria Remota', concurrency, run });
+
+  function finish() {
+    console.log('\n🛑 Interrupção recebida. Gravando dados brutos de telemetria...');
+    const res = monitor.stop();
+    if (res.hasData) {
+      console.log(`✅ Arquivo CSV gerado: ${res.csvFile}`);
+      console.log(`📊 Total de Amostras: ${res.samplesCount}`);
+      console.log(`🔥 Pico de CPU Geral: ${res.cpuPeak}% (Média: ${res.cpuAvg}%)`);
+      console.log(`🧠 Pico de RAM Geral: ${res.ramPeakMb} MB (Média: ${res.ramAvgMb} MB)`);
+      if (res.dbSizeMb > 0) console.log(`💾 Tamanho do Banco de Dados: ${res.dbSizeMb} MB`);
+    } else {
+      console.log('⚠️ Nenhuma amostra foi coletada.');
+    }
+    process.exit(0);
+  }
+
+  process.on('SIGINT', finish);
+  process.on('SIGTERM', finish);
+}
+
 module.exports = {
   DockerMonitor,
   monitor
